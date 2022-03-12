@@ -17,9 +17,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <kotlin.version>1.6.10</kotlin.version>
     <zeebe.version>1.3.0</zeebe.version>
+    <zeeqs.version>2.1.1</zeeqs.version>
 
+    <kotlin.version>1.6.10</kotlin.version>
     <spring.boot.version>2.6.4</spring.boot.version>
 
     <!-- release parent settings -->
@@ -31,10 +32,23 @@
 
   <dependencyManagement>
     <dependencies>
+
       <dependency>
         <groupId>io.zeebe.zeeqs</groupId>
-        <artifactId>app</artifactId>
-        <version>2.1.1</version>
+        <artifactId>graphql-api</artifactId>
+        <version>${zeeqs.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.zeebe.zeeqs</groupId>
+        <artifactId>hazelcast-importer</artifactId>
+        <version>${zeeqs.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.zeebe.zeeqs</groupId>
+        <artifactId>data</artifactId>
+        <version>${zeeqs.version}</version>
       </dependency>
 
       <dependency>
@@ -60,10 +74,8 @@
   </dependencyManagement>
 
   <dependencies>
-    <dependency>
-      <groupId>io.zeebe.zeeqs</groupId>
-      <artifactId>app</artifactId>
-    </dependency>
+
+    <!-- ZeeQS dependencies -->
 
     <dependency>
       <groupId>io.zeebe.zeeqs</groupId>
@@ -80,14 +92,32 @@
       <artifactId>data</artifactId>
     </dependency>
 
+    <!-- Kotlin dependencies -->
+
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib-jdk8</artifactId>
     </dependency>
 
+    <!-- Spring dependencies -->
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- Database drivers -->
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
   </dependencies>

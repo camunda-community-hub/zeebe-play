@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+zeebe:
+  client:
+    worker:
+      hazelcast:
+        connection: localhost:5701
+        connectionTimeout: PT1M
+        ringbuffer: zeebe
+        connectionInitialBackoff: PT15S
+        connectionBackoffMultiplier: 2.0
+        connectionMaxBackoff: PT30S
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:zeeqs;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driverClassName: org.h2.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
