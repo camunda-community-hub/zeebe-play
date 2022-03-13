@@ -6,10 +6,12 @@ import io.zeebe.zeeqs.importer.hazelcast.HazelcastProperties
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.data.web.config.EnableSpringDataWebSupport
 import javax.annotation.PostConstruct
 
 
 @SpringBootApplication
+@EnableSpringDataWebSupport
 open class ZeebePlayApplication(
     val hazelcastProperties: HazelcastProperties,
     val hazelcastImporter: HazelcastImporter
