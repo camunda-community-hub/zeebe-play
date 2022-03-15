@@ -45,6 +45,42 @@
     </div>
   </div>
 
+  <div class="row justify-content-center">
+    <div class="col-auto">
+
+      <nav aria-label="Page navigation processes" id="processes-pagination">
+        <ul class="pagination">
+          <li class="page-item" id="processes-pagination-previous-button"><a class="page-link" href="#" onclick="loadProcessesPrevious();">Previous</a></li>
+
+          <li class="page-item"><a class="page-link" href="#" id="processes-pagination-first" onclick="loadProcessesFirst();">1</a></li>
+
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="gap" id="processes-pagination-first-gap">
+              <span aria-hidden="true">..</span>
+            </a>
+          </li>
+
+          <li class="page-item"><a class="page-link" href="#" id="processes-pagination-previous" onclick="loadProcessesPrevious();">2</a></li>
+
+          <li class="page-item active"><a class="page-link" href="#" id="processes-pagination-current">3</a></li>
+
+          <li class="page-item"><a class="page-link" href="#" id="processes-pagination-next" onclick="loadProcessesNext();">4</a></li>
+
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="gap" id="processes-pagination-last-gap">
+              <span aria-hidden="true">..</span>
+            </a>
+          </li>
+
+          <li class="page-item"><a class="page-link" href="#" id="processes-pagination-last" onclick="loadProcessesLast();">5</a></li>
+
+          <li class="page-item" id="processes-pagination-next-button"><a class="page-link" href="#" onclick="loadProcessesNext();">Next</a></li>
+        </ul>
+      </nav>
+
+    </div>
+  </div>
+
 </div>
 
 <footer th:replace="fragments/footer :: footer"></footer>

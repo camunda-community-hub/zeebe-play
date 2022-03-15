@@ -1,5 +1,5 @@
-const processesQuery = `{  
-    processes {
+const processesQuery = `query Processes($perPage: Int!, $page: Int!) {  
+    processes(perPage: $perPage, page: $page) {
       totalCount
       nodes {
         key
@@ -13,7 +13,7 @@ const processesQuery = `{
     }
   }`;
 
-function queryProcesses() {
+function queryProcesses(perPage, page) {
 
   return fetch('/graphql', {
     method: 'POST',
@@ -21,7 +21,10 @@ function queryProcesses() {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
-    body: JSON.stringify({query: processesQuery})
+    body: JSON.stringify({
+      query: processesQuery,
+      variables: {perPage, page},
+    })
   })
       .then(r => r.json())
       .then(response => response.data)
