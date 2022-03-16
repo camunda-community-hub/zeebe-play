@@ -1,6 +1,7 @@
 package org.camunda.community.zeebe.play
 
 
+import io.camunda.zeebe.spring.client.EnableZeebeClient
 import io.zeebe.zeeqs.importer.hazelcast.HazelcastImporter
 import io.zeebe.zeeqs.importer.hazelcast.HazelcastProperties
 import org.slf4j.LoggerFactory
@@ -12,6 +13,7 @@ import javax.annotation.PostConstruct
 
 @SpringBootApplication
 @EnableSpringDataWebSupport
+@EnableZeebeClient
 open class ZeebePlayApplication(
     val hazelcastProperties: HazelcastProperties,
     val hazelcastImporter: HazelcastImporter

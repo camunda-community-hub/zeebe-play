@@ -5,68 +5,83 @@
 
 <div th:replace="fragments/navbar :: navbar"></div>
 
+<div th:replace="views/new-instance-modal.html :: #new-instance-modal"></div>
+
 <div class="container-fluid">
 
-  <div class="row">
+  <div class="row justify-content-between">
     <div class="col">
+
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="/view/deployment">Processes</a></li>
           <li class="breadcrumb-item active" aria-current="page" id="process-page-key" th:text="${processKey}"></li>
         </ol>
       </nav>
+
     </div>
+
+    <div class="col-auto">
+
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-primary overlay-button" onclick="createNewProcessInstance();">
+          <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#play"/></svg>
+          New Instance
+        </button>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#new-instance-modal" href="#">with variables</a></li>
+        </ul>
+      </div>
+
+    </div>
+
   </div>
 
   <div class="row">
-    <div class="col-3">
+    <div class="col-2">
 
       <table class="table table-striped">
         <tbody>
         <tr>
           <th>Process Key</th>
+        </tr>
+        <tr>
           <td id="process-key"></td>
         </tr>
         <tr>
           <th>BPMN Process Id</th>
+        </tr>
+        <tr>
           <td id="bpmnProcessId"></td>
         </tr>
         <tr>
           <th>Version</th>
+        </tr>
+        <tr>
           <td id="process-version"></td>
         </tr>
         <tr>
           <th>Deployment Time</th>
+        </tr>
+        <tr>
           <td id="process-deployment-time"></td>
         </tr>
-        <!--
-        <tr>
-          <th># Instances
-            <span class="badge bg-primary">active</span> /
-            <span class="badge bg-secondary">completed</span> /
-            <span class="badge bg-secondary">terminated</span>
-          </th>
-          <td>
-            <span class="badge bg-primary" id="instances-active">0</span> /
-            <span class="badge bg-secondary"  id="instances-completed">0</span> /
-            <span class="badge bg-secondary"  id="instances-terminated">0</span>
-          </td>
-        </tr>
-        -->
         </tbody>
       </table>
 
     </div>
 
-    <div class="col-9">
-
-      <div id="canvas"></div>
-
+    <div class="col-10">
+      <div id="canvas" style="height: 100%;"></div>
     </div>
-
   </div>
 
-
+  <div class="row">
+    <div class="col">
+      <div th:replace="views/process-details :: process-details"></div>
+    </div>
+  </div>
 
 </div>
 

@@ -23,31 +23,66 @@ const processQuery = `query Process($key: ID!) {
     }
   }`;
 
+const instancesByProcessQuery = `query InstancesOfProcess($key: ID!, $perPage: Int!, $page: Int!) {  
+    process(key: $key) {
+    
+      activeInstances: processInstances(stateIn: [ACTIVATED]) {totalCount}
+      completedInstances: processInstances(stateIn: [COMPLETED]) {totalCount}
+      terminatedInstances: processInstances(stateIn: [TERMINATED]) {totalCount}
+    
+      processInstances(perPage: $perPage, page: $page) {
+        totalCount
+        nodes {
+          key
+          startTime
+          endTime
+          state
+          incidents(stateIn: [CREATED]) {
+            key
+          }
+        }
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
-  return fetch('/graphql', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({
+  return $.ajax({
+    type: 'POST',
+    url: '/graphql/',
+    data: JSON.stringify({
       query,
       variables,
-    })
+    }),
+    contentType: 'application/json; charset=utf-8',
+    accept: 'application/json; charset=utf-8',
+    timeout: 5000,
+    crossDomain: true,
   })
-      .then(r => r.json())
-      .then(response => response.data);
+      .done(function (data) {
+        return data.data;
+      })
+      .fail(showFailure(
+          "zeeqs-query-failed-" + query,
+          "Failed to query data from ZeeQS's GraphQL API")
+      );
 }
 
 function queryProcesses(perPage, page) {
 
-  return fetchData(processesQuery, {perPage: perPage, page: page})
-      .then(data => data.processes);
+  return fetchData(processesQuery, {perPage: perPage, page: page});
 }
 
 function queryProcess(processKey) {
 
-  return fetchData(processQuery, {key: processKey})
-      .then(data => data.process);
+  return fetchData(processQuery, {key: processKey});
+}
+
+function queryInstancesByProcess(processKey, perPage, page) {
+
+  return fetchData(instancesByProcessQuery, {
+    key: processKey,
+    perPage: perPage,
+    page: page
+  });
 }

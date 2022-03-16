@@ -1,0 +1,12 @@
+/* for BPMN */
+.highlight-overlay {
+  background-color: #20ed20; /* color elements as green */
+  opacity: 0.9;
+  border-radius: 5px;
+  pointer-events: none; /* no pointer events, allows clicking through onto the element */
+}
+
+.overlay-button {
+  /* background-color: #20ed20; */
+  opacity: 0.9;
+}
