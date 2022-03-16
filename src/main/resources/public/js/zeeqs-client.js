@@ -13,7 +13,17 @@ const processesQuery = `query Processes($perPage: Int!, $page: Int!) {
     }
   }`;
 
-function queryProcesses(perPage, page) {
+const processQuery = `query Process($key: ID!) {  
+    process(key: $key) {
+      key
+      bpmnProcessId
+      version
+      deployTime
+      bpmnXML
+    }
+  }`;
+
+function fetchData(query, variables) {
 
   return fetch('/graphql', {
     method: 'POST',
@@ -22,11 +32,22 @@ function queryProcesses(perPage, page) {
       'Accept': 'application/json',
     },
     body: JSON.stringify({
-      query: processesQuery,
-      variables: {perPage, page},
+      query,
+      variables,
     })
   })
       .then(r => r.json())
-      .then(response => response.data)
+      .then(response => response.data);
+}
+
+function queryProcesses(perPage, page) {
+
+  return fetchData(processesQuery, {perPage: perPage, page: page})
       .then(data => data.processes);
+}
+
+function queryProcess(processKey) {
+
+  return fetchData(processQuery, {key: processKey})
+      .then(data => data.process);
 }

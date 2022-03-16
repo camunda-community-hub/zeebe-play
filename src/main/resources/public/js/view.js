@@ -22,7 +22,9 @@ function loadProcesses(currentPage) {
         processes.nodes.forEach((node, index) => {
           $("#processes-table tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
-              + '<td>' + node.key +'</td>'
+              + '<td>'
+              + '<a href="/view/process/' + node.key + '">' + node.key + '</a>'
+              + '</td>'
               + '<td>' + node.bpmnProcessId +'</td>'
               + '<td>' + node.version +'</td>'
               + '<td>' + node.deployTime +'</td>'
@@ -117,4 +119,58 @@ function loadProcessesNext() {
 function loadProcessesLast() {
   let last = $("#processes-pagination-last").text() - 1;
   loadProcesses(last);
+}
+
+function loadProcessView() {
+  const processKey = $("#process-page-key").text();
+
+  queryProcess(processKey)
+      .then(process => {
+        $("#process-key").text(process.key);
+        $("#bpmnProcessId").text(process.bpmnProcessId);
+        $("#process-version").text(process.version);
+        $("#process-deployment-time").text(process.deployTime);
+
+        const bpmnXML = process.bpmnXML;
+        showBpmn(bpmnXML);
+      });
+}
+
+function showBpmn(bpmnXML) {
+  var bpmnViewer = new BpmnJS({
+    container: '#canvas'
+  });
+
+  async function openDiagram(bpmnXML) {
+
+    try {
+      await bpmnViewer.importXML(bpmnXML);
+
+      // access viewer components
+      var canvas = bpmnViewer.get('canvas');
+      var overlays = bpmnViewer.get('overlays');
+
+
+      // zoom to fit full viewport
+      canvas.zoom('fit-viewport');
+
+      /*
+      // attach an overlay to a node
+      overlays.add('SCAN_OK', 'note', {
+        position: {
+          bottom: 0,
+          right: 0
+        },
+        html: '<div class="diagram-note">Mixed up the labels?</div>'
+      });
+
+      // add marker
+      canvas.addMarker('SCAN_OK', 'needs-discussion');
+      */
+    } catch (err) {
+      console.error('could not import BPMN 2.0 diagram', err);
+    }
+  }
+
+  openDiagram(bpmnXML);
 }
