@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/rest/processes")
-class ProcessesResources(private val zeebeClient: ZeebeClient) {
+class ProcessesResource(private val zeebeClient: ZeebeClient) {
 
     @RequestMapping(path = ["/{processKey}"], method = [RequestMethod.POST])
     fun createInstance(@PathVariable("processKey") processKey: Long, @RequestBody variables: String): Long {

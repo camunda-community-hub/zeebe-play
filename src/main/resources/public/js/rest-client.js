@@ -17,3 +17,19 @@ function sendRequest(path, data) {
 function sendCreateInstanceRequest(processKey, variables) {
   return sendRequest("processes/" + processKey,  variables);
 }
+
+function sendPublishMessageRequestWithName(messageName) {
+  return sendRequest("messages", {
+    messageName: messageName
+  });
+}
+
+function sendPublishMessageRequest(messageName, correlationKey, variables, timeToLive, messageId) {
+  return sendRequest("messages", {
+    messageName: messageName,
+    correlationKey: correlationKey,
+    variables: variables,
+    timeToLive: timeToLive,
+    messageId: messageId
+  });
+}

@@ -45,6 +45,19 @@ const instancesByProcessQuery = `query InstancesOfProcess($key: ID!, $perPage: I
     }
   }`;
 
+const messageSubscriptionsByProcessQuery = `query MessageSubscriptionsOfProcess($key: ID!) {  
+    process(key: $key) {
+    
+      messageSubscriptions {
+        key
+        messageName            
+        messageCorrelations {
+          timestamp
+        }
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -84,5 +97,12 @@ function queryInstancesByProcess(processKey, perPage, page) {
     key: processKey,
     perPage: perPage,
     page: page
+  });
+}
+
+function queryMessageSubscriptionsByProcess(processKey) {
+
+  return fetchData(messageSubscriptionsByProcessQuery, {
+    key: processKey
   });
 }

@@ -21,6 +21,7 @@ function loadProcessView() {
       });
 
   loadInstancesOfProcess(0);
+  loadMessageSubscriptionsOfProcess();
 }
 
 function loadInstancesOfProcess(currentPage) {
@@ -141,4 +142,98 @@ function showNotificationNewInstanceCreated(processInstanceKey) {
   const content = 'New process instance <a id="new-instance-toast-link" href="/views/process-instance/"' + processInstanceKey + '>' + processInstanceKey + '</a> created.';
 
   showNotificationSuccess(toastId, content);
+}
+
+function loadMessageSubscriptionsOfProcess() {
+
+  const processKey = getProcessKey();
+
+  queryMessageSubscriptionsByProcess(processKey)
+      .done(function (response) {
+
+        let process = response.data.process;
+
+        let messageSubscriptions = process.messageSubscriptions;
+        let totalCount = messageSubscriptions.length;
+
+        $("#message-subscriptions-total-count").text(totalCount);
+
+        $("#message-subscriptions-of-process-table tbody").empty();
+
+        const indexOffset = 1;
+
+        messageSubscriptions.forEach((messageSubscription, index) => {
+
+          let correlatedMessageCount = messageSubscription.messageCorrelations.length;
+
+          let actionButton = '<div class="btn-group">'
+              + '<button type="button" class="btn btn-sm btn-primary overlay-button" onclick="publishMessage(\'' + messageSubscription.messageName + '\');">'
+              + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
+              + ' Publish Message'
+              + '</button>'
+              + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
+              + '<ul class="dropdown-menu">'
+              + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#publish-message-modal" href="#" onclick="fillPublishMessageModal(\'' + messageSubscription.messageName  + '\');">with variables</a></li>'
+              + '</ul>'
+              + '</div>';
+
+          $("#message-subscriptions-of-process-table tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + messageSubscription.key + '</td>'
+              + '<td>' + messageSubscription.messageName +'</td>'
+              + '<td>'
+              + '<span class="badge bg-secondary">' + correlatedMessageCount + '</span>'
+              + '</td>'
+              + '<td>' + actionButton +'</td>'
+              + '</tr>');
+        });
+      });
+}
+
+function publishMessage(messageName) {
+
+  sendPublishMessageRequestWithName(messageName)
+      .done(messageKey => {
+
+        showNotificationPublishMessageSuccess(messageKey);
+
+        loadInstancesOfProcess(instancesOfProcessCurrentPage);
+        loadMessageSubscriptionsOfProcess();
+      })
+      .fail(showFailure(
+          "publish-message-failed-" + messageName,
+          "Failed to publish message")
+      );
+}
+
+function showNotificationPublishMessageSuccess(messageKey) {
+  const toastId = "message-published-" + messageKey;
+  const content = 'New message <a href="#">' + messageKey + '</a> published.';
+
+  showNotificationSuccess(toastId, content);
+}
+
+function fillPublishMessageModal(messageName) {
+  $("#publishMessageName").val(messageName);
+}
+
+function publishMessageModal() {
+  sendPublishMessageRequest(
+      $("#publishMessageName").val(),
+      $("#publishMessageCorrelationKey").val(),
+      $("#publishMessageVariables").val(),
+      $("#publishMessageTimeToLive").val(),
+      $("#publishMessageId").val()
+  )
+      .done(messageKey => {
+
+        showNotificationPublishMessageSuccess(messageKey);
+
+        loadInstancesOfProcess(instancesOfProcessCurrentPage);
+        loadMessageSubscriptionsOfProcess();
+      })
+      .fail(showFailure(
+          "publish-message-failed",
+          "Failed to publish message")
+      );
 }

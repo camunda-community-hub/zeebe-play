@@ -3,6 +3,7 @@ function showBpmn(bpmnXML) {
   openDiagram(bpmnXML)
       .then(ok => {
         makeStartEventsPlayable();
+        makeMessageStartEventsPlayable();
       });
 }
 
@@ -59,6 +60,45 @@ function makeStartEventsPlayable() {
       + '</div>';
 
   processStartEvents.forEach(element => {
+    overlays.add(element.id, {
+      position: {
+        top: -20,
+        left: -40
+      },
+      html: content
+    });
+
+  });
+
+}
+
+function makeMessageStartEventsPlayable() {
+
+  let messageStartEvents = elementRegistry.filter(function (element) {
+    return element.type == 'bpmn:StartEvent'
+        && element.businessObject.eventDefinitions
+        && element.businessObject.eventDefinitions.filter(function (eventDefinition) {
+          return eventDefinition.$type == 'bpmn:MessageEventDefinition'
+              && eventDefinition.messageRef
+              && eventDefinition.messageRef.name;
+        });
+  });
+
+  messageStartEvents.forEach(element => {
+
+    let eventDefinition = element.businessObject.eventDefinitions[0];
+    let messageName = eventDefinition.messageRef.name;
+
+    const content = '<div class="btn-group">'
+        + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Publish Message" onclick="publishMessage(\'' + messageName + '\');">'
+        + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
+        + '</button>'
+        + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
+        + '<ul class="dropdown-menu">'
+        + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#publish-message-modal" href="#" onclick="fillPublishMessageModal(\'' + messageName  + '\');">with variables</a></li>'
+        + '</ul>'
+        + '</div>';
+
     overlays.add(element.id, {
       position: {
         top: -20,
