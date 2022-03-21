@@ -16,6 +16,9 @@ zeebe:
         connectionBackoffMultiplier: 2.0
         connectionMaxBackoff: PT30S
 
+  clock:
+    endpoint: 127.0.0.1:9600/actuator/clock
+
 spring:
   datasource:
     url: jdbc:h2:mem:zeeqs;DB_CLOSE_DELAY=-1

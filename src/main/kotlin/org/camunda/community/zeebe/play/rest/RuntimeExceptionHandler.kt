@@ -17,7 +17,25 @@ class RuntimeExceptionHandler {
     ): ResponseEntity<Any>? {
         return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY)
             .contentType(MediaType.APPLICATION_JSON)
-            .body(ZeebeFailure(message = ex.message ?: "?"))
+            .body(ServiceFailure(message = ex.message ?: "?"))
+    }
+
+    @ExceptionHandler(value = [ZeebeServiceException::class])
+    fun handleZeebeServiceException(
+        ex: ZeebeServiceException, request: WebRequest?
+    ): ResponseEntity<Any>? {
+        return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(ServiceFailure(message = ex.failureMessage))
+    }
+
+    @ExceptionHandler(value = [RuntimeException::class])
+    fun handleRuntimeException(
+        ex: java.lang.RuntimeException, request: WebRequest?
+    ): ResponseEntity<Any>? {
+        return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(ServiceFailure(message = ex.message ?: "?"))
     }
 
 }

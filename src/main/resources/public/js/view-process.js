@@ -22,6 +22,7 @@ function loadProcessView() {
 
   loadInstancesOfProcess(0);
   loadMessageSubscriptionsOfProcess();
+  loadTimersOfProcess();
 }
 
 function loadInstancesOfProcess(currentPage) {
@@ -236,4 +237,128 @@ function publishMessageModal() {
           "publish-message-failed",
           "Failed to publish message")
       );
+}
+
+function loadTimersOfProcess() {
+
+  const processKey = getProcessKey();
+
+  queryTimersByProcess(processKey)
+      .done(function (response) {
+
+        let process = response.data.process;
+
+        let timers = process.timers;
+        let totalCount = timers.length;
+
+        $("#timers-total-count").text(totalCount);
+
+        $("#timers-of-process-table tbody").empty();
+
+        const indexOffset = 1;
+
+        timers.forEach((timer, index) => {
+
+          let actionButton = "";
+          let state = "";
+          switch (timer.state) {
+            case "CREATED":
+              state = '<span class="badge bg-primary">created</span>';
+
+              actionButton = '<div class="btn-group">'
+                  + '<button type="button" class="btn btn-sm btn-primary overlay-button" onclick="timeTravel(\'' + timer.dueDate + '\');">'
+                  + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
+                  + ' Time Travel'
+                  + '</button>'
+                  + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
+                  + '<ul class="dropdown-menu">'
+                  + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#time-travel-modal" href="#" onclick="fillTimeTravelModal(\'' + timer.dueDate  + '\');">with time</a></li>'
+                  + '</ul>'
+                  + '</div>';
+
+              break;
+            case "TRIGGERED":
+              state = '<span class="badge bg-secondary">triggered</span>';
+              break;
+            default:
+              state = "?"
+          }
+
+          let timerRepetitions = timer.repetitions;
+          if (timerRepetitions < 0) {
+            timerRepetitions = '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#infinity"/></svg>';
+          }
+
+          $("#timers-of-process-table tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + timer.key + '</td>'
+              + '<td>' + timerRepetitions +'</td>'
+              + '<td>' + timer.dueDate  + '</td>'
+              + '<td>' + state +'</td>'
+              + '<td>' + actionButton + '</td>'
+              + '</tr>');
+        });
+      });
+}
+
+function timeTravel(timeDefinition) {
+
+  let index = timeDefinition.indexOf("P");
+
+  let successMessage;
+
+  let request;
+  if (index >= 0) {
+    let duration = timeDefinition.substring(index);
+    request = sendTimeTravelRequestWithDuration(duration);
+
+    successMessage = 'Time travel by <code>' + duration + '</code>.';
+  } else {
+    let dateTime = timeDefinition;
+    request = sendTimeTravelRequestWithDateTime(dateTime);
+
+    successMessage = 'Time travel to <code>' + dateTime + '</code>.';
+  }
+
+  request
+      .done(newTime => {
+        const toastId = "time-travel-" + newTime;
+        showNotificationSuccess(toastId, successMessage);
+
+        loadInstancesOfProcess(instancesOfProcessCurrentPage);
+        loadTimersOfProcess();
+      })
+      .fail(showFailure(
+          "time-travel-failed",
+          "Failed to time travel")
+      );
+}
+
+function fillTimeTravelModal(timeDefinition) {
+  let index = timeDefinition.indexOf("P");
+
+  let timeDuration = $("#timeDuration");
+  let timeDate = $("#timeDate");
+
+  timeDuration.val("");
+  timeDate.val("");
+
+  if (index >= 0) {
+    let duration = timeDefinition.substring(index);
+    timeDuration.val(duration);
+  } else {
+    timeDate.val(timeDefinition);
+  }
+}
+
+function timeTravelModal() {
+
+  let timeDuration = $("#timeDuration").val();
+  let timeDate = $("#timeDate").val();
+
+  if (timeDuration && timeDuration.length > 0) {
+    timeTravel(timeDuration);
+  } else if (timeDate && timeDate.length > 0) {
+    timeTravel(timeDate);
+  }
 }

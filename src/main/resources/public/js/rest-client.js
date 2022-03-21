@@ -33,3 +33,15 @@ function sendPublishMessageRequest(messageName, correlationKey, variables, timeT
     messageId: messageId
   });
 }
+
+function sendTimeTravelRequestWithDuration(duration) {
+  return sendRequest("timers", {
+    duration: duration
+  });
+}
+
+function sendTimeTravelRequestWithDateTime(dateTime) {
+  return sendRequest("timers", {
+    dateTime: dateTime
+  });
+}

@@ -1,0 +1,33 @@
+<div th:fragment="time-travel-modal">
+
+  <div class="modal fade" id="time-travel-modal" tabindex="-1" aria-labelledby="timeTravelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="timeTravelModal">Time Travel</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <form>
+            <div class="mb-3">
+              <label for="timeDuration" class="form-label">Duration</label>
+              <input type="text" class="form-control" id="timeDuration" placeholder="PT1M">
+            </div>
+
+            <div class="mb-3">
+              <label for="timeDate" class="form-label">Date Time</label>
+              <input type="text" class="form-control" id="timeDate" placeholder="2022-01-01T00:00:00Z">
+            </div>
+          </form>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="timeTravelModal();">Travel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

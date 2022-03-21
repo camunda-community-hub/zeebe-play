@@ -58,6 +58,18 @@ const messageSubscriptionsByProcessQuery = `query MessageSubscriptionsOfProcess(
     }
   }`;
 
+const timersByProcessQuery = `query TimersOfProcess($key: ID!) {  
+    process(key: $key) {
+    
+      timers {
+        key
+        dueDate
+        repetitions
+        state
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -103,6 +115,13 @@ function queryInstancesByProcess(processKey, perPage, page) {
 function queryMessageSubscriptionsByProcess(processKey) {
 
   return fetchData(messageSubscriptionsByProcessQuery, {
+    key: processKey
+  });
+}
+
+function queryTimersByProcess(processKey) {
+
+  return fetchData(timersByProcessQuery, {
     key: processKey
   });
 }

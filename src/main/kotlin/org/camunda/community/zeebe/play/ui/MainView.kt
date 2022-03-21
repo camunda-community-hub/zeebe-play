@@ -5,15 +5,14 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 
 @Component
-@RequestMapping("/view")
 class MainView {
 
-    @GetMapping("/main")
-    fun main(): String {
-        return "main"
+    @GetMapping("/")
+    fun index(): String {
+        return home()
     }
 
-    @GetMapping("/home")
+    @GetMapping("/view/home")
     fun home(): String {
         return "views/home"
     }
