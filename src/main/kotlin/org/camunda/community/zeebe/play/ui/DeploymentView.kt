@@ -20,7 +20,7 @@ class DeploymentView {
     fun process(@PathVariable("key") processKey: Long, model: Model): String {
         model.addAttribute("processKey", processKey)
         model.addAttribute("page", "deployment")
-        return "views/process"
+        return "views/process/process"
     }
 
 }
