@@ -1,0 +1,28 @@
+<div th:fragment="new-deployment-modal">
+
+  <div class="modal fade" id="new-deployment-modal" tabindex="-1" aria-labelledby="newDeploymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newDeploymentModal">New Deployment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <form id="deploymentForm">
+            <div class="mb-3">
+              <label for="deploymentResources" class="form-label">Resources</label>
+              <input class="form-control" type="file" name="resources" id="deploymentResources" multiple>
+            </div>
+          </form>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="deploymentModal();">Deploy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

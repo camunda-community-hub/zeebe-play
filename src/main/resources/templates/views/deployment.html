@@ -5,15 +5,26 @@
 
 <div th:replace="fragments/navbar :: navbar"></div>
 
+<div th:replace="views/new-deployment-modal.html :: #new-deployment-modal"></div>
+
 <div class="container-fluid">
 
-  <div class="row">
+  <div class="row justify-content-between">
     <div class="col">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item active" aria-current="page">Processes</li>
         </ol>
       </nav>
+    </div>
+
+    <div class="col-auto">
+
+      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#new-deployment-modal">
+        <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#upload"/></svg>
+         New Deployment
+      </button>
+
     </div>
   </div>
 

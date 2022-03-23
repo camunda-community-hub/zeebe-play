@@ -45,3 +45,16 @@ function sendTimeTravelRequestWithDateTime(dateTime) {
     dateTime: dateTime
   });
 }
+
+function deployResources(resources) {
+
+  return $.ajax({
+    type: 'POST',
+    url: '/rest/deployments/',
+    data: new FormData(resources),
+    processData: false,
+    contentType: false,
+    timeout: 5000,
+    crossDomain: true,
+  });
+}

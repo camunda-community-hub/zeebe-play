@@ -60,3 +60,23 @@ function loadProcessesLast() {
   let last = $("#processes-pagination-last").text() - 1;
   loadProcesses(last);
 }
+
+function deploymentModal() {
+
+  let resources = $("#deploymentForm")[0];
+
+  deployResources(resources)
+      .done(function(deploymentKey) {
+
+        const toastId = "new-deployment-" + deploymentKey;
+        const content = 'New resources deployed.';
+
+        showNotificationSuccess(toastId, content);
+
+        loadProcesses(processesCurrentPage);
+      })
+      .fail(showFailure(
+          "deployment-failed",
+          "Failed to deploy resources")
+      );
+}
