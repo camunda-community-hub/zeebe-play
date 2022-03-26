@@ -70,6 +70,29 @@ const timersByProcessQuery = `query TimersOfProcess($key: ID!) {
     }
   }`;
 
+const processInstancesQuery = `query ProcessInstances($perPage: Int!, $page: Int!) {  
+  
+  activeProcessInstances: processInstances(stateIn:[ACTIVATED]) { totalCount }
+  completedProcessInstances: processInstances(stateIn:[COMPLETED]) { totalCount }
+  terminatedProcessInstances: processInstances(stateIn:[TERMINATED]) { totalCount }
+  
+  processInstances(page: $page, perPage: $perPage) {
+    totalCount
+    nodes {
+      key      
+      state
+      startTime
+      endTime      
+      process {
+        key
+        bpmnProcessId
+        version
+      }      
+      incidents { key }
+    }
+  }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -124,4 +147,9 @@ function queryTimersByProcess(processKey) {
   return fetchData(timersByProcessQuery, {
     key: processKey
   });
+}
+
+function queryProcessInstances(perPage, page) {
+
+  return fetchData(processInstancesQuery, {perPage: perPage, page: page});
 }
