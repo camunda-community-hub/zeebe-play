@@ -1,11 +1,11 @@
-const processesQuery = `query Processes($perPage: Int!, $page: Int!) {  
+const processesQuery = `query Processes($perPage: Int!, $page: Int!, $zoneId: String!) {  
     processes(perPage: $perPage, page: $page) {
       totalCount
       nodes {
         key
         bpmnProcessId
         version
-        deployTime
+        deployTime(zoneId: $zoneId)
         activeInstances: processInstances(stateIn: [ACTIVATED]) {totalCount}
         completedInstances: processInstances(stateIn: [COMPLETED]) {totalCount}
         terminatedInstances: processInstances(stateIn: [TERMINATED]) {totalCount}
@@ -13,17 +13,17 @@ const processesQuery = `query Processes($perPage: Int!, $page: Int!) {
     }
   }`;
 
-const processQuery = `query Process($key: ID!) {  
+const processQuery = `query Process($key: ID!, $zoneId: String!) {  
     process(key: $key) {
       key
       bpmnProcessId
       version
-      deployTime
+      deployTime(zoneId: $zoneId)
       bpmnXML
     }
   }`;
 
-const instancesByProcessQuery = `query InstancesOfProcess($key: ID!, $perPage: Int!, $page: Int!) {  
+const instancesByProcessQuery = `query InstancesOfProcess($key: ID!, $perPage: Int!, $page: Int!, $zoneId: String!) {  
     process(key: $key) {
     
       activeInstances: processInstances(stateIn: [ACTIVATED]) {totalCount}
@@ -34,8 +34,8 @@ const instancesByProcessQuery = `query InstancesOfProcess($key: ID!, $perPage: I
         totalCount
         nodes {
           key
-          startTime
-          endTime
+          startTime(zoneId: $zoneId)
+          endTime(zoneId: $zoneId)
           state
           incidents(stateIn: [CREATED]) {
             key
@@ -58,19 +58,19 @@ const messageSubscriptionsByProcessQuery = `query MessageSubscriptionsOfProcess(
     }
   }`;
 
-const timersByProcessQuery = `query TimersOfProcess($key: ID!) {  
+const timersByProcessQuery = `query TimersOfProcess($key: ID!, $zoneId: String!) {  
     process(key: $key) {
     
       timers {
         key
-        dueDate
+        dueDate(zoneId: $zoneId)
         repetitions
         state
       }
     }
   }`;
 
-const processInstancesQuery = `query ProcessInstances($perPage: Int!, $page: Int!) {  
+const processInstancesQuery = `query ProcessInstances($perPage: Int!, $page: Int!, $zoneId: String!) {  
   
   activeProcessInstances: processInstances(stateIn:[ACTIVATED]) { totalCount }
   completedProcessInstances: processInstances(stateIn:[COMPLETED]) { totalCount }
@@ -81,8 +81,8 @@ const processInstancesQuery = `query ProcessInstances($perPage: Int!, $page: Int
     nodes {
       key      
       state
-      startTime
-      endTime      
+      startTime(zoneId: $zoneId)
+      endTime(zoneId: $zoneId)      
       process {
         key
         bpmnProcessId
@@ -116,14 +116,25 @@ function fetchData(query, variables) {
       );
 }
 
+function getTimeZone() {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
 function queryProcesses(perPage, page) {
 
-  return fetchData(processesQuery, {perPage: perPage, page: page});
+  return fetchData(processesQuery, {
+    perPage: perPage,
+    page: page,
+    zoneId: getTimeZone()
+  });
 }
 
 function queryProcess(processKey) {
 
-  return fetchData(processQuery, {key: processKey});
+  return fetchData(processQuery, {
+    key: processKey,
+    zoneId: getTimeZone()
+  });
 }
 
 function queryInstancesByProcess(processKey, perPage, page) {
@@ -131,7 +142,8 @@ function queryInstancesByProcess(processKey, perPage, page) {
   return fetchData(instancesByProcessQuery, {
     key: processKey,
     perPage: perPage,
-    page: page
+    page: page,
+    zoneId: getTimeZone()
   });
 }
 
@@ -145,11 +157,16 @@ function queryMessageSubscriptionsByProcess(processKey) {
 function queryTimersByProcess(processKey) {
 
   return fetchData(timersByProcessQuery, {
-    key: processKey
+    key: processKey,
+    zoneId: getTimeZone()
   });
 }
 
 function queryProcessInstances(perPage, page) {
 
-  return fetchData(processInstancesQuery, {perPage: perPage, page: page});
+  return fetchData(processInstancesQuery, {
+    perPage: perPage,
+    page: page,
+    zoneId: getTimeZone()
+  });
 }
