@@ -12,7 +12,7 @@ class MonitoringView {
     @GetMapping("/monitoring")
     fun monitoring(model: Model): String {
         model.addAttribute("page", "monitoring")
-        return "views/monitoring"
+        return "views/monitoring/monitoring"
     }
 
 }
