@@ -32,7 +32,7 @@ function loadProcesses(currentPage) {
               + '<td>'
               + '<span class="badge bg-primary">' + node.activeInstances.totalCount + '</span> / '
               + '<span class="badge bg-secondary">' + node.completedInstances.totalCount + '</span> / '
-              + '<span class="badge bg-secondary">' + node.terminatedInstances.totalCount + '</span>'
+              + '<span class="badge bg-dark">' + node.terminatedInstances.totalCount + '</span>'
               +'</td>'
               + '</tr>');
         });

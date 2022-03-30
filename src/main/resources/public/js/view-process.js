@@ -58,7 +58,7 @@ function loadInstancesOfProcess(currentPage) {
               state = '<span class="badge bg-secondary">completed</span>';
               break;
             case "TERMINATED":
-              state = '<span class="badge bg-secondary">terminated</span>';
+              state = '<span class="badge bg-dark">terminated</span>';
               break;
             default:
               state = "?"
