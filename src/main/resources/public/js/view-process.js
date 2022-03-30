@@ -17,7 +17,11 @@ function loadProcessView() {
         $("#process-deployment-time").text(process.deployTime);
 
         const bpmnXML = process.bpmnXML;
-        showBpmn(bpmnXML);
+        showBpmn(bpmnXML).then(ok => {
+          makeStartEventsPlayable();
+          makeMessageStartEventsPlayable();
+          makeTimerStartEventsPlayable();
+        });
       });
 
   loadInstancesOfProcess(0);

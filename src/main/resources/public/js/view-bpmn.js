@@ -1,11 +1,6 @@
 
 function showBpmn(bpmnXML) {
-  openDiagram(bpmnXML)
-      .then(ok => {
-        makeStartEventsPlayable();
-        makeMessageStartEventsPlayable();
-        makeTimerStartEventsPlayable();
-      });
+  return openDiagram(bpmnXML);
 }
 
 var bpmnViewer;
