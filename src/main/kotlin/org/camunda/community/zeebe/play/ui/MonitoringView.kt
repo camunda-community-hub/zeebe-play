@@ -3,6 +3,7 @@ package org.camunda.community.zeebe.play.ui
 import org.springframework.stereotype.Component
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 
 @Component
@@ -13,6 +14,13 @@ class MonitoringView {
     fun monitoring(model: Model): String {
         model.addAttribute("page", "monitoring")
         return "views/monitoring/monitoring"
+    }
+
+    @GetMapping("/process-instance/{key}")
+    fun processInstance(@PathVariable("key") processInstanceKey: Long, model: Model): String {
+        model.addAttribute("processInstanceKey", processInstanceKey)
+        model.addAttribute("page", "monitoring")
+        return "views/monitoring/process-instances/process-instance"
     }
 
 }
