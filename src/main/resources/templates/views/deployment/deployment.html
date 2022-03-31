@@ -4,19 +4,33 @@
 <body onload="loadProcessesView();">
 
 <div th:replace="fragments/navbar :: navbar"></div>
-
 <div th:replace="views/new-deployment-modal.html :: #new-deployment-modal"></div>
 
 <div class="container-fluid">
 
-  <ul class="nav nav-tabs" id="deployment-tabs" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="processes-tab" data-bs-toggle="tab" data-bs-target="#processes" type="button" role="tab" aria-controls="processes" aria-selected="true">
-        Processes
-        <span class="badge bg-light text-dark" id="processes-totalCount">0</span>
+  <div class="row justify-content-between">
+    <div class="col">
+
+      <ul class="nav nav-tabs" id="deployment-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="processes-tab" data-bs-toggle="tab" data-bs-target="#processes" type="button" role="tab" aria-controls="processes" aria-selected="true">
+            Processes
+            <span class="badge bg-light text-dark" id="processes-totalCount">0</span>
+          </button>
+        </li>
+      </ul>
+
+    </div>
+
+    <div class="col-auto">
+
+      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#new-deployment-modal">
+        <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#upload"/></svg>
+        New Deployment
       </button>
-    </li>
-  </ul>
+
+    </div>
+  </div>
 
   <div class="container-fluid">
 
