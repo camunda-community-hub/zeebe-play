@@ -11,8 +11,6 @@ function loadProcessInstanceView() {
         let process = processInstance.process;
 
         $("#process-instance-key").text(processInstance.key);
-        $("#process-key").text(process.key);
-        $("#bpmnProcessId").text(process.bpmnProcessId);
         $("#process-instance-start-time").text(processInstance.startTime);
 
         let endTime = "-";
