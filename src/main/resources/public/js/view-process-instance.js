@@ -43,6 +43,13 @@ function loadProcessInstanceView() {
 
         $("#process-instance-state").html(state);
 
+        $("#process-page-key").html(
+            '<a href="/view/process/' + process.key + '">'
+            + process.key
+            + '</a>'
+            + ' <span class="text-muted">(' + process.bpmnProcessId + ')</span>'
+        );
+
         const bpmnXML = process.bpmnXML;
         showBpmn(bpmnXML);
       });
