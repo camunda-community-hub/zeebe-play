@@ -82,6 +82,9 @@ function loadVariablesOfProcessInstance() {
           }
           if (scope.bpmnElementType == 'PROCESS') {
             scopeFormatted = '<span class="badge bg-primary">global</span>';
+          } else {
+            scopeFormatted += ' <svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>';
+            scopeFormatted += ' <span class="badge bg-secondary">local</span>';
           }
 
           $("#variables-of-process-instance-table tbody:last-child").append('<tr>'
