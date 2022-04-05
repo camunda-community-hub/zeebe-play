@@ -112,6 +112,25 @@ const processInstanceQuery = `query ProcessInstance($key: ID!, $zoneId: String!)
     }
   }`;
 
+const variablesByProcessInstanceQuery = `query VariablesOfProcessInstance($key: ID!, $zoneId: String!) {  
+    processInstance(key: $key) {    
+      variables {
+        name
+        value        
+        timestamp(zoneId: $zoneId)                
+        updates {
+          value
+          timestamp(zoneId: $zoneId)
+        }
+        scope {
+          elementId
+          elementName
+          bpmnElementType
+        }
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -193,6 +212,14 @@ function queryProcessInstances(perPage, page) {
 function queryProcessInstance(processInstanceKey) {
 
   return fetchData(processInstanceQuery, {
+    key: processInstanceKey,
+    zoneId: getTimeZone()
+  });
+}
+
+function queryVariablesByProcessInstance(processInstanceKey) {
+
+  return fetchData(variablesByProcessInstanceQuery, {
     key: processInstanceKey,
     zoneId: getTimeZone()
   });

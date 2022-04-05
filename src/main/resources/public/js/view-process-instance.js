@@ -52,5 +52,47 @@ function loadProcessInstanceView() {
         showBpmn(bpmnXML);
       });
 
+  loadVariablesOfProcessInstance();
+}
+
+function loadVariablesOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryVariablesByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        let processInstance = response.data.processInstance;
+        let variables = processInstance.variables;
+
+        let totalCount = variables.length;
+
+        $("#variables-total-count").text(totalCount);
+
+        $("#variables-of-process-instance-table tbody").empty();
+
+        const indexOffset = 1;
+
+        variables.forEach((variable, index) => {
+
+          let scope = variable.scope;
+          let scopeFormatted = scope.elementId;
+          if (scope.elementName) {
+            scopeFormatted = scope.elementName;
+          }
+          if (scope.bpmnElementType == 'PROCESS') {
+            scopeFormatted = '<span class="badge bg-primary">global</span>';
+          }
+
+          $("#variables-of-process-instance-table tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + variable.name + '</td>'
+              + '<td>' + variable.value +'</td>'
+              + '<td>' + scopeFormatted +'</td>'
+              + '<td>' + variable.timestamp +'</td>'
+              + '<td>' + '' +'</td>'
+              + '</tr>');
+        });
+      });
 }
 
