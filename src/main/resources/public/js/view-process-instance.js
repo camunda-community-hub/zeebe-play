@@ -133,13 +133,17 @@ function loadVariablesOfProcessInstance() {
 
           lastUpdatedFormatted += '</div>';
 
+          let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Edit">'
+              + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#pencil"/></svg>'
+              + '</button>';
+
           $("#variables-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + variable.name + '</td>'
               + '<td>' + valueFormatted +'</td>'
               + '<td>' + scopeFormatted +'</td>'
               + '<td>' + lastUpdatedFormatted +'</td>'
-              + '<td>' + '' +'</td>'
+              + '<td>' + actionButton +'</td>'
               + '</tr>');
 
         });
