@@ -87,15 +87,63 @@ function loadVariablesOfProcessInstance() {
             scopeFormatted += ' <span class="badge bg-secondary">local</span>';
           }
 
-          $("#variables-of-process-instance-table tbody:last-child").append('<tr>'
+          let valueFormatted = '<code>' + variable.value + '</code>';
+
+          let lastUpdatedFormatted = '<div class="row row-cols-1">'
+              + '<div class="col">'
+              + variable.timestamp;
+
+          let variableUpdatesId = 'variable-updates-' + variable.key;
+
+          if (variable.updates.length > 1) {
+            lastUpdatedFormatted += ' <span class="badge bg-secondary">modified</span>'
+                + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#' + variableUpdatesId + '" aria-expanded="false">'
+                + '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
+                + '</button>';
+          }
+
+          lastUpdatedFormatted += "</div>"
+
+          if (variable.updates.length > 1) {
+
+            let variableUpdates = '<table class="table">'
+                + '<thead>'
+                + '<tr>'
+                + '<th scope="col">Value</th>'
+                + '<th scope="col">Update Time</th>'
+                + '</tr>'
+                + '</thead>'
+                + '<tbody>';
+
+            variable.updates.forEach((update) => {
+              variableUpdates += '<tr>'
+                  + '<td><code>' + update.value + '</code></td>'
+                  + '<td>' + update.timestamp +'</td>'
+                  + '</tr>';
+            });
+
+            variableUpdates += '</tbody></table>';
+
+            lastUpdatedFormatted += '<div class="collapse" id="' + variableUpdatesId + '">'
+                + '<div class="col">'
+                + variableUpdates
+                + '</div>'
+                + '</div>';
+          }
+
+          lastUpdatedFormatted += '</div>';
+
+          $("#variables-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + variable.name + '</td>'
-              + '<td>' + variable.value +'</td>'
+              + '<td>' + valueFormatted +'</td>'
               + '<td>' + scopeFormatted +'</td>'
-              + '<td>' + variable.timestamp +'</td>'
+              + '<td>' + lastUpdatedFormatted +'</td>'
               + '<td>' + '' +'</td>'
               + '</tr>');
+
         });
+
       });
 }
 

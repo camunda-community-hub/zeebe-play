@@ -115,6 +115,7 @@ const processInstanceQuery = `query ProcessInstance($key: ID!, $zoneId: String!)
 const variablesByProcessInstanceQuery = `query VariablesOfProcessInstance($key: ID!, $zoneId: String!) {  
     processInstance(key: $key) {    
       variables {
+        key
         name
         value        
         timestamp(zoneId: $zoneId)                
