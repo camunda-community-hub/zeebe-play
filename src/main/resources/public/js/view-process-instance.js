@@ -83,8 +83,10 @@ function loadVariablesOfProcessInstance() {
           if (scope.bpmnElementType == 'PROCESS') {
             scopeFormatted = '<span class="badge bg-primary">global</span>';
           } else {
-            scopeFormatted += ' <svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>';
-            scopeFormatted += ' <span class="badge bg-secondary">local</span>';
+            scopeFormatted += ' <button type="button" class="btn btn-sm btn-outline-light" title="Highlight element" onclick="highlightElement(\'' + scope.elementId + '\');">'
+                + '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
+                + '</button>'
+                + ' <span class="badge bg-secondary">local</span>';
           }
 
           let valueFormatted = '<code>' + variable.value + '</code>';

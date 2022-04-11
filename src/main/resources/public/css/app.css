@@ -10,3 +10,9 @@
   /* background-color: #20ed20; */
   opacity: 0.9;
 }
+
+.bpmn-element-selected .djs-visual > :nth-child(1) {
+  stroke: rgba(0, 125, 255, 0.7) !important;
+  stroke-dasharray: 5;
+  stroke-width: 2px !important;
+}

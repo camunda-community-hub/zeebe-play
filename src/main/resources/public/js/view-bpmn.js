@@ -9,6 +9,8 @@ var elementRegistry;
 var eventBus;
 var overlays;
 
+var highlightedElementId;
+
 async function openDiagram(bpmnXML) {
 
   bpmnViewer = new BpmnJS({
@@ -155,3 +157,16 @@ function makeTimerStartEventsPlayable() {
   });
 
 }
+
+function highlightElement(elementId) {
+  if (highlightedElementId && highlightedElementId !== elementId) {
+    canvas.removeMarker(highlightedElementId, 'bpmn-element-selected');
+  }
+
+  canvas.toggleMarker(elementId, 'bpmn-element-selected');
+  canvas.scrollToElement(elementId);
+
+  highlightedElementId = elementId;
+}
+
+
