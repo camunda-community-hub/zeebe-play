@@ -124,6 +124,7 @@ const variablesByProcessInstanceQuery = `query VariablesOfProcessInstance($key: 
           timestamp(zoneId: $zoneId)
         }
         scope {
+          key
           elementId
           elementName
           bpmnElementType

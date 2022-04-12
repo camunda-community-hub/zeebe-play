@@ -1,3 +1,5 @@
+var bpmnViewIsLoaded = false;
+
 function getProcessInstanceKey() {
   return $("#process-instance-page-key").text();
 }
@@ -15,7 +17,7 @@ function loadProcessInstanceView() {
 
         let endTime = "-";
         if (processInstance.endTime) {
-          endTime = node.endTime;
+          endTime = processInstance.endTime;
         }
 
         $("#process-instance-end-time").text(endTime);
@@ -48,8 +50,12 @@ function loadProcessInstanceView() {
             + ' <span class="text-muted">(' + process.bpmnProcessId + ')</span>'
         );
 
-        const bpmnXML = process.bpmnXML;
-        showBpmn(bpmnXML);
+        if (!bpmnViewIsLoaded) {
+          const bpmnXML = process.bpmnXML;
+          showBpmn(bpmnXML);
+
+          bpmnViewIsLoaded = true;
+        }
       });
 
   loadVariablesOfProcessInstance();
@@ -135,7 +141,13 @@ function loadVariablesOfProcessInstance() {
 
           lastUpdatedFormatted += '</div>';
 
-          let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Edit">'
+          let fillModalAction = 'fillSetVariablesModal(\''
+              + scope.key + '\', \''
+              + variable.name + '\', \''
+              + variable.value.replace(/"/g, '&quot;')
+              + '\');';
+
+          let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#set-variable-modal" title="Edit" onclick="'+ fillModalAction + '">'
               + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#pencil"/></svg>'
               + '</button>';
 
@@ -153,3 +165,50 @@ function loadVariablesOfProcessInstance() {
       });
 }
 
+function fillSetVariablesModal(scopeKey, variableName, variableValue) {
+  let scope = scopeKey;
+  if (scopeKey === getProcessInstanceKey()) {
+    scope = 'global';
+  }
+  $("#variablesScope").val(scope);
+
+  let variables = '{"' + variableName + '": ' + variableValue + '}';
+  $("#updatedVariables").val(variables);
+}
+
+function setVariablesModal() {
+  let scope = $("#variablesScope").val();
+  if (scope === 'global') {
+    scope = getProcessInstanceKey();
+  }
+
+  let variables = $("#updatedVariables").val();
+
+  sendSetVariablesRequest(getProcessInstanceKey(), scope, variables)
+      .done(key => {
+        const toastId = "set-variables-" + key;
+        showNotificationSuccess(toastId, "Set variables <code>" + variables + "</code>.");
+
+        loadVariablesOfProcessInstance();
+      })
+      .fail(showFailure(
+          "set-variables" + scope,
+          "Failed to set variables <code>" + variables + "</code>.")
+      );
+}
+
+function cancelProcessInstance() {
+
+  let processInstanceKey = getProcessInstanceKey();
+  sendCancelProcessInstanceRequest(processInstanceKey)
+      .done(key => {
+        const toastId = "cancel-process-instance-" + processInstanceKey;
+        showNotificationSuccess(toastId, "Cancelled process instance.");
+
+        loadProcessInstanceView();
+      })
+      .fail(showFailure(
+          "cancel-process-instance-" + processInstanceKey,
+          "Failed to cancel process instance.")
+      );
+}

@@ -45,7 +45,7 @@ class ZeebeClockService {
             throw ZeebeServiceException(
                 service = "time travel",
                 status = statusCode.toString(),
-                failureMessage = "$responseBody. Check if the clock endpoint is enables (zeebe.clock.controlled = true)."
+                failureMessage = "$responseBody. Check if the clock endpoint is enabled (zeebe.clock.controlled = true)."
             )
         }
 

@@ -1,8 +1,8 @@
 
-function sendRequest(path, data) {
+function sendRequest(path, type, data) {
 
   return $.ajax({
-    type: 'POST',
+    type: type,
     url: '/rest/' + path,
     data: JSON.stringify(data),
     contentType: 'application/json; charset=utf-8',
@@ -14,18 +14,26 @@ function sendRequest(path, data) {
       });
 }
 
+function sendPostRequest(path, data) {
+  return sendRequest(path, 'POST', data);
+}
+
+function sendDeleteRequest(path, data) {
+  return sendRequest(path, 'DELETE', data);
+}
+
 function sendCreateInstanceRequest(processKey, variables) {
-  return sendRequest("processes/" + processKey,  variables);
+  return sendPostRequest("processes/" + processKey,  variables);
 }
 
 function sendPublishMessageRequestWithName(messageName) {
-  return sendRequest("messages", {
+  return sendPostRequest("messages", {
     messageName: messageName
   });
 }
 
 function sendPublishMessageRequest(messageName, correlationKey, variables, timeToLive, messageId) {
-  return sendRequest("messages", {
+  return sendPostRequest("messages", {
     messageName: messageName,
     correlationKey: correlationKey,
     variables: variables,
@@ -35,13 +43,13 @@ function sendPublishMessageRequest(messageName, correlationKey, variables, timeT
 }
 
 function sendTimeTravelRequestWithDuration(duration) {
-  return sendRequest("timers", {
+  return sendPostRequest("timers", {
     duration: duration
   });
 }
 
 function sendTimeTravelRequestWithDateTime(dateTime) {
-  return sendRequest("timers", {
+  return sendPostRequest("timers", {
     dateTime: dateTime
   });
 }
@@ -56,5 +64,16 @@ function deployResources(resources) {
     contentType: false,
     timeout: 5000,
     crossDomain: true,
+  });
+}
+
+function sendCancelProcessInstanceRequest(processInstanceKey) {
+  return sendDeleteRequest("process-instances/" + processInstanceKey, { });
+}
+
+function sendSetVariablesRequest(processInstanceKey, scopeKey, variables) {
+  return sendPostRequest("process-instances/" + processInstanceKey + "/variables", {
+    scopeKey: scopeKey,
+    variables: variables
   });
 }
