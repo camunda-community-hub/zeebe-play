@@ -108,9 +108,8 @@ function loadVariablesOfProcessInstance() {
           let variableUpdatesId = 'variable-updates-' + variable.key;
 
           if (variable.updates.length > 1) {
-            lastUpdatedFormatted += ' <span class="badge bg-secondary">modified</span>'
-                + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#' + variableUpdatesId + '" aria-expanded="false">'
-                + '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
+            lastUpdatedFormatted += ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#' + variableUpdatesId + '" aria-expanded="false" title="Show updates">'
+                + '<span class="badge bg-secondary">modified</span>'
                 + '</button>';
           }
 
