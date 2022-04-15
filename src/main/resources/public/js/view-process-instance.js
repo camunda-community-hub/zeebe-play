@@ -94,9 +94,8 @@ function loadVariablesOfProcessInstance() {
             scopeFormatted = '<span class="badge bg-primary">global</span>';
           } else {
             scopeFormatted = '<span class="badge bg-secondary">local</span>'
-                + ' ' + scopeElement
-                + ' <button type="button" class="btn btn-sm btn-outline-light" title="Highlight element" onclick="highlightElement(\'' + scope.elementId + '\');">'
-                + '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
+                + ' <button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element" onclick="highlightElement(\'' + scope.elementId + '\');">'
+                + scopeElement
                 + '</button>';
           }
 
@@ -239,18 +238,16 @@ function loadElementInstancesOfProcessInstance() {
 
         elementInstances.forEach((elementInstance, index) => {
 
-          let locationButton = ' <button type="button" class="btn btn-sm btn-outline-light" title="Highlight element" onclick="highlightElement(\'' + elementInstance.elementId + '\');">'
-              + '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
-              + '</button>'
-
           let bpmnElement = formatBpmnElement(elementInstance.bpmnElementType);
 
-          let elementFormatted = bpmnElement + ' ';
+          let elementFormatted = ' <button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element" onclick="highlightElement(\'' + elementInstance.elementId + '\');">'
+              + bpmnElement + ' ';
           if (elementInstance.elementName) {
             elementFormatted += elementInstance.elementName;
           } else {
             elementFormatted += elementInstance.elementId;
           }
+          elementFormatted += '</button>';
 
           let scopeFormatted = '';
           if (elementInstance.scope) {
@@ -266,7 +263,6 @@ function loadElementInstancesOfProcessInstance() {
 
           $("#element-instances-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
-              + '<td>' + locationButton +'</td>'
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + elementInstance.key + '</td>'
               + '<td>' + scopeFormatted +'</td>'
