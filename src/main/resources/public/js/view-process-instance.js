@@ -83,17 +83,21 @@ function loadVariablesOfProcessInstance() {
         variables.forEach((variable, index) => {
 
           let scope = variable.scope;
-          let scopeFormatted = scope.elementId;
+
+          let scopeElement = scope.elementId;
           if (scope.elementName) {
-            scopeFormatted = scope.elementName;
+            scopeElement = scope.elementName;
           }
-          if (scope.bpmnElementType == 'PROCESS') {
+
+          let scopeFormatted;
+          if (scope.bpmnElementType === 'PROCESS') {
             scopeFormatted = '<span class="badge bg-primary">global</span>';
           } else {
-            scopeFormatted += ' <button type="button" class="btn btn-sm btn-outline-light" title="Highlight element" onclick="highlightElement(\'' + scope.elementId + '\');">'
+            scopeFormatted = '<span class="badge bg-secondary">local</span>'
+                + ' ' + scopeElement
+                + ' <button type="button" class="btn btn-sm btn-outline-light" title="Highlight element" onclick="highlightElement(\'' + scope.elementId + '\');">'
                 + '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
-                + '</button>'
-                + ' <span class="badge bg-secondary">local</span>';
+                + '</button>';
           }
 
           let valueFormatted = '<code>' + variable.value + '</code>';
