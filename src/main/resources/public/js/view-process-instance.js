@@ -241,7 +241,7 @@ function loadElementInstancesOfProcessInstance() {
 
           let bpmnElement = formatBpmnElement(elementInstance.bpmnElementType);
 
-          let elementFormatted = locationButton + ' ' + bpmnElement + ' ';
+          let elementFormatted = bpmnElement + ' ';
           if (elementInstance.elementName) {
             elementFormatted += elementInstance.elementName;
           } else {
@@ -262,6 +262,7 @@ function loadElementInstancesOfProcessInstance() {
 
           $("#element-instances-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + locationButton +'</td>'
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + elementInstance.key + '</td>'
               + '<td>' + scopeFormatted +'</td>'
