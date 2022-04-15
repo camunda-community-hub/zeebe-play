@@ -59,6 +59,7 @@ function loadProcessInstanceView() {
       });
 
   loadVariablesOfProcessInstance();
+  loadElementInstancesOfProcessInstance();
 }
 
 function loadVariablesOfProcessInstance() {
@@ -212,4 +213,84 @@ function cancelProcessInstance() {
           "cancel-process-instance-" + processInstanceKey,
           "Failed to cancel process instance.")
       );
+}
+
+function loadElementInstancesOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryElementInstancesByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        let processInstance = response.data.processInstance;
+        let elementInstances = processInstance.elementInstances;
+
+        let totalCount = elementInstances.length;
+
+        $("#element-instances-total-count").text(totalCount);
+
+        $("#element-instances-of-process-instance-table tbody").empty();
+
+        const indexOffset = 1;
+
+        elementInstances.forEach((elementInstance, index) => {
+
+          let locationButton = ' <button type="button" class="btn btn-sm btn-outline-light" title="Highlight element" onclick="highlightElement(\'' + elementInstance.elementId + '\');">'
+              + '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
+              + '</button>'
+
+          let elementFormatted;
+          if (elementInstance.elementName) {
+            elementFormatted = locationButton + ' '
+                + elementInstance.elementName;
+          } else {
+            elementFormatted = locationButton + ' ' + elementInstance.elementId;
+          }
+
+          let scopeFormatted = '';
+          if (elementInstance.scope) {
+            scopeFormatted = elementInstance.scope.key;
+          }
+
+          let endTime = '';
+          if (elementInstance.endTime) {
+            endTime = elementInstance.endTime;
+          }
+
+          let state = formatElementInstanceState(elementInstance.state);
+
+          $("#element-instances-of-process-instance-table > tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + elementFormatted +'</td>'
+              + '<td>' + elementInstance.key + '</td>'
+              + '<td>' + scopeFormatted +'</td>'
+              + '<td>' + state +'</td>'
+              + '<td>' + elementInstance.startTime +'</td>'
+              + '<td>' + endTime +'</td>'
+              + '</tr>');
+
+        });
+
+      });
+}
+
+function formatElementInstanceState(state) {
+  switch (state) {
+    case "ACTIVATING":
+      return '<span class="badge bg-primary">activating</span>';
+    case "ACTIVATED":
+      return '<span class="badge bg-primary">activated</span>';
+    case "COMPLETING":
+      return '<span class="badge bg-secondary">completing</span>';
+    case "COMPLETED":
+      return '<span class="badge bg-secondary">completed</span>';
+    case "TERMINATING":
+      return '<span class="badge bg-dark">terminating</span>';
+    case "TERMINATED":
+      return '<span class="badge bg-dark">terminated</span>';
+    case "TAKEN":
+      return '<span class="badge bg-secondary">taken</span>';
+    default:
+      return "?"
+  }
 }

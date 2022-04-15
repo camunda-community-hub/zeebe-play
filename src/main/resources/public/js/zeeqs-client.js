@@ -133,6 +133,29 @@ const variablesByProcessInstanceQuery = `query VariablesOfProcessInstance($key: 
     }
   }`;
 
+const elementInstancesByProcessInstanceQuery = `query ElementInstancesOfProcessInstance($key: ID!, $zoneId: String!) {  
+    processInstance(key: $key) {    
+       elementInstances {
+        key
+        elementId
+        elementName
+        bpmnElementType
+        state
+        startTime(zoneId: $zoneId)
+        endTime(zoneId: $zoneId)
+        
+        scope {
+          key
+        }
+        
+        stateTransitions {
+          state
+          timestamp(zoneId: $zoneId)
+        }
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -222,6 +245,14 @@ function queryProcessInstance(processInstanceKey) {
 function queryVariablesByProcessInstance(processInstanceKey) {
 
   return fetchData(variablesByProcessInstanceQuery, {
+    key: processInstanceKey,
+    zoneId: getTimeZone()
+  });
+}
+
+function queryElementInstancesByProcessInstance(processInstanceKey) {
+
+  return fetchData(elementInstancesByProcessInstanceQuery, {
     key: processInstanceKey,
     zoneId: getTimeZone()
   });
