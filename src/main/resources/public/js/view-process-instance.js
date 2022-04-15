@@ -299,13 +299,47 @@ function formatElementInstanceState(state) {
 function formatBpmnElement(bpmnElementType) {
   switch (bpmnElementType) {
     case "PROCESS":
-      return '<span class="bpmn-icon-data-object"></span>';
+      return '<span class="bpmn-icon-participant"></span>';
     case "START_EVENT":
       return '<span class="bpmn-icon-start-event-none"></span>';
     case "SEQUENCE_FLOW":
       return '<span class="bpmn-icon-connection"></span>';
     case "SERVICE_TASK":
       return '<span class="bpmn-icon-service-task"></span>';
+    case "EXCLUSIVE_GATEWAY":
+      return '<span class="bpmn-icon-gateway-xor"></span>';
+    case "PARALLEL_GATEWAY":
+      return '<span class="bpmn-icon-gateway-parallel"></span>';
+    case "EVENT_BASED_GATEWAY":
+      return '<span class="bpmn-icon-gateway-eventbased"></span>';
+    case "SUB_PROCESS":
+      return '<span class="bpmn-icon-subprocess-expanded"></span>';
+    case "EVENT_SUB_PROCESS":
+      return '<span class="bpmn-icon-event-subprocess-expanded"></span>';
+    case "INTERMEDIATE_CATCH_EVENT":
+      return '<span class="bpmn-icon-intermediate-event-none"></span>';
+    case "INTERMEDIATE_THROW_EVENT":
+      return '<span class="bpmn-icon-intermediate-event-none"></span>';
+    case "BOUNDARY_EVENT":
+      return '<span class="bpmn-icon-intermediate-event-none"></span>';
+    case "END_EVENT":
+      return '<span class="bpmn-icon-end-event-none"></span>';
+    case "RECEIVE_TASK":
+      return '<span class="bpmn-icon-receive-task"></span>';
+    case "USER_TASK":
+      return '<span class="bpmn-icon-user-task"></span>';
+    case "MANUAL_TASK":
+      return '<span class="bpmn-icon-manual-task"></span>';
+    case "MULTI_INSTANCE_BODY":
+      return '<span class="bpmn-icon-parallel-mi-marker"></span>';
+    case "CALL_ACTIVITY":
+      return '<span class="bpmn-icon-subprocess-collapsed"></span>';
+    case "BUSINESS_RULE_TASK":
+      return '<span class="bpmn-icon-business-rule-task"></span>';
+    case "SCRIPT_TASK":
+      return '<span class="bpmn-icon-script-task"></span>';
+    case "SEND_TASK":
+      return '<span class="bpmn-icon-send-task"></span>';
     default:
       return "?";
   }
