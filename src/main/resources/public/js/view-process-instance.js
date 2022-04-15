@@ -156,6 +156,7 @@ function loadVariablesOfProcessInstance() {
               + '<td>' + variable.name + '</td>'
               + '<td>' + valueFormatted +'</td>'
               + '<td>' + scopeFormatted +'</td>'
+              + '<td>' + scope.key +'</td>'
               + '<td>' + lastUpdatedFormatted +'</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');
