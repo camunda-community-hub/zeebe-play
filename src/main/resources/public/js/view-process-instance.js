@@ -239,12 +239,13 @@ function loadElementInstancesOfProcessInstance() {
               + '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
               + '</button>'
 
-          let elementFormatted;
+          let bpmnElement = formatBpmnElement(elementInstance.bpmnElementType);
+
+          let elementFormatted = locationButton + ' ' + bpmnElement + ' ';
           if (elementInstance.elementName) {
-            elementFormatted = locationButton + ' '
-                + elementInstance.elementName;
+            elementFormatted += elementInstance.elementName;
           } else {
-            elementFormatted = locationButton + ' ' + elementInstance.elementId;
+            elementFormatted += elementInstance.elementId;
           }
 
           let scopeFormatted = '';
@@ -292,5 +293,20 @@ function formatElementInstanceState(state) {
       return '<span class="badge bg-secondary">taken</span>';
     default:
       return "?"
+  }
+}
+
+function formatBpmnElement(bpmnElementType) {
+  switch (bpmnElementType) {
+    case "PROCESS":
+      return '<span class="bpmn-icon-data-object"></span>';
+    case "START_EVENT":
+      return '<span class="bpmn-icon-start-event-none"></span>';
+    case "SEQUENCE_FLOW":
+      return '<span class="bpmn-icon-connection"></span>';
+    case "SERVICE_TASK":
+      return '<span class="bpmn-icon-service-task"></span>';
+    default:
+      return "?";
   }
 }
