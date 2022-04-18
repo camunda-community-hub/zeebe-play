@@ -175,6 +175,10 @@ function markBpmnElementAsActive(elementId) {
   canvas.addMarker(elementId, 'bpmn-element-active');
 }
 
+function markBpmnElementWithIncident(elementId) {
+  canvas.addMarker(elementId, 'bpmn-element-incident');
+}
+
 function markSequenceFlow(flowId) {
   let element = elementRegistry.get(flowId);
   let gfx = elementRegistry.getGraphics(element);

@@ -388,4 +388,9 @@ function markElementInstances(processInstance) {
   processInstance.takenSequenceFlows.forEach((sequenceFlow) => {
     markSequenceFlow(sequenceFlow.elementId);
   });
+
+  processInstance.elementInstancesWithIncidents.forEach((incidents) => {
+    let elementId = incidents.elementInstance.elementId;
+    markBpmnElementWithIncident(elementId);
+  });
 }

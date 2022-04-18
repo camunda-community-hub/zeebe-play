@@ -170,7 +170,7 @@ const elementInstancesByProcessInstanceQuery = `query ElementInstancesOfProcessI
       
       elementInstancesWithIncidents: incidents(stateIn: [CREATED]) {
         elementInstance {
-          key
+          elementId
         }
       }
     }
