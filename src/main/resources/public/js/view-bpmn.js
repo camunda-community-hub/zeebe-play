@@ -169,4 +169,8 @@ function highlightElement(elementId) {
   highlightedElementId = elementId;
 }
 
+function markBpmnElementAsActive(elementId) {
+  canvas.addMarker(elementId, 'bpmn-element-active');
+}
+
 

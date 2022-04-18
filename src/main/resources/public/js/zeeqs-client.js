@@ -151,6 +151,22 @@ const elementInstancesByProcessInstanceQuery = `query ElementInstancesOfProcessI
         stateTransitions {
           state
           timestamp(zoneId: $zoneId)
+        }        
+      }
+      
+      activeElementInstances: elementInstances(stateIn:[ACTIVATING, ACTIVATED, COMPLETING]) {
+        elementId
+        bpmnElementType
+      }
+      
+      completedElementInstances: elementInstances(stateIn:[COMPLETED, TAKEN]) {
+        elementId
+        bpmnElementType
+      }
+      
+      elementInstancesWithIncidents: incidents(stateIn: [CREATED]) {
+        elementInstance {
+          key
         }
       }
     }

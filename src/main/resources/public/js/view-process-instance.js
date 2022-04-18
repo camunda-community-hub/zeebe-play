@@ -289,6 +289,7 @@ function loadElementInstancesOfProcessInstance() {
 
         });
 
+        markElementInstances(processInstance);
       });
 }
 
@@ -375,4 +376,12 @@ function formatBpmnElementInstance(elementInstance) {
   elementFormatted += '</button>';
 
   return elementFormatted;
+}
+
+function markElementInstances(processInstance) {
+  processInstance.activeElementInstances.forEach((elementInstance) => {
+    if (elementInstance.bpmnElementType !== 'PROCESS') {
+      markBpmnElementAsActive(elementInstance.elementId);
+    }
+  });
 }
