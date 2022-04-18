@@ -84,20 +84,14 @@ function loadVariablesOfProcessInstance() {
 
           let scope = variable.scope;
 
-          let scopeElement = scope.elementId;
-          if (scope.elementName) {
-            scopeElement = scope.elementName;
-          }
-
           let scopeFormatted;
           if (scope.bpmnElementType === 'PROCESS') {
             scopeFormatted = '<span class="badge bg-primary">global</span>';
           } else {
-            scopeFormatted = '<span class="badge bg-secondary">local</span>'
-                + ' <button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element" onclick="highlightElement(\'' + scope.elementId + '\');">'
-                + scopeElement
-                + '</button>';
+            scopeFormatted = '<span class="badge bg-secondary">local</span>';
           }
+
+          let scopeElement = formatBpmnElementInstance(scope);
 
           let valueFormatted = '<code>' + variable.value + '</code>';
 
@@ -159,6 +153,7 @@ function loadVariablesOfProcessInstance() {
               + '<td>' + variable.name + '</td>'
               + '<td>' + valueFormatted +'</td>'
               + '<td>' + scopeFormatted +'</td>'
+              + '<td>' + scopeElement +'</td>'
               + '<td>' + scope.key +'</td>'
               + '<td>' + lastUpdatedFormatted +'</td>'
               + '<td>' + actionButton +'</td>'
@@ -237,16 +232,7 @@ function loadElementInstancesOfProcessInstance() {
 
         elementInstances.forEach((elementInstance, index) => {
 
-          let bpmnElement = formatBpmnElement(elementInstance.bpmnElementType);
-
-          let elementFormatted = ' <button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element" onclick="highlightElement(\'' + elementInstance.elementId + '\');">'
-              + bpmnElement + ' ';
-          if (elementInstance.elementName) {
-            elementFormatted += elementInstance.elementName;
-          } else {
-            elementFormatted += elementInstance.elementId;
-          }
-          elementFormatted += '</button>';
+          let elementFormatted = formatBpmnElementInstance(elementInstance);
 
           let scopeFormatted = '';
           if (elementInstance.scope) {
@@ -343,4 +329,19 @@ function formatBpmnElement(bpmnElementType) {
     default:
       return "?";
   }
+}
+
+function formatBpmnElementInstance(elementInstance) {
+  let bpmnElement = formatBpmnElement(elementInstance.bpmnElementType);
+
+  let elementFormatted = ' <button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element" onclick="highlightElement(\'' + elementInstance.elementId + '\');">'
+      + bpmnElement + ' ';
+  if (elementInstance.elementName) {
+    elementFormatted += elementInstance.elementName;
+  } else {
+    elementFormatted += elementInstance.elementId;
+  }
+  elementFormatted += '</button>';
+
+  return elementFormatted;
 }
