@@ -159,9 +159,13 @@ const elementInstancesByProcessInstanceQuery = `query ElementInstancesOfProcessI
         bpmnElementType
       }
       
-      completedElementInstances: elementInstances(stateIn:[COMPLETED, TAKEN]) {
+      completedElementInstances: elementInstances(stateIn:[COMPLETED]) {
         elementId
         bpmnElementType
+      }
+      
+      takenSequenceFlows: elementInstances(stateIn: [TAKEN]) {
+        elementId
       }
       
       elementInstancesWithIncidents: incidents(stateIn: [CREATED]) {

@@ -6,6 +6,7 @@ function showBpmn(bpmnXML) {
 var bpmnViewer;
 var canvas;
 var elementRegistry;
+var graphicsFactory;
 var eventBus;
 var overlays;
 
@@ -21,6 +22,7 @@ async function openDiagram(bpmnXML) {
 
   canvas = bpmnViewer.get("canvas");
   elementRegistry = bpmnViewer.get("elementRegistry");
+  graphicsFactory = bpmnViewer.get('graphicsFactory');
   eventBus = bpmnViewer.get("eventBus");
   overlays = bpmnViewer.get("overlays");
 
@@ -173,4 +175,19 @@ function markBpmnElementAsActive(elementId) {
   canvas.addMarker(elementId, 'bpmn-element-active');
 }
 
+function markSequenceFlow(flowId) {
+  let element = elementRegistry.get(flowId);
+  let gfx = elementRegistry.getGraphics(element);
+
+  colorSequenceFlow(element, gfx, '#52b415');
+}
+
+function colorSequenceFlow(sequenceFlow, gfx, color) {
+  let di = sequenceFlow.di;
+
+  di.set('stroke', color);
+  di.set('fill', color);
+
+  graphicsFactory.update('connection', sequenceFlow, gfx);
+}
 

@@ -384,4 +384,8 @@ function markElementInstances(processInstance) {
       markBpmnElementAsActive(elementInstance.elementId);
     }
   });
+
+  processInstance.takenSequenceFlows.forEach((sequenceFlow) => {
+    markSequenceFlow(sequenceFlow.elementId);
+  });
 }
