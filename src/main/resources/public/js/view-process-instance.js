@@ -244,14 +244,45 @@ function loadElementInstancesOfProcessInstance() {
             endTime = elementInstance.endTime;
           }
 
-          let state = formatElementInstanceState(elementInstance.state);
+          let stateTransitionsId = "state-transitions-" + elementInstance.key;
+
+          let stateFormatted = '<div class="row row-cols-1">'
+              + '<div class="col">'
+              + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#' + stateTransitionsId + '" aria-expanded="false" title="Show state transitions">'
+              + formatElementInstanceState(elementInstance.state)
+              + '</button>'
+              + '</div>'
+
+            let stateTransitions = '<table class="table">'
+                + '<thead>'
+                + '<tr>'
+                + '<th scope="col">State</th>'
+                + '<th scope="col">Timestamp</th>'
+                + '</tr>'
+                + '</thead>'
+                + '<tbody>';
+
+          elementInstance.stateTransitions.forEach((stateTransition) => {
+            stateTransitions += '<tr>'
+                  + '<td>' + formatElementInstanceState(stateTransition.state) + '</td>'
+                  + '<td>' + stateTransition.timestamp +'</td>'
+                  + '</tr>';
+            });
+
+          stateTransitions += '</tbody></table>';
+          stateFormatted += '<div class="collapse" id="' + stateTransitionsId + '">'
+              + '<div class="col">'
+              + stateTransitions
+              + '</div>'
+              + '</div>'
+              + '</div>';
 
           $("#element-instances-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + elementInstance.key + '</td>'
               + '<td>' + scopeFormatted +'</td>'
-              + '<td>' + state +'</td>'
+              + '<td>' + stateFormatted +'</td>'
               + '<td>' + elementInstance.startTime +'</td>'
               + '<td>' + endTime +'</td>'
               + '</tr>');
