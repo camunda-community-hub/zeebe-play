@@ -1,4 +1,5 @@
 var bpmnViewIsLoaded = false;
+var markedBpmnElement;
 
 function getProcessInstanceKey() {
   return $("#process-instance-page-key").text();
@@ -393,4 +394,78 @@ function markElementInstances(processInstance) {
     let elementId = incidents.elementInstance.elementId;
     markBpmnElementWithIncident(elementId);
   });
+
+  addElementCounters(processInstance);
+}
+
+
+
+function addElementCounters(processInstance) {
+  let elementCounters = {};
+
+  processInstance.activeElementInstances.forEach((elementInstance) => {
+    updateElementCounter(elementCounters, elementInstance, function (counter) {
+      counter.active += 1;
+    })
+  });
+
+  processInstance.completedElementInstances.forEach((elementInstance) => {
+    updateElementCounter(elementCounters, elementInstance, function (counter) {
+      counter.completed += 1;
+    })
+  });
+
+  processInstance.terminatedElementInstances.forEach((elementInstance) => {
+    updateElementCounter(elementCounters, elementInstance, function (counter) {
+      counter.terminated += 1;
+    })
+  });
+
+  onBpmnElementHover(function (elementId) {
+    let counter = elementCounters[elementId];
+    if (counter) {
+      showElementCounters(elementId, counter.active, counter.completed, counter.terminated);
+    }
+  });
+
+  onBpmnElementOut(function (elementId) {
+    if (elementId === markedBpmnElement) {
+      return;
+    }
+
+    let counter = elementCounters[elementId];
+    if (counter) {
+      removeElementCounters(elementId);
+    }
+  });
+
+  onBpmnElementClick(function (elementId) {
+    if (markedBpmnElement) {
+      removeElementCounters(markedBpmnElement);
+    }
+
+    if (elementId === markedBpmnElement) {
+      markedBpmnElement = undefined;
+      return;
+    }
+    markedBpmnElement = elementId;
+
+    let counter = elementCounters[elementId];
+    if (counter) {
+      showElementCounters(elementId, counter.active, counter.completed, counter.terminated);
+    }
+  });
+}
+
+function updateElementCounter(elementCounters, elementInstance, updateCounter) {
+  if (elementInstance.bpmnElementType === 'PROCESS') {
+    return
+  }
+  let elementId = elementInstance.elementId;
+  let counter = elementCounters[elementId];
+  if (!counter) {
+    counter = {active: 0, completed: 0, terminated: 0};
+  }
+  updateCounter(counter);
+  elementCounters[elementId] = counter;
 }

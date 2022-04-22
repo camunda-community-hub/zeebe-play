@@ -19,6 +19,7 @@
 
 .bpmn-element-active .djs-visual > :nth-child(1) {
   stroke: rgba(66, 180, 21, 0.7) !important;
+  /* stroke: rgb(61, 125, 253, 0.7) !important; */
 }
 
 .bpmn-element-incident .djs-visual > :nth-child(1) {

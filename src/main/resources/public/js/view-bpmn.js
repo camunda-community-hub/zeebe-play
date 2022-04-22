@@ -195,3 +195,43 @@ function colorSequenceFlow(sequenceFlow, gfx, color) {
   graphicsFactory.update('connection', sequenceFlow, gfx);
 }
 
+function showElementCounters(elementId, activeInstances, completedInstances, terminatedInstances) {
+  let content = '<div style="width: 70px;"><small>'
+      + '<span class="badge bg-primary bg-opacity-75" title="active">' + activeInstances + '</span>'
+      + ' <span class="badge bg-secondary bg-opacity-75" title="completed">' + completedInstances + '</span>'
+      + ' <span class="badge bg-black bg-opacity-75" title="terminated">' + terminatedInstances + '</span>'
+      + '</small></div>';
+
+  overlays.add(elementId, 'element-counters', {
+    position: {
+      bottom: 0,
+      left: 0
+    },
+    html: content
+  });
+}
+
+function removeElementCounters(elementId) {
+  overlays.remove({ element: elementId, type: 'element-counters' });
+}
+
+function onBpmnElementHover(callback) {
+  eventBus.on("element.hover", function(e) {
+    let elementId = e.element.id;
+    callback(elementId);
+  });
+}
+
+function onBpmnElementOut(callback) {
+  eventBus.on("element.out", function(e) {
+    let elementId = e.element.id;
+    callback(elementId);
+  });
+}
+
+function onBpmnElementClick(callback) {
+  eventBus.on("element.click", function(e) {
+    let elementId = e.element.id;
+    callback(elementId);
+  });
+}
