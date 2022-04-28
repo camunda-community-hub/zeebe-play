@@ -61,6 +61,7 @@ function loadProcessInstanceView() {
 
   loadVariablesOfProcessInstance();
   loadElementInstancesOfProcessInstance();
+  loadJobsOfProcessInstance();
 }
 
 function loadVariablesOfProcessInstance() {
@@ -468,4 +469,89 @@ function updateElementCounter(elementCounters, elementInstance, updateCounter) {
   }
   updateCounter(counter);
   elementCounters[elementId] = counter;
+}
+
+function loadJobsOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryJobsByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        let processInstance = response.data.processInstance;
+        let jobs = processInstance.jobs;
+
+        let totalCount = jobs.length;
+
+        $("#jobs-total-count").text(totalCount);
+
+        $("#jobs-of-process-instance-table tbody").empty();
+
+        const indexOffset = 1;
+
+        jobs.forEach((job, index) => {
+
+          let elementFormatted = formatBpmnElementInstance(job.elementInstance);
+
+          let endTime = '';
+          if (job.endTime) {
+            endTime = job.endTime;
+          }
+
+          let state = formatJobState(job.state);
+
+          let fillModalAction = 'fillJobModal(\'' + job.key + '\');';
+
+          let actionButton = '';
+          if (job.state === "ACTIVATABLE") {
+            actionButton = '<div class="btn-group">'
+                + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="modal" data-bs-target="#job-complete-modal" onclick="'
+                + fillModalAction + '">'
+                + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>'
+                + ' Complete'
+                + '</button>'
+                + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
+                + '<ul class="dropdown-menu">'
+                + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-fail-modal" href="#" onclick="'
+                + fillModalAction + '">'
+                + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>'
+                + ' Fail' + '</a></li>'
+                + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-throw-error-modal" href="#" onclick="'
+                + fillModalAction + '">'
+                + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>'
+                + ' Throw Error' + '</a></li>'
+                + '</ul>'
+                + '</div>';
+          }
+
+          $("#jobs-of-process-instance-table > tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + job.key +'</td>'
+              + '<td>' + job.jobType +'</td>'
+              + '<td>' + elementFormatted +'</td>'
+              + '<td>' + job.elementInstance.key +'</td>'
+              + '<td>' + state + '</td>'
+              + '<td>' + job.startTime +'</td>'
+              + '<td>' + endTime +'</td>'
+              + '<td>' + actionButton +'</td>'
+              + '</tr>');
+        });
+      });
+}
+
+function formatJobState(state) {
+  switch (state) {
+    case "ACTIVATABLE":
+      return '<span class="badge bg-primary">active</span>';
+    case "COMPLETED":
+      return '<span class="badge bg-secondary">completed</span>';
+    case "FAILED":
+      return '<span class="badge bg-danger">failed</span>';
+    case "CANCELED":
+      return '<span class="badge bg-dark">canceled</span>';
+    case "ERROR_THROWN":
+      return '<span class="badge bg-warning">error thrown</span>';
+    default:
+      return "?"
+  }
 }

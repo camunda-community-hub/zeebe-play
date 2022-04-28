@@ -1,16 +1,25 @@
 <div th:fragment="process-instance-details">
 
   <ul class="nav nav-tabs" id="process-instance-tabs" role="tablist">
+
     <li class="nav-item" role="presentation">
       <button class="nav-link active" id="variables-tab" data-bs-toggle="tab" data-bs-target="#variables" type="button" role="tab" aria-controls="variables" aria-selected="true">
         Variables
         <span class="badge bg-light text-dark" id="variables-total-count">0</span>
       </button>
     </li>
+
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="element-instances-tab" data-bs-toggle="tab" data-bs-target="#element-instances" type="button" role="tab" aria-controls="element-instances" aria-selected="false">
         Element Instances
         <span class="badge bg-light text-dark" id="element-instances-total-count">0</span>
+      </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab" aria-controls="jobs" aria-selected="false">
+        Jobs
+        <span class="badge bg-light text-dark" id="jobs-total-count">0</span>
       </button>
     </li>
 
@@ -23,6 +32,10 @@
 
     <div class="tab-pane fade" id="element-instances" role="tabpanel" aria-labelledby="element-instances-tab">
       <div th:replace="views/monitoring/process-instances/process-instance-details-element-instances.html :: process-instance-details-element-instances"></div>
+    </div>
+
+    <div class="tab-pane fade" id="jobs" role="tabpanel" aria-labelledby="jobs-tab">
+      <div th:replace="views/monitoring/process-instances/process-instance-details-jobs.html :: process-instance-details-jobs"></div>
     </div>
 
   </div>

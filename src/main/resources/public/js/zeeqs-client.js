@@ -181,6 +181,26 @@ const elementInstancesByProcessInstanceQuery = `query ElementInstancesOfProcessI
     }
   }`;
 
+const jobsByProcessInstanceQuery = `query JobsOfProcessInstance($key: ID!, $zoneId: String!) {  
+    processInstance(key: $key) {    
+       jobs {
+          key
+          jobType
+          state
+          timestamp(zoneId: $zoneId)
+          startTime(zoneId: $zoneId)
+          endTime(zoneId: $zoneId)
+          
+          elementInstance {
+            key
+            elementId
+            elementName
+            bpmnElementType
+          }
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -278,6 +298,14 @@ function queryVariablesByProcessInstance(processInstanceKey) {
 function queryElementInstancesByProcessInstance(processInstanceKey) {
 
   return fetchData(elementInstancesByProcessInstanceQuery, {
+    key: processInstanceKey,
+    zoneId: getTimeZone()
+  });
+}
+
+function queryJobsByProcessInstance(processInstanceKey) {
+
+  return fetchData(jobsByProcessInstanceQuery, {
     key: processInstanceKey,
     zoneId: getTimeZone()
   });
