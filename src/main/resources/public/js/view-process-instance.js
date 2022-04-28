@@ -499,11 +499,12 @@ function loadJobsOfProcessInstance() {
           }
 
           let state = formatJobState(job.state);
-
-          let fillModalAction = 'fillJobModal(\'' + job.key + '\');';
+          const isActiveJob = job.state === "ACTIVATABLE";
 
           let actionButton = '';
-          if (job.state === "ACTIVATABLE") {
+          if (isActiveJob) {
+            let fillModalAction = 'fillJobModal(\'' + job.key + '\');';
+
             actionButton = '<div class="btn-group">'
                 + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="modal" data-bs-target="#job-complete-modal" onclick="'
                 + fillModalAction + '">'
@@ -535,6 +536,10 @@ function loadJobsOfProcessInstance() {
               + '<td>' + endTime +'</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');
+
+          if (isActiveJob) {
+            makeTaskPlayable(job.elementInstance.elementId, job.key);
+          }
         });
       });
 }

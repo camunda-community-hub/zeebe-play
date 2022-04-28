@@ -235,3 +235,31 @@ function onBpmnElementClick(callback) {
     callback(elementId);
   });
 }
+
+function makeTaskPlayable(elementId, jobKey) {
+
+  let fillModalAction = 'fillJobModal(\'' + jobKey + '\');';
+
+  const content = '<div class="btn-group">'
+      + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Complete job" onclick="' + fillModalAction + '">'
+      + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>'
+      + '</button>'
+      + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
+      + '<ul class="dropdown-menu">'
+      + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-complete-modal" href="#">with variables</a></li>'
+      + '<li><hr class="dropdown-divider"></li>'
+      + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-fail-modal" href="#" onclick="' + fillModalAction + '">'
+      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>' + ' Fail' + '</a></li>'
+      + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-throw-error-modal" href="#" onclick="' + fillModalAction + '">'
+      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>' + ' Throw Error' + '</a></li>'
+      + '</ul>'
+      + '</div>';
+
+  overlays.add(elementId, {
+    position: {
+      top: -20,
+      left: -40
+    },
+    html: content
+  });
+}
