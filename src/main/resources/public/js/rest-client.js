@@ -77,3 +77,23 @@ function sendSetVariablesRequest(processInstanceKey, scopeKey, variables) {
     variables: variables
   });
 }
+
+function sendCompleteJobRequest(jobKey, variables) {
+  return sendPostRequest("jobs/" + jobKey + "/complete", {
+    variables: variables
+  });
+}
+
+function sendFailJobRequest(jobKey, retries, errorMessages) {
+  return sendPostRequest("jobs/" + jobKey + "/fail", {
+    retries: retries,
+    errorMessages: errorMessages
+  });
+}
+
+function sendThrowErrorJobRequest(jobKey, errorCode, errorMessages) {
+  return sendPostRequest("jobs/" + jobKey + "/fail", {
+    retries: retries,
+    errorMessages: errorMessages
+  });
+}

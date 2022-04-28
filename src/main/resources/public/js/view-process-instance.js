@@ -493,6 +493,8 @@ function loadJobsOfProcessInstance() {
 
           let elementFormatted = formatBpmnElementInstance(job.elementInstance);
 
+          const elementId = job.elementInstance.elementId;
+
           let endTime = '';
           if (job.endTime) {
             endTime = job.endTime;
@@ -538,7 +540,9 @@ function loadJobsOfProcessInstance() {
               + '</tr>');
 
           if (isActiveJob) {
-            makeTaskPlayable(job.elementInstance.elementId, job.key);
+            makeTaskPlayable(elementId, job.key);
+          } else {
+            removeTaskPlayableMarker(elementId);
           }
         });
       });
@@ -559,4 +563,18 @@ function formatJobState(state) {
     default:
       return "?"
   }
+}
+
+function completeJob(jobKey, variables) {
+  const toastId = "job-complete-" + jobKey;
+
+  sendCompleteJobRequest(jobKey, variables)
+      .done(key => {
+        showNotificationSuccess(toastId, "Job <code>" + jobKey + "</code> completed.");
+
+        loadProcessInstanceView();
+      })
+      .fail(showFailure(
+          "Failed to complete job <code>" + jobKey + "</code>.")
+      );
 }

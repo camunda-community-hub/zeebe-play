@@ -238,10 +238,11 @@ function onBpmnElementClick(callback) {
 
 function makeTaskPlayable(elementId, jobKey) {
 
-  let fillModalAction = 'fillJobModal(\'' + jobKey + '\');';
+  const completeJob = "completeJob(" + jobKey + ", '{}');";
+  const fillModalAction = 'fillJobModal(\'' + jobKey + '\');';
 
   const content = '<div class="btn-group">'
-      + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Complete job" onclick="' + fillModalAction + '">'
+      + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Complete job" onclick="' + completeJob + '">'
       + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>'
       + '</button>'
       + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
@@ -255,11 +256,15 @@ function makeTaskPlayable(elementId, jobKey) {
       + '</ul>'
       + '</div>';
 
-  overlays.add(elementId, {
+  overlays.add(elementId, 'job-marker', {
     position: {
       top: -20,
       left: -40
     },
     html: content
   });
+}
+
+function removeTaskPlayableMarker(elementId) {
+  overlays.remove({ element: elementId, type: 'job-marker' })
 }
