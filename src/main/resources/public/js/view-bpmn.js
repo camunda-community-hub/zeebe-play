@@ -247,7 +247,7 @@ function makeTaskPlayable(elementId, jobKey) {
       + '</button>'
       + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
       + '<ul class="dropdown-menu">'
-      + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-complete-modal" href="#">with variables</a></li>'
+      + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#complete-job-modal" href="#" onclick="' + fillModalAction + '">with variables</a></li>'
       + '<li><hr class="dropdown-divider"></li>'
       + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-fail-modal" href="#" onclick="' + fillModalAction + '">'
       + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>' + ' Fail' + '</a></li>'

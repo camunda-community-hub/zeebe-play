@@ -508,7 +508,7 @@ function loadJobsOfProcessInstance() {
             let fillModalAction = 'fillJobModal(\'' + job.key + '\');';
 
             actionButton = '<div class="btn-group">'
-                + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="modal" data-bs-target="#job-complete-modal" onclick="'
+                + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="modal" data-bs-target="#complete-job-modal" onclick="'
                 + fillModalAction + '">'
                 + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>'
                 + ' Complete'
@@ -574,7 +574,18 @@ function completeJob(jobKey, variables) {
 
         loadProcessInstanceView();
       })
-      .fail(showFailure(
+      .fail(showFailure(toastId,
           "Failed to complete job <code>" + jobKey + "</code>.")
       );
+}
+
+function fillJobModal(jobKey) {
+  $("#jobKey").val(jobKey);
+}
+
+function completeJobModal() {
+  const jobKey = $("#jobKey").val();
+  const jobVariables = $("#jobVariables").val();
+
+  completeJob(jobKey, jobVariables);
 }
