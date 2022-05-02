@@ -84,16 +84,16 @@ function sendCompleteJobRequest(jobKey, variables) {
   });
 }
 
-function sendFailJobRequest(jobKey, retries, errorMessages) {
+function sendFailJobRequest(jobKey, retries, errorMessage) {
   return sendPostRequest("jobs/" + jobKey + "/fail", {
     retries: retries,
-    errorMessages: errorMessages
+    errorMessage: errorMessage
   });
 }
 
-function sendThrowErrorJobRequest(jobKey, errorCode, errorMessages) {
+function sendThrowErrorJobRequest(jobKey, errorCode, errorMessage) {
   return sendPostRequest("jobs/" + jobKey + "/fail", {
     retries: retries,
-    errorMessages: errorMessages
+    errorMessage: errorMessage
   });
 }

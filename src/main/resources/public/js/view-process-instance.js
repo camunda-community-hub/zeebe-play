@@ -505,22 +505,24 @@ function loadJobsOfProcessInstance() {
 
           let actionButton = '';
           if (isActiveJob) {
-            let fillModalAction = 'fillJobModal(\'' + job.key + '\');';
+            let fillModalAction = function (type) {
+              return 'fillJobModal(\'' + job.key + '\', \'' + type + '\');';
+            }
 
             actionButton = '<div class="btn-group">'
                 + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="modal" data-bs-target="#complete-job-modal" onclick="'
-                + fillModalAction + '">'
+                + fillModalAction('complete') + '">'
                 + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>'
                 + ' Complete'
                 + '</button>'
                 + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
                 + '<ul class="dropdown-menu">'
-                + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-fail-modal" href="#" onclick="'
-                + fillModalAction + '">'
+                + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#fail-job-modal" href="#" onclick="'
+                + fillModalAction('fail') + '">'
                 + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>'
                 + ' Fail' + '</a></li>'
                 + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-throw-error-modal" href="#" onclick="'
-                + fillModalAction + '">'
+                + fillModalAction('throw-error') + '">'
                 + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>'
                 + ' Throw Error' + '</a></li>'
                 + '</ul>'
@@ -579,13 +581,35 @@ function completeJob(jobKey, variables) {
       );
 }
 
-function fillJobModal(jobKey) {
-  $("#jobKey").val(jobKey);
+function failJob(jobKey, retries, errorMessage) {
+  const toastId = "job-fail-" + jobKey;
+
+  sendFailJobRequest(jobKey, retries, errorMessage)
+      .done(key => {
+        showNotificationSuccess(toastId, "Job <code>" + jobKey + "</code> failed.");
+
+        loadProcessInstanceView();
+      })
+      .fail(showFailure(toastId,
+          "Failed to fail job <code>" + jobKey + "</code>.")
+      );
+}
+
+function fillJobModal(jobKey, type) {
+  $("#jobKey-" + type).val(jobKey);
 }
 
 function completeJobModal() {
-  const jobKey = $("#jobKey").val();
+  const jobKey = $("#jobKey-complete").val();
   const jobVariables = $("#jobVariables").val();
 
   completeJob(jobKey, jobVariables);
+}
+
+function failJobModal() {
+  const jobKey = $("#jobKey-fail").val();
+  const retries = $("#jobRetries").val();
+  const errorMessage = $("#jobErrorMessage").val();
+
+  failJob(jobKey, retries, errorMessage);
 }
