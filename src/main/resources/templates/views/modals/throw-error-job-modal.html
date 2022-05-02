@@ -1,0 +1,38 @@
+<div th:fragment="throw-error-job-modal">
+
+  <div class="modal fade" id="throw-error-job-modal" tabindex="-1" aria-labelledby="throwErrorJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="throwErrorJobModal">Throw Error</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <form>
+            <div class="mb-3">
+              <label for="jobKey-throw-error" class="form-label">Job Key</label>
+              <input type="text" class="form-control" id="jobKey-throw-error" readonly>
+            </div>
+
+            <div class="mb-3">
+              <label for="jobErrorCode" class="form-label">Error Code</label>
+              <input type="text" class="form-control" id="jobErrorCode" placeholder="ERROR-001">
+            </div>
+
+            <div class="mb-3">
+              <label for="job-throw-error-errorMessage" class="form-label">Error Message</label>
+              <textarea class="form-control" id="job-throw-error-errorMessage" rows="3"></textarea>
+            </div>
+          </form>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="throwErrorJobModal();">Fail</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

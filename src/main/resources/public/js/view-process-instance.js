@@ -521,7 +521,7 @@ function loadJobsOfProcessInstance() {
                 + fillModalAction('fail') + '">'
                 + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>'
                 + ' Fail' + '</a></li>'
-                + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#job-throw-error-modal" href="#" onclick="'
+                + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#throw-error-job-modal" href="#" onclick="'
                 + fillModalAction('throw-error') + '">'
                 + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>'
                 + ' Throw Error' + '</a></li>'
@@ -595,6 +595,20 @@ function failJob(jobKey, retries, errorMessage) {
       );
 }
 
+function throwErrorJob(jobKey, errorCode, errorMessage) {
+  const toastId = "job-throw-error-" + jobKey;
+
+  sendThrowErrorJobRequest(jobKey, errorCode, errorMessage)
+      .done(key => {
+        showNotificationSuccess(toastId, "An error <code>" + errorCode + "</code> was thrown for the job <code>" + jobKey + "</code>.");
+
+        loadProcessInstanceView();
+      })
+      .fail(showFailure(toastId,
+          "Failed to throw error for the job <code>" + jobKey + "</code>.")
+      );
+}
+
 function fillJobModal(jobKey, type) {
   $("#jobKey-" + type).val(jobKey);
 }
@@ -612,4 +626,12 @@ function failJobModal() {
   const errorMessage = $("#jobErrorMessage").val();
 
   failJob(jobKey, retries, errorMessage);
+}
+
+function throwErrorJobModal() {
+  const jobKey = $("#jobKey-throw-error").val();
+  const errorCode = $("#jobErrorCode").val();
+  const errorMessage = $("#job-throw-error-errorMessage").val();
+
+  throwErrorJob(jobKey, errorCode, errorMessage);
 }

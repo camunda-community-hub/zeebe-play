@@ -92,8 +92,8 @@ function sendFailJobRequest(jobKey, retries, errorMessage) {
 }
 
 function sendThrowErrorJobRequest(jobKey, errorCode, errorMessage) {
-  return sendPostRequest("jobs/" + jobKey + "/fail", {
-    retries: retries,
+  return sendPostRequest("jobs/" + jobKey + "/throw-error", {
+    errorCode: errorCode,
     errorMessage: errorMessage
   });
 }
