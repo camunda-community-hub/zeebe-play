@@ -62,6 +62,7 @@ function loadProcessInstanceView() {
   loadVariablesOfProcessInstance();
   loadElementInstancesOfProcessInstance();
   loadJobsOfProcessInstance();
+  loadIncidentsOfProcessInstance();
 }
 
 function loadVariablesOfProcessInstance() {
@@ -634,4 +635,78 @@ function throwErrorJobModal() {
   const errorMessage = $("#job-throw-error-errorMessage").val();
 
   throwErrorJob(jobKey, errorCode, errorMessage);
+}
+
+function loadIncidentsOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryIncidentsByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        let processInstance = response.data.processInstance;
+        let incidents = processInstance.incidents;
+
+        let totalCount = incidents.length;
+
+        $("#incidents-total-count").text(totalCount);
+
+        $("#incidents-of-process-instance-table tbody").empty();
+
+        const indexOffset = 1;
+
+        incidents.forEach((incident, index) => {
+
+          let elementFormatted = formatBpmnElementInstance(incident.elementInstance);
+
+          const elementId = incident.elementInstance.elementId;
+
+          let resolveTime = '';
+          if (incident.resolveTime) {
+            resolveTime = incident.resolveTime;
+          }
+
+          let state = formatIncidentState(incident.state);
+          const isActiveIncident = incident.state === "CREATED";
+
+          let actionButton = '';
+          if (isActiveIncident) {
+            const action = 'resolveIncident(' + incident.key + ');'
+            actionButton = '<button type="button" class="btn btn-sm btn-primary" title="Resolve" onclick="'+ action + '">'
+                + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#arrow-counterclockwise"/></svg>'
+                + ' Resolve'
+                + '</button>';
+          }
+
+          $("#incidents-of-process-instance-table > tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + incident.key +'</td>'
+              + '<td>' + incident.errorType +'</td>'
+              + '<td>' + incident.errorMessage +'</td>'
+              + '<td>' + elementFormatted +'</td>'
+              + '<td>' + incident.elementInstance.key +'</td>'
+              + '<td>' + state + '</td>'
+              + '<td>' + incident.creationTime +'</td>'
+              + '<td>' + resolveTime +'</td>'
+              + '<td>' + actionButton +'</td>'
+              + '</tr>');
+
+          if (isActiveIncident) {
+            // mark elements
+          } else {
+            // remove marker
+          }
+        });
+      });
+}
+
+function formatIncidentState(state) {
+  switch (state) {
+    case "CREATED":
+      return '<span class="badge bg-primary">created</span>';
+    case "RESOLVED":
+      return '<span class="badge bg-secondary">resolved</span>';
+    default:
+      return "?"
+  }
 }

@@ -23,6 +23,13 @@
       </button>
     </li>
 
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="incidents-tab" data-bs-toggle="tab" data-bs-target="#incidents" type="button" role="tab" aria-controls="incidents" aria-selected="false">
+        Jobs
+        <span class="badge bg-light text-dark" id="incidents-total-count">0</span>
+      </button>
+    </li>
+
   </ul>
 
   <div class="tab-content" id="processInstanceTabContent">
@@ -36,6 +43,10 @@
 
     <div class="tab-pane fade" id="jobs" role="tabpanel" aria-labelledby="jobs-tab">
       <div th:replace="views/monitoring/process-instances/process-instance-details-jobs.html :: process-instance-details-jobs"></div>
+    </div>
+
+    <div class="tab-pane fade" id="incidents" role="tabpanel" aria-labelledby="incidents-tab">
+      <div th:replace="views/monitoring/process-instances/process-instance-details-incidents.html :: process-instance-details-incidents"></div>
     </div>
 
   </div>

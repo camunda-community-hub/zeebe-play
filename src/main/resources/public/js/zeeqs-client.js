@@ -201,6 +201,26 @@ const jobsByProcessInstanceQuery = `query JobsOfProcessInstance($key: ID!, $zone
     }
   }`;
 
+const incidentsByProcessInstanceQuery = `query IncidentsOfProcessInstance($key: ID!, $zoneId: String!) {  
+    processInstance(key: $key) {    
+      incidents {
+        key
+        errorType
+        errorMessage
+        state
+        creationTime(zoneId: $zoneId)
+        resolveTime(zoneId: $zoneId)
+        
+        elementInstance {
+          key
+          elementId
+          elementName
+          bpmnElementType
+        }
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -306,6 +326,14 @@ function queryElementInstancesByProcessInstance(processInstanceKey) {
 function queryJobsByProcessInstance(processInstanceKey) {
 
   return fetchData(jobsByProcessInstanceQuery, {
+    key: processInstanceKey,
+    zoneId: getTimeZone()
+  });
+}
+
+function queryIncidentsByProcessInstance(processInstanceKey) {
+
+  return fetchData(incidentsByProcessInstanceQuery, {
     key: processInstanceKey,
     zoneId: getTimeZone()
   });
