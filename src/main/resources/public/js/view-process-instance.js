@@ -149,6 +149,7 @@ function loadVariablesOfProcessInstance() {
 
           let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#set-variable-modal" title="Edit" onclick="'+ fillModalAction + '">'
               + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#pencil"/></svg>'
+              + ' Edit'
               + '</button>';
 
           $("#variables-of-process-instance-table > tbody:last-child").append('<tr>'
