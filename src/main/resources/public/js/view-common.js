@@ -125,3 +125,23 @@ function showFailure(actionId, message) {
   }
 }
 
+function getCurrentView() {
+  return $("#current-view").text();
+}
+
+function loadView() {
+  switch (getCurrentView()) {
+    case "process": {
+      loadProcessView();
+      break;
+    }
+    case "process-instance": {
+      loadProcessInstanceView();
+      break;
+    }
+    default: {
+      console.debug("Unable to load view: view is unknown");
+    }
+  }
+}
+

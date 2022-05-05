@@ -1,6 +1,8 @@
 const instancesOfProcessPerPage = 5;
 let instancesOfProcessCurrentPage = 0;
 
+var bpmnViewIsLoaded = false;
+
 function getProcessKey() {
   return $("#process-page-key").text();
 }
@@ -16,15 +18,19 @@ function loadProcessView() {
         $("#process-version").text(process.version);
         $("#process-deployment-time").text(process.deployTime);
 
-        const bpmnXML = process.bpmnXML;
-        showBpmn(bpmnXML).then(ok => {
-          makeStartEventsPlayable();
-          makeMessageStartEventsPlayable();
-          makeTimerStartEventsPlayable();
-        });
+        if (!bpmnViewIsLoaded) {
+          const bpmnXML = process.bpmnXML;
+          showBpmn(bpmnXML).then(ok => {
+            makeStartEventsPlayable();
+            makeMessageStartEventsPlayable();
+            makeTimerStartEventsPlayable();
+          });
+
+          bpmnViewIsLoaded = true;
+        }
       });
 
-  loadInstancesOfProcess(0);
+  loadInstancesOfProcess(instancesOfProcessCurrentPage);
   loadMessageSubscriptionsOfProcess();
   loadTimersOfProcess();
 }
@@ -199,11 +205,9 @@ function publishMessage(messageName) {
 
   sendPublishMessageRequestWithName(messageName)
       .done(messageKey => {
-
         showNotificationPublishMessageSuccess(messageKey);
 
-        loadInstancesOfProcess(instancesOfProcessCurrentPage);
-        loadMessageSubscriptionsOfProcess();
+        loadView();
       })
       .fail(showFailure(
           "publish-message-failed-" + messageName,
@@ -235,11 +239,9 @@ function publishMessageModal() {
       $("#publishMessageId").val()
   )
       .done(messageKey => {
-
         showNotificationPublishMessageSuccess(messageKey);
 
-        loadInstancesOfProcess(instancesOfProcessCurrentPage);
-        loadMessageSubscriptionsOfProcess();
+        loadView();
       })
       .fail(showFailure(
           "publish-message-failed",

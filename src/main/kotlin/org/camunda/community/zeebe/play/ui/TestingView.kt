@@ -11,8 +11,13 @@ class TestingView {
 
     @GetMapping("/testing")
     fun monitoring(model: Model): String {
-        model.addAttribute("page", "testing")
+        addPageInfoToModel(model, "overview")
         return "views/testing"
+    }
+
+    private fun addPageInfoToModel(model: Model, view: String) {
+        model.addAttribute("page", "testing")
+        model.addAttribute("view", view)
     }
 
 }

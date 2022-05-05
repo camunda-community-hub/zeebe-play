@@ -12,15 +12,20 @@ class MonitoringView {
 
     @GetMapping("/monitoring")
     fun monitoring(model: Model): String {
-        model.addAttribute("page", "monitoring")
+        addPageInfoToModel(model, "overview")
         return "views/monitoring/monitoring"
     }
 
     @GetMapping("/process-instance/{key}")
     fun processInstance(@PathVariable("key") processInstanceKey: Long, model: Model): String {
         model.addAttribute("processInstanceKey", processInstanceKey)
-        model.addAttribute("page", "monitoring")
+        addPageInfoToModel(model, "process-instance")
         return "views/monitoring/process-instances/process-instance"
+    }
+
+    private fun addPageInfoToModel(model: Model, view: String) {
+        model.addAttribute("page", "monitoring")
+        model.addAttribute("view", view)
     }
 
 }

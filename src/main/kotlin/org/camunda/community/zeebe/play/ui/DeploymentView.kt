@@ -12,15 +12,20 @@ class DeploymentView {
 
     @GetMapping("/deployment")
     fun deployment(model: Model): String {
-        model.addAttribute("page", "deployment")
+        addPageInfoToModel(model, "overview")
         return "views/deployment/deployment"
     }
 
     @GetMapping("/process/{key}")
     fun process(@PathVariable("key") processKey: Long, model: Model): String {
         model.addAttribute("processKey", processKey)
-        model.addAttribute("page", "deployment")
+        addPageInfoToModel(model, "process")
         return "views/deployment/process/process"
+    }
+
+    private fun addPageInfoToModel(model: Model, view: String) {
+        model.addAttribute("page", "deployment")
+        model.addAttribute("view", view)
     }
 
 }
