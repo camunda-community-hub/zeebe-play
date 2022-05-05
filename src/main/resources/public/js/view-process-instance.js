@@ -779,7 +779,9 @@ function loadMessageSubscriptionsOfProcessInstance() {
           const elementId = messageSubscription.elementInstance.elementId;
 
           let state = formatMessageSubscriptionState(messageSubscription.state);
-          const isActiveMessageSubscription = messageSubscription.state === "CREATED" || "CORRELATED";
+
+          const isActiveMessageSubscription = messageSubscription.state === "CREATED" || (
+              messageSubscription.state === "CORRELATED" && messageSubscription.elementInstance.state === 'ACTIVATED');
 
           let correlatedMessageCount = messageSubscription.messageCorrelations.length;
 
