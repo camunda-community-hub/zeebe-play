@@ -36,8 +36,18 @@ class JobsResource(private val zeebeClient: ZeebeClient) {
             .join()
     }
 
+    @RequestMapping(path = ["/{jobKey}/update-retries"], method = [RequestMethod.POST])
+    fun updateRetries(@PathVariable("jobKey") jobKey: Long, @RequestBody command: UpdateRetriesJobCommand) {
+
+        zeebeClient.newUpdateRetriesCommand(jobKey)
+            .retries(command.retries)
+            .send()
+            .join()
+    }
+
     data class CompleteJobCommand(val variables: String)
     data class FailJobCommand(val errorMessage: String, val retries: Int)
     data class ThrowErrorJobCommand(val errorCode: String, val errorMessage: String)
+    data class UpdateRetriesJobCommand(val retries: Int)
 
 }

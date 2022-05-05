@@ -97,3 +97,13 @@ function sendThrowErrorJobRequest(jobKey, errorCode, errorMessage) {
     errorMessage: errorMessage
   });
 }
+
+function sendUpdateRetriesJobRequest(jobKey, retries) {
+  return sendPostRequest("jobs/" + jobKey + "/update-retries", {
+    retries: retries
+  });
+}
+
+function sendResolveIncidentRequest(incidentKey) {
+  return sendPostRequest("incidents/" + incidentKey + "/resolve", {});
+}

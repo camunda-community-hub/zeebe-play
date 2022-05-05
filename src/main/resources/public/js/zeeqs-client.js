@@ -217,6 +217,8 @@ const incidentsByProcessInstanceQuery = `query IncidentsOfProcessInstance($key: 
           elementName
           bpmnElementType
         }
+        
+        job { key }
       }
     }
   }`;

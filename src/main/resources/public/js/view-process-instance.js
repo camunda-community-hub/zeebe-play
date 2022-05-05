@@ -672,7 +672,12 @@ function loadIncidentsOfProcessInstance() {
 
           let actionButton = '';
           if (isActiveIncident) {
-            const action = 'resolveIncident(' + incident.key + ');'
+            let jobKey = '';
+            if (incident.job) {
+              jobKey = incident.job.key;
+            }
+
+            const action = 'resolveIncident(' + incident.key + ', ' + jobKey + ');'
             actionButton = '<button type="button" class="btn btn-sm btn-primary" title="Resolve" onclick="'+ action + '">'
                 + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#arrow-counterclockwise"/></svg>'
                 + ' Resolve'
@@ -682,7 +687,7 @@ function loadIncidentsOfProcessInstance() {
           $("#incidents-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + incident.key +'</td>'
-              + '<td>' + incident.errorType +'</td>'
+              + '<td><code>' + incident.errorType +'</code></td>'
               + '<td>' + incident.errorMessage +'</td>'
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + incident.elementInstance.key +'</td>'
@@ -710,4 +715,36 @@ function formatIncidentState(state) {
     default:
       return "?"
   }
+}
+
+function resolveIncident(incidentKey, jobKey) {
+  const toastId = "job-update-retries-" + jobKey;
+
+  if (jobKey) {
+    sendUpdateRetriesJobRequest(jobKey, 1)
+        .done(key => {
+          showNotificationSuccess(toastId, "Retries of job <code>" + jobKey + "</code> increase.");
+
+          resolveIncidentByKey(incidentKey);
+        })
+        .fail(showFailure(toastId,
+            "Failed to update retries of the job <code>" + jobKey + "</code>.")
+        );
+
+  } else {
+    resolveIncidentByKey(incidentKey);
+  }
+}
+
+function resolveIncidentByKey(incidentKey) {
+  const toastId = "incident-resolve-" + incidentKey;
+  sendResolveIncidentRequest(incidentKey)
+      .done(key => {
+        showNotificationSuccess(toastId, "Incident <code>" + incidentKey + "</code> resolved.");
+
+        loadProcessInstanceView();
+      })
+      .fail(showFailure(toastId,
+          "Failed to resolve incident <code>" + incidentKey + "</code>.")
+      );
 }
