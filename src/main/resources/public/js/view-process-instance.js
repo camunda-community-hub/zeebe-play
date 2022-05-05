@@ -383,6 +383,11 @@ function formatBpmnElementInstance(elementInstance) {
 }
 
 function markElementInstances(processInstance) {
+
+  processInstance.elementInstances.forEach((elementInstance) => {
+    removeBpmnElementMarkers(elementInstance.elementId);
+  });
+
   processInstance.activeElementInstances.forEach((elementInstance) => {
     if (elementInstance.bpmnElementType !== 'PROCESS') {
       markBpmnElementAsActive(elementInstance.elementId);

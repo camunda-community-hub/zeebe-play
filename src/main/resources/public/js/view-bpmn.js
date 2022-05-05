@@ -179,6 +179,11 @@ function markBpmnElementWithIncident(elementId) {
   canvas.addMarker(elementId, 'bpmn-element-incident');
 }
 
+function removeBpmnElementMarkers(elementId) {
+  canvas.removeMarker(elementId, 'bpmn-element-active');
+  canvas.removeMarker(elementId, 'bpmn-element-incident');
+}
+
 function markSequenceFlow(flowId) {
   let element = elementRegistry.get(flowId);
   let gfx = elementRegistry.getGraphics(element);
