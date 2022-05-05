@@ -60,6 +60,10 @@ function loadProcessInstanceView() {
             + ' <span class="text-muted">(' + process.bpmnProcessId + ')</span>'
         );
 
+        if (!isProcessInstanceActive(processInstance)) {
+          disableProcessInstanceActionButtons();
+        }
+
         if (!bpmnViewIsLoaded) {
           const bpmnXML = process.bpmnXML;
           showBpmn(bpmnXML);
@@ -73,6 +77,13 @@ function loadProcessInstanceView() {
   loadJobsOfProcessInstance();
   loadIncidentsOfProcessInstance();
   loadMessageSubscriptionsOfProcessInstance();
+}
+
+function disableProcessInstanceActionButtons() {
+  $("#process-instance-set-variables").addClass("disabled");
+  $("#process-instance-cancel").addClass("disabled");
+  $("#process-instance-publish-message").addClass("disabled");
+  $("#process-instance-time-travel").addClass("disabled");
 }
 
 function loadVariablesOfProcessInstance() {
