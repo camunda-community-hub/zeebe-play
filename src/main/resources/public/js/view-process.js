@@ -177,16 +177,11 @@ function loadMessageSubscriptionsOfProcess() {
 
           let correlatedMessageCount = messageSubscription.messageCorrelations.length;
 
-          let actionButton = '<div class="btn-group">'
-              + '<button type="button" class="btn btn-sm btn-primary overlay-button" onclick="publishMessage(\'' + messageSubscription.messageName + '\');">'
+          const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName  + '\');';
+          let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#publish-message-modal" title="Publish message" onclick="'+ fillModalAction + '">'
               + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
               + ' Publish Message'
-              + '</button>'
-              + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
-              + '<ul class="dropdown-menu">'
-              + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#publish-message-modal" href="#" onclick="fillPublishMessageModal(\'' + messageSubscription.messageName  + '\');">with variables</a></li>'
-              + '</ul>'
-              + '</div>';
+              + '</button>';
 
           $("#message-subscriptions-of-process-table tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
