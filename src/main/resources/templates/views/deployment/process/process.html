@@ -26,14 +26,12 @@
     <div class="col-auto">
 
       <div class="btn-group">
-        <button type="button" class="btn btn-sm btn-primary overlay-button" onclick="createNewProcessInstance();">
+        <button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="modal" data-bs-target="#new-instance-modal">
           <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#play"/></svg>
           New Instance
         </button>
         <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
         <ul class="dropdown-menu">
-          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#new-instance-modal" href="#">with variables</a></li>
-          <li><hr class="dropdown-divider"></li>
           <li>
             <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#publish-message-modal" href="#">
               <svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>
