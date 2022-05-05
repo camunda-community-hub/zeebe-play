@@ -201,9 +201,9 @@ function loadMessageSubscriptionsOfProcess() {
       });
 }
 
-function publishMessage(messageName) {
+function publishMessage(messageName, messageCorrelationKey) {
 
-  sendPublishMessageRequestWithName(messageName)
+  sendPublishMessageRequest(messageName, messageCorrelationKey)
       .done(messageKey => {
         showNotificationPublishMessageSuccess(messageKey);
 

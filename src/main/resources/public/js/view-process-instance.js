@@ -785,9 +785,10 @@ function loadMessageSubscriptionsOfProcessInstance() {
 
           let correlatedMessageCount = messageSubscription.messageCorrelations.length;
 
+          const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
+
           let actionButton = '';
           if (isActiveMessageSubscription) {
-            const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
             actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#publish-message-modal" title="Publish message" onclick="'+ fillModalAction + '">'
                 + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
                 + ' Publish Message'
@@ -807,10 +808,10 @@ function loadMessageSubscriptionsOfProcessInstance() {
               + '</tr>');
 
           if (isActiveMessageSubscription) {
-            const action = 'publishMessage(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
-            // addResolveIncidentButton(elementId, action);
+            const clickAction = 'publishMessage(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
+            addPublishMessageButton(elementId, clickAction, fillModalAction);
           } else {
-            // removeResolveIncidentButton(elementId);
+            removePublishMessageButton(elementId);
           }
         });
       });

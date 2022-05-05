@@ -26,12 +26,6 @@ function sendCreateInstanceRequest(processKey, variables) {
   return sendPostRequest("processes/" + processKey,  variables);
 }
 
-function sendPublishMessageRequestWithName(messageName) {
-  return sendPostRequest("messages", {
-    messageName: messageName
-  });
-}
-
 function sendPublishMessageRequest(messageName, correlationKey, variables, timeToLive, messageId) {
   return sendPostRequest("messages", {
     messageName: messageName,
