@@ -106,7 +106,7 @@ const processInstanceQuery = `query ProcessInstance($key: ID!, $zoneId: String!)
         bpmnXML
       }
       
-      incidents {
+      incidents(stateIn: [CREATED]) {
         key
       }
     }
