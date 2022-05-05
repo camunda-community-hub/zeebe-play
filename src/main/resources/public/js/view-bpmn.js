@@ -275,3 +275,22 @@ function makeTaskPlayable(elementId, jobKey) {
 function removeTaskPlayableMarker(elementId) {
   overlays.remove({ element: elementId, type: 'job-marker' })
 }
+
+function addResolveIncidentButton(elementId, action) {
+
+  const content = '<button type="button" class="btn btn-sm btn-primary" title="Resolve incident" onclick="'+ action + '">'
+      + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#arrow-counterclockwise"/></svg>'
+      + '</button>';
+
+  overlays.add(elementId, 'resolve-incident', {
+    position: {
+      top: -20,
+      left: -20
+    },
+    html: content
+  });
+}
+
+function removeResolveIncidentButton(elementId) {
+  overlays.remove({ element: elementId, type: 'resolve-incident' })
+}

@@ -664,7 +664,6 @@ function loadIncidentsOfProcessInstance() {
         incidents.forEach((incident, index) => {
 
           let elementFormatted = formatBpmnElementInstance(incident.elementInstance);
-
           const elementId = incident.elementInstance.elementId;
 
           let resolveTime = '';
@@ -675,14 +674,15 @@ function loadIncidentsOfProcessInstance() {
           let state = formatIncidentState(incident.state);
           const isActiveIncident = incident.state === "CREATED";
 
+          let jobKey = '';
+          if (incident.job) {
+            jobKey = incident.job.key;
+          }
+
+          const action = 'resolveIncident(' + incident.key + ', ' + jobKey + ');'
+
           let actionButton = '';
           if (isActiveIncident) {
-            let jobKey = '';
-            if (incident.job) {
-              jobKey = incident.job.key;
-            }
-
-            const action = 'resolveIncident(' + incident.key + ', ' + jobKey + ');'
             actionButton = '<button type="button" class="btn btn-sm btn-primary" title="Resolve" onclick="'+ action + '">'
                 + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#arrow-counterclockwise"/></svg>'
                 + ' Resolve'
@@ -703,9 +703,9 @@ function loadIncidentsOfProcessInstance() {
               + '</tr>');
 
           if (isActiveIncident) {
-            // mark elements
+            addResolveIncidentButton(elementId, action);
           } else {
-            // remove marker
+            removeResolveIncidentButton(elementId);
           }
         });
       });
