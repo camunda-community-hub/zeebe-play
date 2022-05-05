@@ -270,16 +270,11 @@ function loadTimersOfProcess() {
             case "CREATED":
               state = '<span class="badge bg-primary">created</span>';
 
-              actionButton = '<div class="btn-group">'
-                  + '<button type="button" class="btn btn-sm btn-primary overlay-button" onclick="timeTravel(\'' + timer.dueDate + '\');">'
+              const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
+              actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#time-travel-modal" title="Time travel" onclick="'+ fillModalAction + '">'
                   + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
                   + ' Time Travel'
-                  + '</button>'
-                  + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
-                  + '<ul class="dropdown-menu">'
-                  + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#time-travel-modal" href="#" onclick="fillTimeTravelModal(\'' + timer.dueDate  + '\');">with time</a></li>'
-                  + '</ul>'
-                  + '</div>';
+                  + '</button>';
 
               break;
             case "TRIGGERED":
