@@ -5,6 +5,15 @@ function getProcessInstanceKey() {
   return $("#process-instance-page-key").text();
 }
 
+function isProcessInstanceActive(processInstance) {
+  switch (processInstance.state) {
+    case "ACTIVATED":
+      return true;
+    default:
+      return false;
+  }
+}
+
 function loadProcessInstanceView() {
   const processInstanceKey = getProcessInstanceKey();
 
@@ -77,7 +86,6 @@ function loadVariablesOfProcessInstance() {
         let variables = processInstance.variables;
 
         let totalCount = variables.length;
-
         $("#variables-total-count").text(totalCount);
 
         $("#variables-of-process-instance-table tbody").empty();
@@ -142,16 +150,20 @@ function loadVariablesOfProcessInstance() {
 
           lastUpdatedFormatted += '</div>';
 
-          let fillModalAction = 'fillSetVariablesModal(\''
-              + scope.key + '\', \''
-              + variable.name + '\', \''
-              + variable.value.replace(/"/g, '&quot;')
-              + '\');';
+          let actionButton = '';
+          if (isProcessInstanceActive(processInstance)) {
+            let fillModalAction = 'fillSetVariablesModal(\''
+                + scope.key + '\', \''
+                + variable.name + '\', \''
+                + variable.value.replace(/"/g, '&quot;')
+                + '\');';
 
-          let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#set-variable-modal" title="Edit" onclick="'+ fillModalAction + '">'
-              + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#pencil"/></svg>'
-              + ' Edit'
-              + '</button>';
+            actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#set-variable-modal" title="Edit" onclick="'
+                + fillModalAction + '">'
+                + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#pencil"/></svg>'
+                + ' Edit'
+                + '</button>';
+          }
 
           $("#variables-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
