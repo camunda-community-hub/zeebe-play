@@ -217,7 +217,7 @@ function publishMessage(messageName) {
 
 function showNotificationPublishMessageSuccess(messageKey) {
   const toastId = "message-published-" + messageKey;
-  const content = 'New message <a href="#">' + messageKey + '</a> published.';
+  const content = 'New message <code>' + messageKey + '</code> published.';
 
   showNotificationSuccess(toastId, content);
 }
