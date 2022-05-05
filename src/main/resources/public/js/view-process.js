@@ -218,8 +218,12 @@ function showNotificationPublishMessageSuccess(messageKey) {
   showNotificationSuccess(toastId, content);
 }
 
-function fillPublishMessageModal(messageName) {
+function fillPublishMessageModal(messageName, correlationKey) {
   $("#publishMessageName").val(messageName);
+
+  if (correlationKey) {
+    $("#publishMessageCorrelationKey").val(correlationKey);
+  }
 }
 
 function publishMessageModal() {

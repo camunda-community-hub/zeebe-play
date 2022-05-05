@@ -786,7 +786,7 @@ function loadMessageSubscriptionsOfProcessInstance() {
           let actionButton = '';
           if (isActiveMessageSubscription) {
             const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
-            actionButton = '<button type="button" class="btn btn-sm btn-primary" title="Publish message" onclick="'+ fillModalAction + '">'
+            actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#publish-message-modal" title="Publish message" onclick="'+ fillModalAction + '">'
                 + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
                 + ' Publish Message'
                 + '</button>';
