@@ -30,6 +30,13 @@
       </button>
     </li>
 
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="message-subscriptions-tab" data-bs-toggle="tab" data-bs-target="#message-subscriptions" type="button" role="tab" aria-controls="message-subscriptions" aria-selected="false">
+        Message Subscriptions
+        <span class="badge bg-light text-dark" id="message-subscriptions-total-count">0</span>
+      </button>
+    </li>
+
   </ul>
 
   <div class="tab-content" id="processInstanceTabContent">
@@ -47,6 +54,10 @@
 
     <div class="tab-pane fade" id="incidents" role="tabpanel" aria-labelledby="incidents-tab">
       <div th:replace="views/monitoring/process-instances/process-instance-details-incidents.html :: process-instance-details-incidents"></div>
+    </div>
+
+    <div class="tab-pane fade" id="message-subscriptions" role="tabpanel" aria-labelledby="message-subscriptions-tab">
+      <div th:replace="views/monitoring/process-instances/process-instance-details-message-subscriptions.html :: process-instance-details-message-subscriptions"></div>
     </div>
 
   </div>

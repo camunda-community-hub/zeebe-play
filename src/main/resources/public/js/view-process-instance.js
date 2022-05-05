@@ -63,6 +63,7 @@ function loadProcessInstanceView() {
   loadElementInstancesOfProcessInstance();
   loadJobsOfProcessInstance();
   loadIncidentsOfProcessInstance();
+  loadMessageSubscriptionsOfProcessInstance();
 }
 
 function loadVariablesOfProcessInstance() {
@@ -752,4 +753,76 @@ function resolveIncidentByKey(incidentKey) {
       .fail(showFailure(toastId,
           "Failed to resolve incident <code>" + incidentKey + "</code>.")
       );
+}
+
+function loadMessageSubscriptionsOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryMessageSubscriptionsByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        let processInstance = response.data.processInstance;
+        let messageSubscriptions = processInstance.messageSubscriptions;
+
+        let totalCount = messageSubscriptions.length;
+
+        $("#message-subscriptions-total-count").text(totalCount);
+
+        $("#message-subscriptions-of-process-instance-table tbody").empty();
+
+        const indexOffset = 1;
+
+        messageSubscriptions.forEach((messageSubscription, index) => {
+
+          let elementFormatted = formatBpmnElementInstance(messageSubscription.elementInstance);
+          const elementId = messageSubscription.elementInstance.elementId;
+
+          let state = formatMessageSubscriptionState(messageSubscription.state);
+          const isActiveMessageSubscription = messageSubscription.state === "CREATED" || "CORRELATED";
+
+          let correlatedMessageCount = messageSubscription.messageCorrelations.length;
+
+          let actionButton = '';
+          if (isActiveMessageSubscription) {
+            const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
+            actionButton = '<button type="button" class="btn btn-sm btn-primary" title="Publish message" onclick="'+ fillModalAction + '">'
+                + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
+                + ' Publish Message'
+                + '</button>';
+          }
+
+          $("#message-subscriptions-of-process-instance-table > tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + messageSubscription.key +'</td>'
+              + '<td>' + messageSubscription.messageName +'</td>'
+              + '<td><code>' + messageSubscription.messageCorrelationKey +'</code></td>'
+              + '<td>' + elementFormatted +'</td>'
+              + '<td>' + messageSubscription.elementInstance.key +'</td>'
+              + '<td>' + state + '</td>'
+              + '<td><span class="badge bg-secondary">' + correlatedMessageCount + '</span></td>'
+              + '<td>' + actionButton +'</td>'
+              + '</tr>');
+
+          if (isActiveMessageSubscription) {
+            const action = 'publishMessage(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
+            // addResolveIncidentButton(elementId, action);
+          } else {
+            // removeResolveIncidentButton(elementId);
+          }
+        });
+      });
+}
+
+function formatMessageSubscriptionState(state) {
+  switch (state) {
+    case "CREATED":
+      return '<span class="badge bg-primary">created</span>';
+    case "CORRELATED":
+      return '<span class="badge bg-secondary">correlated</span>';
+    case "DELETED":
+      return '<span class="badge bg-secondary">deleted</span>';
+    default:
+      return "?"
+  }
 }
