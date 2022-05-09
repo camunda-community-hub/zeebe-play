@@ -806,7 +806,42 @@ function loadMessageSubscriptionsOfProcessInstance() {
           const isActiveMessageSubscription = messageSubscription.state === "CREATED" || (
               messageSubscription.state === "CORRELATED" && messageSubscription.elementInstance.state === 'ACTIVATED');
 
-          let correlatedMessageCount = messageSubscription.messageCorrelations.length;
+          const correlatedMessageCount = messageSubscription.messageCorrelations.length;
+          const messageSubscriptionCollapseId = "message-subscription-" + messageSubscription.key;
+          let correlatedMessagesFormatted = '<div class="row row-cols-1">'
+              + '<div class="col">'
+              + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#' + messageSubscriptionCollapseId + '" aria-expanded="false" title="Show correlated messages">'
+              + ' <span class="badge bg-secondary">' + correlatedMessageCount + '</span>'
+              + '</button>'
+              + '</div>'
+
+          let correlatedMessages = '<table class="table">'
+              + '<thead>'
+              + '<tr>'
+              + '<th scope="col">Message Key</th>'
+              + '<th scope="col">Correlation Time</th>'
+              + '<th></th>'
+              + '</tr>'
+              + '</thead>'
+              + '<tbody>';
+
+          messageSubscription.messageCorrelations.forEach((messageCorrelation) => {
+            const message = messageCorrelation.message;
+
+            correlatedMessages += '<tr>'
+                + '<td>' + message.key + '</td>'
+                + '<td>' + messageCorrelation.timestamp +'</td>'
+                + '<td></td>'
+                + '</tr>';
+          });
+
+          correlatedMessages += '</tbody></table>';
+          correlatedMessagesFormatted += '<div class="collapse" id="' + messageSubscriptionCollapseId + '">'
+              + '<div class="col">'
+              + correlatedMessages
+              + '</div>'
+              + '</div>'
+              + '</div>';
 
           const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
 
@@ -826,7 +861,7 @@ function loadMessageSubscriptionsOfProcessInstance() {
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + messageSubscription.elementInstance.key +'</td>'
               + '<td>' + state + '</td>'
-              + '<td><span class="badge bg-secondary">' + correlatedMessageCount + '</span></td>'
+              + '<td>' + correlatedMessagesFormatted + '</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');
 
