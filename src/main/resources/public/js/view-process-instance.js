@@ -828,10 +828,15 @@ function loadMessageSubscriptionsOfProcessInstance() {
           messageSubscription.messageCorrelations.forEach((messageCorrelation) => {
             const message = messageCorrelation.message;
 
+            const fillModalAction = 'fillMessageDetailsModal(' + message.key + ');';
+            const actionButton = '<button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#message-detail-modal" title="Message details" onclick="'+ fillModalAction + '">'
+                + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
+                + '</button>';
+
             correlatedMessages += '<tr>'
                 + '<td>' + message.key + '</td>'
                 + '<td>' + messageCorrelation.timestamp +'</td>'
-                + '<td></td>'
+                + '<td>' + actionButton + '</td>'
                 + '</tr>';
           });
 
@@ -886,4 +891,15 @@ function formatMessageSubscriptionState(state) {
     default:
       return "?"
   }
+}
+
+function fillMessageDetailsModal(messageKey) {
+  // TODO (saig0): query message form ZeeQL by key
+
+  $("#messageKey").val(details.messageKey);
+  $("#messageName").val(details.messageName);
+  $("#messageCorrelationKey").val(details.messageCorrelationKey);
+  $("#messageVariables").val(details.messageVariables);
+  $("#messageTimeToLive").val(details.messageTimeToLive);
+  $("#messageId").val(details.messageId);
 }
