@@ -78,6 +78,7 @@ function makeMessageStartEventsPlayable() {
 
   let messageStartEvents = elementRegistry.filter(function (element) {
     return element.type == 'bpmn:StartEvent'
+        && element.parent.type == 'bpmn:Process'
         && element.businessObject.eventDefinitions
         && element.businessObject.eventDefinitions.find(function (eventDefinition) {
           return eventDefinition.$type == 'bpmn:MessageEventDefinition'
@@ -127,6 +128,7 @@ function makeTimerStartEventsPlayable() {
 
   let timerStartEvents = elementRegistry.filter(function (element) {
     return element.type == 'bpmn:StartEvent'
+        && element.parent.type == 'bpmn:Process'
         && element.businessObject.eventDefinitions
         && element.businessObject.eventDefinitions.find(function (eventDefinition) {
           return eventDefinition.$type == 'bpmn:TimerEventDefinition'
