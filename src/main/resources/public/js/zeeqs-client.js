@@ -246,20 +246,27 @@ const messageSubscriptionByProcessInstanceQuery = `query MessageSubscriptionsOfP
           timestamp(zoneId: $zoneId)
           message {
             key
-            name
-            correlationKey          
-            messageId
-            timeToLive
-            state
-            variables {
-              name
-              value
-            }
           }
         }
       }
     }
   }`;
+
+const messageByKeyQuery = `query Message($key: ID!, $zoneId: String!) { 
+  message(key: $key) {
+    key
+    name
+    correlationKey
+    messageId
+    timeToLive
+    state
+    timestamp(zoneId: $zoneId)
+    variables {
+      name
+      value
+    }
+  }
+}`;
 
 function fetchData(query, variables) {
 
@@ -383,6 +390,14 @@ function queryMessageSubscriptionsByProcessInstance(processInstanceKey) {
 
   return fetchData(messageSubscriptionByProcessInstanceQuery, {
     key: processInstanceKey,
+    zoneId: getTimeZone()
+  });
+}
+
+function queryMessageByKey(messageKey) {
+
+  return fetchData(messageByKeyQuery, {
+    key: messageKey,
     zoneId: getTimeZone()
   });
 }

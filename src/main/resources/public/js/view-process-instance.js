@@ -894,12 +894,22 @@ function formatMessageSubscriptionState(state) {
 }
 
 function fillMessageDetailsModal(messageKey) {
-  // TODO (saig0): query message form ZeeQL by key
 
-  $("#messageKey").val(details.messageKey);
-  $("#messageName").val(details.messageName);
-  $("#messageCorrelationKey").val(details.messageCorrelationKey);
-  $("#messageVariables").val(details.messageVariables);
-  $("#messageTimeToLive").val(details.messageTimeToLive);
-  $("#messageId").val(details.messageId);
+  queryMessageByKey(messageKey).done(function (response) {
+
+    const message = response.data.message;
+
+    let variables = {};
+    message.variables.forEach((variable) => {
+      variables[variable.name] = variable.value;
+    });
+    const variablesFormatted = JSON.stringify(variables);
+
+    $("#messageKey").val(message.key);
+    $("#messageName").val(message.name);
+    $("#messageCorrelationKey").val(message.correlationKey);
+    $("#messageVariables").val(variablesFormatted);
+    $("#messageTimeToLive").val(message.timeToLive);
+    $("#messageId").val(message.messageId);
+  });
 }
