@@ -77,6 +77,7 @@ function loadProcessInstanceView() {
   loadJobsOfProcessInstance();
   loadIncidentsOfProcessInstance();
   loadMessageSubscriptionsOfProcessInstance();
+  loadTimersOfProcessInstance();
 }
 
 function disableProcessInstanceActionButtons() {
@@ -912,4 +913,78 @@ function fillMessageDetailsModal(messageKey) {
     $("#messageTimeToLive").val(message.timeToLive);
     $("#messageId").val(message.messageId);
   });
+}
+
+function loadTimersOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryTimersByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        let processInstance = response.data.processInstance;
+        let timers = processInstance.timers;
+
+        let totalCount = timers.length;
+
+        $("#timers-total-count").text(totalCount);
+
+        $("#timers-of-process-instance-table tbody").empty();
+
+        const indexOffset = 1;
+
+        timers.forEach((timer, index) => {
+
+          let elementFormatted = formatBpmnElementInstance(timer.elementInstance);
+
+          let state = formatTimerState(timer.state);
+          const isActiveTimer = timer.state === "CREATED";
+
+          let timerRepetitions = timer.repetitions;
+          if (timerRepetitions < 0) {
+            timerRepetitions = '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#infinity"/></svg>';
+          }
+
+          const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
+
+          let actionButton = '';
+          if (isActiveTimer) {
+            actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#time-travel-modal" title="Time travel" onclick="'+ fillModalAction + '">'
+                + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
+                + ' Time Travel'
+                + '</button>';
+          }
+
+          $("#timers-of-process-instance-table > tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + timer.key +'</td>'
+              + '<td>' + timerRepetitions +'</td>'
+              + '<td>' + timer.dueDate +'</td>'
+              + '<td>' + elementFormatted +'</td>'
+              + '<td>' + timer.elementInstance.key +'</td>'
+              + '<td>' + state + '</td>'
+              + '<td>' + actionButton +'</td>'
+              + '</tr>');
+
+          if (isActiveTimer) {
+            // addResolveIncidentButton(elementId, action);
+          } else {
+            // removeResolveIncidentButton(elementId);
+          }
+        });
+
+      });
+}
+
+function formatTimerState(state) {
+  switch (state) {
+    case "CREATED":
+      return '<span class="badge bg-primary">created</span>';
+    case "TRIGGERED":
+      return '<span class="badge bg-secondary">triggered</span>';
+    case "CANCELED":
+      return '<span class="badge bg-dark">canceled</span>';
+    default:
+      return "?"
+  }
 }

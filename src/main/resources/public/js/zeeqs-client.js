@@ -252,6 +252,23 @@ const messageSubscriptionByProcessInstanceQuery = `query MessageSubscriptionsOfP
     }
   }`;
 
+const timersByProcessInstanceQuery = `query TimersOfProcessInstance($key: ID!, $zoneId: String!) {  
+    processInstance(key: $key) {    
+    timers {
+      key
+      repetitions
+      dueDate(zoneId: $zoneId)
+      state
+      elementInstance {
+        key
+        elementId
+        elementName
+        bpmnElementType
+      }
+    }
+  }
+}`;
+
 const messageByKeyQuery = `query Message($key: ID!, $zoneId: String!) { 
   message(key: $key) {
     key
@@ -389,6 +406,14 @@ function queryIncidentsByProcessInstance(processInstanceKey) {
 function queryMessageSubscriptionsByProcessInstance(processInstanceKey) {
 
   return fetchData(messageSubscriptionByProcessInstanceQuery, {
+    key: processInstanceKey,
+    zoneId: getTimeZone()
+  });
+}
+
+function queryTimersByProcessInstance(processInstanceKey) {
+
+  return fetchData(timersByProcessInstanceQuery, {
     key: processInstanceKey,
     zoneId: getTimeZone()
   });
