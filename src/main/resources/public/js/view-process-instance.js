@@ -945,6 +945,7 @@ function loadTimersOfProcessInstance() {
             timerRepetitions = '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#infinity"/></svg>';
           }
 
+          const action = 'timeTravel(\'' + timer.dueDate + '\');';
           const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
 
           let actionButton = '';
@@ -966,10 +967,12 @@ function loadTimersOfProcessInstance() {
               + '<td>' + actionButton +'</td>'
               + '</tr>');
 
+          const elementId = timer.elementInstance.elementId;
+
           if (isActiveTimer) {
-            // addResolveIncidentButton(elementId, action);
+            addTimeTravelButton(elementId, action, fillModalAction);
           } else {
-            // removeResolveIncidentButton(elementId);
+            removeTimeTravelButton(elementId);
           }
         });
 

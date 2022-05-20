@@ -324,9 +324,7 @@ function timeTravel(timeDefinition) {
       .done(newTime => {
         const toastId = "time-travel-" + newTime;
         showNotificationSuccess(toastId, successMessage);
-
-        loadInstancesOfProcess(instancesOfProcessCurrentPage);
-        loadTimersOfProcess();
+        loadView();
       })
       .fail(showFailure(
           "time-travel-failed",

@@ -306,3 +306,28 @@ function addResolveIncidentButton(elementId, action) {
 function removeResolveIncidentButton(elementId) {
   overlays.remove({ element: elementId, type: 'resolve-incident' })
 }
+
+function addTimeTravelButton(elementId, action, fillAction) {
+
+  const content = '<div class="btn-group">'
+      + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Time Travel" onclick="' + action + '">'
+      + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
+      + '</button>'
+      + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
+      + '<ul class="dropdown-menu">'
+      + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#time-travel-modal" href="#" onclick="' + fillAction + '">with time</a></li>'
+      + '</ul>'
+      + '</div>';
+
+  overlays.add(elementId, 'time-travel', {
+    position: {
+      top: -20,
+      left: -40
+    },
+    html: content
+  });
+}
+
+function removeTimeTravelButton(elementId) {
+  overlays.remove({ element: elementId, type: 'time-travel' })
+}
