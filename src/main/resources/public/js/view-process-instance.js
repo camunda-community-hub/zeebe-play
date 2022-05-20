@@ -888,7 +888,7 @@ function formatMessageSubscriptionState(state) {
     case "CORRELATED":
       return '<span class="badge bg-secondary">correlated</span>';
     case "DELETED":
-      return '<span class="badge bg-secondary">deleted</span>';
+      return '<span class="badge bg-dark">deleted</span>';
     default:
       return "?"
   }
