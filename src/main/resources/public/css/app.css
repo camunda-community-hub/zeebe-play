@@ -11,15 +11,21 @@
   opacity: 0.9;
 }
 
+/* Colors:
+ * blue: rgba(0, 125, 255, 0.7)
+ * green: rgba(66, 180, 21, 0.7)
+ * purple: rgba(231, 12, 217, 0.7)
+ * orange: rgba(255, 47, 0, 0.7)
+ */
+
 .bpmn-element-selected .djs-visual > :nth-child(1) {
-  stroke: rgba(0, 125, 255, 0.7) !important;
+  stroke: rgba(231, 12, 217, 0.7) !important;
   stroke-dasharray: 5;
   stroke-width: 2px !important;
 }
 
 .bpmn-element-active .djs-visual > :nth-child(1) {
-  stroke: rgba(66, 180, 21, 0.7) !important;
-  /* stroke: rgb(61, 125, 253, 0.7) !important; */
+   stroke: rgba(66, 180, 21, 0.7) !important;
 }
 
 .bpmn-element-incident .djs-visual > :nth-child(1) {
