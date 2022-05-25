@@ -11,6 +11,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import java.time.Instant
 
 @Component
 class ZeebeClockService {
@@ -26,14 +27,31 @@ class ZeebeClockService {
     fun increaseTime(duration: Duration): Long {
 
         val offsetMilli = duration.toMillis()
-
         val requestBody = HttpRequest.BodyPublishers.ofString("""{ "offsetMilli": $offsetMilli }""")
 
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create("http://$zeebeClockEndpoint/add"))
-            .header("Content-Type", "application/json")
-            .POST(requestBody)
-            .build()
+        val clockResponse = sendRequest(
+            request = HttpRequest.newBuilder()
+                .uri(URI.create("http://$zeebeClockEndpoint/add"))
+                .header("Content-Type", "application/json")
+                .POST(requestBody)
+                .build()
+        )
+        return clockResponse.epochMilli;
+    }
+
+    fun getCurrentTime(): Instant {
+
+        val clockResponse = sendRequest(
+            request = HttpRequest.newBuilder()
+                .uri(URI.create("http://$zeebeClockEndpoint"))
+                .header("Content-Type", "application/json")
+                .GET()
+                .build()
+        )
+        return Instant.parse(clockResponse.instant);
+    }
+
+    private fun sendRequest(request: HttpRequest): ZeebeClockResponse {
 
         val response = httpClient
             .send(request, HttpResponse.BodyHandlers.ofString())
@@ -49,9 +67,7 @@ class ZeebeClockService {
             )
         }
 
-        val clockResponse = objectMapper.readValue<ZeebeClockResponse>(responseBody)
-
-        return clockResponse.epochMilli;
+        return objectMapper.readValue<ZeebeClockResponse>(responseBody)
     }
 
     private data class ZeebeClockResponse(

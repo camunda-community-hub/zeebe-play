@@ -28,7 +28,9 @@ class TimersResource(
 
         command.dateTime?.let {
             val dateTime = ZonedDateTime.parse(it)
-            val duration = Duration.between(Instant.now(), dateTime)
+            val currentTime = clockService.getCurrentTime()
+
+            val duration = Duration.between(currentTime, dateTime)
 
             newTime = clockService.increaseTime(duration)
         }
