@@ -38,9 +38,8 @@ function loadProcessInstanceView() {
 
         $("#process-page-key").html(
             '<a href="/view/process/' + process.key + '">'
-            + process.key
+            + process.bpmnProcessId
             + '</a>'
-            + ' <span class="text-muted">(' + process.bpmnProcessId + ')</span>'
         );
 
         if (!isProcessInstanceActive(processInstance)) {
