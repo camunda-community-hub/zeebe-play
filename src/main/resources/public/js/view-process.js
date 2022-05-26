@@ -13,7 +13,9 @@ function loadProcessView() {
   queryProcess(processKey)
       .done(function (response) {
         let process = response.data.process;
-        $("#process-key").text(process.key);
+
+        $("#nav-process").text(process.bpmnProcessId);
+
         $("#bpmnProcessId").text(process.bpmnProcessId);
         $("#process-version").text(process.version);
         $("#process-deployment-time").text(process.deployTime);

@@ -17,7 +17,7 @@
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="/view/deployment">Processes</a></li>
-          <li class="breadcrumb-item active" aria-current="page" id="process-page-key" th:text="${processKey}"></li>
+          <li class="breadcrumb-item active" aria-current="page" id="nav-process"></li>
         </ol>
       </nav>
 
@@ -60,7 +60,7 @@
           <th>Process Key</th>
         </tr>
         <tr>
-          <td id="process-key"></td>
+          <td id="process-page-key" th:text="${processKey}"></td>
         </tr>
         <tr>
           <th>BPMN Process Id</th>
