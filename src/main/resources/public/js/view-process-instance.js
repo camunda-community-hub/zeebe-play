@@ -32,24 +32,7 @@ function loadProcessInstanceView() {
 
         $("#process-instance-end-time").text(endTime);
 
-        let state = "";
-        switch (processInstance.state) {
-          case "ACTIVATED":
-            state = '<span class="badge bg-primary">active</span>';
-            break;
-          case "COMPLETED":
-            state = '<span class="badge bg-secondary">completed</span>';
-            break;
-          case "TERMINATED":
-            state = '<span class="badge bg-dark">terminated</span>';
-            break;
-          default:
-            state = "?"
-        }
-
-        if (processInstance.incidents.length > 0) {
-          state += ' <span class="badge bg-danger">incidents</span>';
-        }
+        let state = formatProcessInstanceState(processInstance);
 
         $("#process-instance-state").html(state);
 
@@ -78,7 +61,32 @@ function loadProcessInstanceView() {
   loadIncidentsOfProcessInstance();
   loadMessageSubscriptionsOfProcessInstance();
   loadTimersOfProcessInstance();
+  loadChildInstancesOfProcessInstance();
 }
+
+function formatProcessInstanceState(processInstance) {
+  let state = "";
+  switch (processInstance.state) {
+    case "ACTIVATED":
+      state = '<span class="badge bg-primary">active</span>';
+      break;
+    case "COMPLETED":
+      state = '<span class="badge bg-secondary">completed</span>';
+      break;
+    case "TERMINATED":
+      state = '<span class="badge bg-dark">terminated</span>';
+      break;
+    default:
+      state = "?"
+  }
+
+  if (processInstance.incidents.length > 0) {
+    state += ' <span class="badge bg-danger">incidents</span>';
+  }
+
+  return state;
+}
+
 
 function disableProcessInstanceActionButtons() {
   $("#process-instance-set-variables").addClass("disabled");
@@ -990,4 +998,51 @@ function formatTimerState(state) {
     default:
       return "?"
   }
+}
+
+function loadChildInstancesOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryChildInstancesByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        let processInstance = response.data.processInstance;
+        let childProcessInstances = processInstance.childProcessInstances;
+
+        let totalCount = childProcessInstances.length;
+
+        $("#child-instances-total-count").text(totalCount);
+
+        $("#child-instances-of-process-instance-table tbody").empty();
+
+        const indexOffset = 1;
+
+        childProcessInstances.forEach((childInstance, index) => {
+
+          let elementFormatted = formatBpmnElementInstance(childInstance.parentElementInstance);
+
+          let state = formatProcessInstanceState(childInstance)
+
+          $("#child-instances-of-process-instance-table > tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + childInstance.key +'</td>'
+              + '<td>' + childInstance.process.bpmnProcessId +'</td>'
+              + '<td>' + elementFormatted +'</td>'
+              + '<td>' + childInstance.parentElementInstance.key +'</td>'
+              + '<td>' + state + '</td>'
+              + '</tr>');
+
+          /*
+          const elementId = timer.elementInstance.elementId;
+
+          if (isActiveTimer) {
+            addTimeTravelButton(elementId, action, fillModalAction);
+          } else {
+            removeTimeTravelButton(elementId);
+          }
+          */
+        });
+
+      });
 }

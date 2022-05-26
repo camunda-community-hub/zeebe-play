@@ -301,6 +301,9 @@ const childInstancesByProcessInstanceQuery = `query ChildInstancesOfProcessInsta
           elementName
           bpmnElementType
         }
+        incidents(stateIn: [CREATED]) {
+          key
+        }
       }
     }
   }`;
