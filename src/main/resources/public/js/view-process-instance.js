@@ -1021,12 +1021,12 @@ function loadChildInstancesOfProcessInstance() {
         childProcessInstances.forEach((childInstance, index) => {
 
           let elementFormatted = formatBpmnElementInstance(childInstance.parentElementInstance);
-
           let state = formatProcessInstanceState(childInstance)
+          let childInstanceKeyFormatted = '<a href="/view/process-instance/' + childInstance.key + '">' + childInstance.key + '</a>';
 
           $("#child-instances-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
-              + '<td>' + childInstance.key +'</td>'
+              + '<td>' + childInstanceKeyFormatted +'</td>'
               + '<td>' + childInstance.process.bpmnProcessId +'</td>'
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + childInstance.parentElementInstance.key +'</td>'
