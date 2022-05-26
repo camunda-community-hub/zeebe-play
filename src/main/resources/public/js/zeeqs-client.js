@@ -285,6 +285,26 @@ const messageByKeyQuery = `query Message($key: ID!, $zoneId: String!) {
   }
 }`;
 
+const childInstancesByProcessInstanceQuery = `query ChildInstancesOfProcessInstance($key: ID!, $zoneId: String!) {  
+    processInstance(key: $key) {    
+      childProcessInstances {
+        key
+        state
+        startTime(zoneId: $zoneId)
+        endTime(zoneId: $zoneId)    
+        process {
+          bpmnProcessId
+        }      
+        parentElementInstance {
+          key
+          elementId
+          elementName
+          bpmnElementType
+        }
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -423,6 +443,14 @@ function queryMessageByKey(messageKey) {
 
   return fetchData(messageByKeyQuery, {
     key: messageKey,
+    zoneId: getTimeZone()
+  });
+}
+
+function queryChildInstancesByProcessInstance(processInstanceKey) {
+
+  return fetchData(childInstancesByProcessInstanceQuery, {
+    key: processInstanceKey,
     zoneId: getTimeZone()
   });
 }
