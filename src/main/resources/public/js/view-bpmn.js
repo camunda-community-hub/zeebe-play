@@ -26,10 +26,6 @@ async function openDiagram(bpmnXML) {
   eventBus = bpmnViewer.get("eventBus");
   overlays = bpmnViewer.get("overlays");
 
-  // TODO (saig0): remove me - only for testing
-  window.bpmnViewer = bpmnViewer;
-  window.elementRegistry = elementRegistry;
-
   try {
     await bpmnViewer.importXML(bpmnXML);
 

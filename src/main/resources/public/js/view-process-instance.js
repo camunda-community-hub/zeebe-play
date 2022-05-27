@@ -48,20 +48,30 @@ function loadProcessInstanceView() {
 
         if (!bpmnViewIsLoaded) {
           const bpmnXML = process.bpmnXML;
-          showBpmn(bpmnXML);
+          showBpmn(bpmnXML).then(function (r) {
+            // wait until BPMN is loaded
+            loadProcessInstanceDetailsViews();
+          });
 
           bpmnViewIsLoaded = true;
         }
       });
 
+  if (bpmnViewIsLoaded) {
+    loadProcessInstanceDetailsViews();
+  }
+}
+
+function loadProcessInstanceDetailsViews() {
   loadVariablesOfProcessInstance();
+  loadParentInstanceOfProcessInstance();
+
   loadElementInstancesOfProcessInstance();
   loadJobsOfProcessInstance();
   loadIncidentsOfProcessInstance();
   loadMessageSubscriptionsOfProcessInstance();
   loadTimersOfProcessInstance();
   loadChildInstancesOfProcessInstance();
-  loadParentInstanceOfProcessInstance();
 }
 
 function formatProcessInstanceState(processInstance) {
