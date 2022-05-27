@@ -1020,9 +1020,10 @@ function loadChildInstancesOfProcessInstance() {
 
         childProcessInstances.forEach((childInstance, index) => {
 
-          let elementFormatted = formatBpmnElementInstance(childInstance.parentElementInstance);
-          let state = formatProcessInstanceState(childInstance)
-          let childInstanceKeyFormatted = '<a href="/view/process-instance/' + childInstance.key + '">' + childInstance.key + '</a>';
+          const elementFormatted = formatBpmnElementInstance(childInstance.parentElementInstance);
+          const state = formatProcessInstanceState(childInstance)
+          const hrefChildInstance= '/view/process-instance/' + childInstance.key;
+          const childInstanceKeyFormatted = '<a href="' + hrefChildInstance + '">' + childInstance.key + '</a>';
           const childBpmnProcessId = childInstance.process.bpmnProcessId;
 
           $("#child-instances-of-process-instance-table > tbody:last-child").append('<tr>'
@@ -1034,7 +1035,8 @@ function loadChildInstancesOfProcessInstance() {
               + '<td>' + state + '</td>'
               + '</tr>');
 
-          // TODO (saig0): add button to jump to subprocess
+          const elementId = childInstance.parentElementInstance.elementId;
+          addOpenChildInstanceButton(elementId, hrefChildInstance);
         });
 
       });

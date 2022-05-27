@@ -331,3 +331,18 @@ function addTimeTravelButton(elementId, action, fillAction) {
 function removeTimeTravelButton(elementId) {
   overlays.remove({ element: elementId, type: 'time-travel' })
 }
+
+function addOpenChildInstanceButton(elementId, href) {
+
+  const content = '<a type="button" class="btn btn-sm btn-secondary" title="Open child instance" href="'+ href + '">'
+      + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#zoom-in"/></svg>'
+      + '</a>';
+
+  overlays.add(elementId, 'open-child-instance', {
+    position: {
+      top: -20,
+      left: -20
+    },
+    html: content
+  });
+}
