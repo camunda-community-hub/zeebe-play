@@ -61,6 +61,7 @@ function loadProcessInstanceView() {
   loadMessageSubscriptionsOfProcessInstance();
   loadTimersOfProcessInstance();
   loadChildInstancesOfProcessInstance();
+  loadParentInstanceOfProcessInstance();
 }
 
 function formatProcessInstanceState(processInstance) {
@@ -1037,4 +1038,36 @@ function loadChildInstancesOfProcessInstance() {
         });
 
       });
+}
+
+function loadParentInstanceOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryParentInstanceByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        const processInstance = response.data.processInstance;
+        appendParentProcessInstanceToNav(processInstance);
+      });
+}
+
+function appendParentProcessInstanceToNav(processInstance) {
+  const parentElementInstance = processInstance.parentElementInstance;
+
+  if (parentElementInstance) {
+
+    const parentProcessInstance = parentElementInstance.processInstance;
+    const parentProcessInstanceKey = parentProcessInstance.key;
+    const parentBpmnProcessId = parentProcessInstance.process.bpmnProcessId;
+
+    $("#process-instance-breadcrumb > ol:last-child").append(
+        '<li class="breadcrumb-item" aria-current="page">'
+        + '<a href="/view/process-instance/' + parentProcessInstanceKey
+        + '">' + parentProcessInstanceKey + '</a>'
+        + ' <span class="text-muted">(' + parentBpmnProcessId + ')</span>'
+        + '</li>');
+
+    appendParentProcessInstanceToNav(parentProcessInstance);
+  }
 }

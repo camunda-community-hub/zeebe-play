@@ -308,6 +308,32 @@ const childInstancesByProcessInstanceQuery = `query ChildInstancesOfProcessInsta
     }
   }`;
 
+const parentInstanceByProcessInstanceQuery = `query ParentInstanceOfProcessInstance($key: ID!) {  
+    processInstance(key: $key) {   
+      # === level 1 ===
+      parentElementInstance {
+        processInstance {
+          key
+          process { bpmnProcessId }
+          # === level 2 ===
+          parentElementInstance {
+            processInstance {
+              key
+              process { bpmnProcessId }
+              # === level 3 ===
+              parentElementInstance {
+                processInstance {
+                  key
+                  process { bpmnProcessId }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -455,5 +481,12 @@ function queryChildInstancesByProcessInstance(processInstanceKey) {
   return fetchData(childInstancesByProcessInstanceQuery, {
     key: processInstanceKey,
     zoneId: getTimeZone()
+  });
+}
+
+function queryParentInstanceByProcessInstance(processInstanceKey) {
+
+  return fetchData(parentInstanceByProcessInstanceQuery, {
+    key: processInstanceKey
   });
 }
