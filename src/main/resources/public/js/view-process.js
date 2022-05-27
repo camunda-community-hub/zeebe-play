@@ -140,8 +140,7 @@ function createNewProcessInstanceWith(processKey, variables) {
       .done(processInstanceKey => {
 
         showNotificationNewInstanceCreated(processInstanceKey);
-
-        loadInstancesOfProcess(instancesOfProcessCurrentPage);
+        loadView();
       })
       .fail(showFailure(
           "create-instance-failed-" + processKey,
@@ -203,7 +202,6 @@ function publishMessage(messageName, messageCorrelationKey) {
   sendPublishMessageRequest(messageName, messageCorrelationKey)
       .done(messageKey => {
         showNotificationPublishMessageSuccess(messageKey);
-
         loadView();
       })
       .fail(showFailure(
@@ -237,7 +235,6 @@ function publishMessageModal() {
   )
       .done(messageKey => {
         showNotificationPublishMessageSuccess(messageKey);
-
         loadView();
       })
       .fail(showFailure(
