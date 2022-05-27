@@ -1022,25 +1022,18 @@ function loadChildInstancesOfProcessInstance() {
           let elementFormatted = formatBpmnElementInstance(childInstance.parentElementInstance);
           let state = formatProcessInstanceState(childInstance)
           let childInstanceKeyFormatted = '<a href="/view/process-instance/' + childInstance.key + '">' + childInstance.key + '</a>';
+          const childBpmnProcessId = childInstance.process.bpmnProcessId;
 
           $("#child-instances-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + childInstanceKeyFormatted +'</td>'
-              + '<td>' + childInstance.process.bpmnProcessId +'</td>'
+              + '<td>' + childBpmnProcessId +'</td>'
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + childInstance.parentElementInstance.key +'</td>'
               + '<td>' + state + '</td>'
               + '</tr>');
 
-          /*
-          const elementId = timer.elementInstance.elementId;
-
-          if (isActiveTimer) {
-            addTimeTravelButton(elementId, action, fillModalAction);
-          } else {
-            removeTimeTravelButton(elementId);
-          }
-          */
+          // TODO (saig0): add button to jump to subprocess
         });
 
       });
