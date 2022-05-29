@@ -45,14 +45,17 @@ const instancesByProcessQuery = `query InstancesOfProcess($key: ID!, $perPage: I
     }
   }`;
 
-const messageSubscriptionsByProcessQuery = `query MessageSubscriptionsOfProcess($key: ID!) {  
+const messageSubscriptionsByProcessQuery = `query MessageSubscriptionsOfProcess($key: ID!, $zoneId: String!) {  
     process(key: $key) {
     
       messageSubscriptions {
         key
         messageName            
         messageCorrelations {
-          timestamp
+          timestamp(zoneId: $zoneId)
+          message {
+            key
+          }
         }
       }
     }
@@ -392,7 +395,8 @@ function queryInstancesByProcess(processKey, perPage, page) {
 function queryMessageSubscriptionsByProcess(processKey) {
 
   return fetchData(messageSubscriptionsByProcessQuery, {
-    key: processKey
+    key: processKey,
+    zoneId: getTimeZone()
   });
 }
 

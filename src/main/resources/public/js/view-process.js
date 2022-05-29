@@ -154,8 +154,6 @@ function loadMessageSubscriptionsOfProcess() {
 
         messageSubscriptions.forEach((messageSubscription, index) => {
 
-          let correlatedMessageCount = messageSubscription.messageCorrelations.length;
-
           const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName  + '\');';
           let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#publish-message-modal" title="Publish message" onclick="'+ fillModalAction + '">'
               + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
@@ -166,9 +164,7 @@ function loadMessageSubscriptionsOfProcess() {
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + messageSubscription.key + '</td>'
               + '<td>' + messageSubscription.messageName +'</td>'
-              + '<td>'
-              + '<span class="badge bg-secondary">' + correlatedMessageCount + '</span>'
-              + '</td>'
+              + '<td>' + formatCorrelatedMessages(messageSubscription) + '</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');
         });
@@ -188,7 +184,6 @@ function loadTimersOfProcess() {
         // TODO (saig0): fix filter in ZeeQS
         timers = timers.filter(function (timer) {
           // timer start events don't have an element instance
-          console.info(timer);
           return !timer.elementInstance;
         });
 

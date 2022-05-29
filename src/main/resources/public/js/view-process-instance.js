@@ -543,6 +543,57 @@ function loadIncidentsOfProcessInstance() {
       });
 }
 
+function formatCorrelatedMessages(messageSubscription) {
+  const correlatedMessageCount = messageSubscription.messageCorrelations.length;
+  const messageSubscriptionCollapseId = "message-subscription-"
+      + messageSubscription.key;
+  let correlatedMessagesFormatted = '<div class="row row-cols-1">'
+      + '<div class="col">'
+      + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#'
+      + messageSubscriptionCollapseId
+      + '" aria-expanded="false" title="Show correlated messages">'
+      + ' <span class="badge bg-secondary">' + correlatedMessageCount
+      + '</span>'
+      + '</button>'
+      + '</div>'
+
+  let correlatedMessages = '<table class="table">'
+      + '<thead>'
+      + '<tr>'
+      + '<th scope="col">Message Key</th>'
+      + '<th scope="col">Correlation Time</th>'
+      + '<th></th>'
+      + '</tr>'
+      + '</thead>'
+      + '<tbody>';
+
+  messageSubscription.messageCorrelations.forEach((messageCorrelation) => {
+    const message = messageCorrelation.message;
+
+    const fillModalAction = 'fillMessageDetailsModal(' + message.key + ');';
+    const actionButton = '<button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#message-detail-modal" title="Message details" onclick="'
+        + fillModalAction + '">'
+        + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
+        + '</button>';
+
+    correlatedMessages += '<tr>'
+        + '<td>' + message.key + '</td>'
+        + '<td>' + messageCorrelation.timestamp + '</td>'
+        + '<td>' + actionButton + '</td>'
+        + '</tr>';
+  });
+
+  correlatedMessages += '</tbody></table>';
+  correlatedMessagesFormatted += '<div class="collapse" id="'
+      + messageSubscriptionCollapseId + '">'
+      + '<div class="col">'
+      + correlatedMessages
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  return correlatedMessagesFormatted;
+}
+
 function loadMessageSubscriptionsOfProcessInstance() {
 
   const processInstanceKey = getProcessInstanceKey();
@@ -571,48 +622,6 @@ function loadMessageSubscriptionsOfProcessInstance() {
           const isActiveMessageSubscription = messageSubscription.state === "CREATED" || (
               messageSubscription.state === "CORRELATED" && messageSubscription.elementInstance.state === 'ACTIVATED');
 
-          const correlatedMessageCount = messageSubscription.messageCorrelations.length;
-          const messageSubscriptionCollapseId = "message-subscription-" + messageSubscription.key;
-          let correlatedMessagesFormatted = '<div class="row row-cols-1">'
-              + '<div class="col">'
-              + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#' + messageSubscriptionCollapseId + '" aria-expanded="false" title="Show correlated messages">'
-              + ' <span class="badge bg-secondary">' + correlatedMessageCount + '</span>'
-              + '</button>'
-              + '</div>'
-
-          let correlatedMessages = '<table class="table">'
-              + '<thead>'
-              + '<tr>'
-              + '<th scope="col">Message Key</th>'
-              + '<th scope="col">Correlation Time</th>'
-              + '<th></th>'
-              + '</tr>'
-              + '</thead>'
-              + '<tbody>';
-
-          messageSubscription.messageCorrelations.forEach((messageCorrelation) => {
-            const message = messageCorrelation.message;
-
-            const fillModalAction = 'fillMessageDetailsModal(' + message.key + ');';
-            const actionButton = '<button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#message-detail-modal" title="Message details" onclick="'+ fillModalAction + '">'
-                + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
-                + '</button>';
-
-            correlatedMessages += '<tr>'
-                + '<td>' + message.key + '</td>'
-                + '<td>' + messageCorrelation.timestamp +'</td>'
-                + '<td>' + actionButton + '</td>'
-                + '</tr>';
-          });
-
-          correlatedMessages += '</tbody></table>';
-          correlatedMessagesFormatted += '<div class="collapse" id="' + messageSubscriptionCollapseId + '">'
-              + '<div class="col">'
-              + correlatedMessages
-              + '</div>'
-              + '</div>'
-              + '</div>';
-
           const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName + '\', \'' + messageSubscription.messageCorrelationKey + '\');';
 
           let actionButton = '';
@@ -631,7 +640,7 @@ function loadMessageSubscriptionsOfProcessInstance() {
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + messageSubscription.elementInstance.key +'</td>'
               + '<td>' + state + '</td>'
-              + '<td>' + correlatedMessagesFormatted + '</td>'
+              + '<td>' + formatCorrelatedMessages(messageSubscription) + '</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');
 
