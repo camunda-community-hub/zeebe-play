@@ -25,43 +25,26 @@ function loadProcessInstances(currentPage) {
 
         const indexOffset = processInstancesCurrentPage * processInstancesPerPage + 1;
 
-        processInstances.nodes.forEach((node, index) => {
+        processInstances.nodes.forEach((processInstance, index) => {
 
-          let state = "";
-          switch (node.state) {
-            case "ACTIVATED":
-              state = '<span class="badge bg-primary">active</span>';
-              break;
-            case "COMPLETED":
-              state = '<span class="badge bg-secondary">completed</span>';
-              break;
-            case "TERMINATED":
-              state = '<span class="badge bg-dark">terminated</span>';
-              break;
-            default:
-              state = "?"
-          }
-
-          if (node.incidents.length > 0) {
-            state += ' <span class="badge bg-danger">incidents</span>';
-          }
+          const state = formatProcessInstanceState(processInstance)
 
           let endTime = "";
-          if (node.endTime) {
-            endTime = node.endTime;
+          if (processInstance.endTime) {
+            endTime = processInstance.endTime;
           }
 
           $("#process-instances-table tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>'
-              + '<a href="/view/process-instance/' + node.key + '">' + node.key + '</a>'
+              + '<a href="/view/process-instance/' + processInstance.key + '">' + processInstance.key + '</a>'
               + '</td>'
-              + '<td>' + node.process.bpmnProcessId +'</td>'
-              + '<td>' + node.process.version +'</td>'
+              + '<td>' + processInstance.process.bpmnProcessId +'</td>'
+              + '<td>' + processInstance.process.version +'</td>'
               + '<td>'
-              + '<a href="/view/process/' + node.process.key + '">' + node.process.key + '</a>'
+              + '<a href="/view/process/' + processInstance.process.key + '">' + processInstance.process.key + '</a>'
               +'</td>'
-              + '<td>' + node.startTime +'</td>'
+              + '<td>' + processInstance.startTime +'</td>'
               + '<td>' + endTime +'</td>'
               + '<td>' + state +'</td>'
               + '</tr>');

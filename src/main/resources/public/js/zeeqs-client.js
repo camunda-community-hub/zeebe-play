@@ -88,7 +88,7 @@ const processInstancesQuery = `query ProcessInstances($perPage: Int!, $page: Int
         bpmnProcessId
         version
       }      
-      incidents { key }
+      incidents(stateIn: [CREATED]) { key }
     }
   }
   }`;
