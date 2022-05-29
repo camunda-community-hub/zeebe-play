@@ -545,11 +545,6 @@ function loadJobsOfProcessInstance() {
 
           const elementId = job.elementInstance.elementId;
 
-          let endTime = '';
-          if (job.endTime) {
-            endTime = job.endTime;
-          }
-
           let state = formatJobState(job.state);
           const isActiveJob = job.state === "ACTIVATABLE";
 
@@ -586,8 +581,6 @@ function loadJobsOfProcessInstance() {
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + job.elementInstance.key +'</td>'
               + '<td>' + state + '</td>'
-              + '<td>' + job.startTime +'</td>'
-              + '<td>' + endTime +'</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');
 
@@ -709,11 +702,6 @@ function loadIncidentsOfProcessInstance() {
           let elementFormatted = formatBpmnElementInstance(incident.elementInstance);
           const elementId = incident.elementInstance.elementId;
 
-          let resolveTime = '';
-          if (incident.resolveTime) {
-            resolveTime = incident.resolveTime;
-          }
-
           let state = formatIncidentState(incident.state);
           const isActiveIncident = incident.state === "CREATED";
 
@@ -740,8 +728,6 @@ function loadIncidentsOfProcessInstance() {
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + incident.elementInstance.key +'</td>'
               + '<td>' + state + '</td>'
-              + '<td>' + incident.creationTime +'</td>'
-              + '<td>' + resolveTime +'</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');
 
