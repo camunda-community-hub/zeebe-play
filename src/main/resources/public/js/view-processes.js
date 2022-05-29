@@ -70,7 +70,6 @@ function deploymentModal() {
 
         const toastId = "new-deployment-" + deploymentKey;
         const content = 'New resources deployed.';
-
         showNotificationSuccess(toastId, content);
 
         loadProcesses(processesCurrentPage);

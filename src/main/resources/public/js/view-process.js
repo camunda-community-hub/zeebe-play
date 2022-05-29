@@ -122,21 +122,16 @@ function createNewProcessInstanceWith(processKey, variables) {
   sendCreateInstanceRequest(processKey, variables)
       .done(processInstanceKey => {
 
-        showNotificationNewInstanceCreated(processInstanceKey);
+        const toastId = "new-instance-" + processInstanceKey;
+        const content = 'New process instance <a id="new-instance-toast-link" href="/view/process-instance/' + processInstanceKey + '">' + processInstanceKey + '</a> created.';
+        showNotificationSuccess(toastId, content);
+
         loadView();
       })
       .fail(showFailure(
           "create-instance-failed-" + processKey,
           "Failed to create process instance")
       );
-}
-
-function showNotificationNewInstanceCreated(processInstanceKey) {
-
-  const toastId = "new-instance-" + processInstanceKey;
-  const content = 'New process instance <a id="new-instance-toast-link" href="/view/process-instance/' + processInstanceKey + '">' + processInstanceKey + '</a> created.';
-
-  showNotificationSuccess(toastId, content);
 }
 
 function loadMessageSubscriptionsOfProcess() {
@@ -178,52 +173,6 @@ function loadMessageSubscriptionsOfProcess() {
               + '</tr>');
         });
       });
-}
-
-function publishMessage(messageName, messageCorrelationKey) {
-
-  sendPublishMessageRequest(messageName, messageCorrelationKey)
-      .done(messageKey => {
-        showNotificationPublishMessageSuccess(messageKey);
-        loadView();
-      })
-      .fail(showFailure(
-          "publish-message-failed-" + messageName,
-          "Failed to publish message")
-      );
-}
-
-function showNotificationPublishMessageSuccess(messageKey) {
-  const toastId = "message-published-" + messageKey;
-  const content = 'New message <code>' + messageKey + '</code> published.';
-
-  showNotificationSuccess(toastId, content);
-}
-
-function fillPublishMessageModal(messageName, correlationKey) {
-  $("#publishMessageName").val(messageName);
-
-  if (correlationKey) {
-    $("#publishMessageCorrelationKey").val(correlationKey);
-  }
-}
-
-function publishMessageModal() {
-  sendPublishMessageRequest(
-      $("#publishMessageName").val(),
-      $("#publishMessageCorrelationKey").val(),
-      $("#publishMessageVariables").val(),
-      $("#publishMessageTimeToLive").val(),
-      $("#publishMessageId").val()
-  )
-      .done(messageKey => {
-        showNotificationPublishMessageSuccess(messageKey);
-        loadView();
-      })
-      .fail(showFailure(
-          "publish-message-failed",
-          "Failed to publish message")
-      );
 }
 
 function loadTimersOfProcess() {
@@ -268,64 +217,4 @@ function loadTimersOfProcess() {
               + '</tr>');
         });
       });
-}
-
-function timeTravel(timeDefinition) {
-
-  let index = timeDefinition.indexOf("P");
-
-  let successMessage;
-
-  let request;
-  if (index >= 0) {
-    let duration = timeDefinition.substring(index);
-    request = sendTimeTravelRequestWithDuration(duration);
-
-    successMessage = 'Time travel by <code>' + duration + '</code>.';
-  } else {
-    let dateTime = timeDefinition;
-    request = sendTimeTravelRequestWithDateTime(dateTime);
-
-    successMessage = 'Time travel to <code>' + dateTime + '</code>.';
-  }
-
-  request
-      .done(newTime => {
-        const toastId = "time-travel-" + newTime;
-        showNotificationSuccess(toastId, successMessage);
-        loadView();
-      })
-      .fail(showFailure(
-          "time-travel-failed",
-          "Failed to time travel")
-      );
-}
-
-function fillTimeTravelModal(timeDefinition) {
-  let index = timeDefinition.indexOf("P");
-
-  let timeDuration = $("#timeDuration");
-  let timeDate = $("#timeDate");
-
-  timeDuration.val("");
-  timeDate.val("");
-
-  if (index >= 0) {
-    let duration = timeDefinition.substring(index);
-    timeDuration.val(duration);
-  } else {
-    timeDate.val(timeDefinition);
-  }
-}
-
-function timeTravelModal() {
-
-  let timeDuration = $("#timeDuration").val();
-  let timeDate = $("#timeDate").val();
-
-  if (timeDuration && timeDuration.length > 0) {
-    timeTravel(timeDuration);
-  } else if (timeDate && timeDate.length > 0) {
-    timeTravel(timeDate);
-  }
 }

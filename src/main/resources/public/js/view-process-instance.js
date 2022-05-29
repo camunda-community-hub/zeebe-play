@@ -74,30 +74,6 @@ function loadProcessInstanceDetailsViews() {
   loadChildInstancesOfProcessInstance();
 }
 
-function formatProcessInstanceState(processInstance) {
-  let state = "";
-  switch (processInstance.state) {
-    case "ACTIVATED":
-      state = '<span class="badge bg-primary">active</span>';
-      break;
-    case "COMPLETED":
-      state = '<span class="badge bg-secondary">completed</span>';
-      break;
-    case "TERMINATED":
-      state = '<span class="badge bg-dark">terminated</span>';
-      break;
-    default:
-      state = "?"
-  }
-
-  if (processInstance.incidents.length > 0) {
-    state += ' <span class="badge bg-danger">incidents</span>';
-  }
-
-  return state;
-}
-
-
 function disableProcessInstanceActionButtons() {
   $("#process-instance-set-variables").addClass("disabled");
   $("#process-instance-cancel").addClass("disabled");
@@ -340,91 +316,6 @@ function loadElementInstancesOfProcessInstance() {
       });
 }
 
-function formatElementInstanceState(state) {
-  switch (state) {
-    case "ACTIVATING":
-      return '<span class="badge bg-primary">activating</span>';
-    case "ACTIVATED":
-      return '<span class="badge bg-primary">activated</span>';
-    case "COMPLETING":
-      return '<span class="badge bg-secondary">completing</span>';
-    case "COMPLETED":
-      return '<span class="badge bg-secondary">completed</span>';
-    case "TERMINATING":
-      return '<span class="badge bg-dark">terminating</span>';
-    case "TERMINATED":
-      return '<span class="badge bg-dark">terminated</span>';
-    case "TAKEN":
-      return '<span class="badge bg-secondary">taken</span>';
-    default:
-      return "?"
-  }
-}
-
-function formatBpmnElement(bpmnElementType) {
-  switch (bpmnElementType) {
-    case "PROCESS":
-      return '<span class="bpmn-icon-participant"></span>';
-    case "START_EVENT":
-      return '<span class="bpmn-icon-start-event-none"></span>';
-    case "SEQUENCE_FLOW":
-      return '<span class="bpmn-icon-connection"></span>';
-    case "SERVICE_TASK":
-      return '<span class="bpmn-icon-service-task"></span>';
-    case "EXCLUSIVE_GATEWAY":
-      return '<span class="bpmn-icon-gateway-xor"></span>';
-    case "PARALLEL_GATEWAY":
-      return '<span class="bpmn-icon-gateway-parallel"></span>';
-    case "EVENT_BASED_GATEWAY":
-      return '<span class="bpmn-icon-gateway-eventbased"></span>';
-    case "SUB_PROCESS":
-      return '<span class="bpmn-icon-subprocess-expanded"></span>';
-    case "EVENT_SUB_PROCESS":
-      return '<span class="bpmn-icon-event-subprocess-expanded"></span>';
-    case "INTERMEDIATE_CATCH_EVENT":
-      return '<span class="bpmn-icon-intermediate-event-none"></span>';
-    case "INTERMEDIATE_THROW_EVENT":
-      return '<span class="bpmn-icon-intermediate-event-none"></span>';
-    case "BOUNDARY_EVENT":
-      return '<span class="bpmn-icon-intermediate-event-none"></span>';
-    case "END_EVENT":
-      return '<span class="bpmn-icon-end-event-none"></span>';
-    case "RECEIVE_TASK":
-      return '<span class="bpmn-icon-receive-task"></span>';
-    case "USER_TASK":
-      return '<span class="bpmn-icon-user-task"></span>';
-    case "MANUAL_TASK":
-      return '<span class="bpmn-icon-manual-task"></span>';
-    case "MULTI_INSTANCE_BODY":
-      return '<span class="bpmn-icon-parallel-mi-marker"></span>';
-    case "CALL_ACTIVITY":
-      return '<span class="bpmn-icon-subprocess-collapsed"></span>';
-    case "BUSINESS_RULE_TASK":
-      return '<span class="bpmn-icon-business-rule-task"></span>';
-    case "SCRIPT_TASK":
-      return '<span class="bpmn-icon-script-task"></span>';
-    case "SEND_TASK":
-      return '<span class="bpmn-icon-send-task"></span>';
-    default:
-      return "?";
-  }
-}
-
-function formatBpmnElementInstance(elementInstance) {
-  let bpmnElement = formatBpmnElement(elementInstance.bpmnElementType);
-
-  let elementFormatted = ' <button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element" onclick="highlightElement(\'' + elementInstance.elementId + '\');">'
-      + bpmnElement + ' ';
-  if (elementInstance.elementName) {
-    elementFormatted += elementInstance.elementName;
-  } else {
-    elementFormatted += elementInstance.elementId;
-  }
-  elementFormatted += '</button>';
-
-  return elementFormatted;
-}
-
 function markElementInstances(processInstance) {
 
   processInstance.elementInstances.forEach((elementInstance) => {
@@ -448,8 +339,6 @@ function markElementInstances(processInstance) {
 
   addElementCounters(processInstance);
 }
-
-
 
 function addElementCounters(processInstance) {
   let elementCounters = {};
@@ -593,92 +482,6 @@ function loadJobsOfProcessInstance() {
       });
 }
 
-function formatJobState(state) {
-  switch (state) {
-    case "ACTIVATABLE":
-      return '<span class="badge bg-primary">active</span>';
-    case "COMPLETED":
-      return '<span class="badge bg-secondary">completed</span>';
-    case "FAILED":
-      return '<span class="badge bg-danger">failed</span>';
-    case "CANCELED":
-      return '<span class="badge bg-dark">canceled</span>';
-    case "ERROR_THROWN":
-      return '<span class="badge bg-warning">error thrown</span>';
-    default:
-      return "?"
-  }
-}
-
-function completeJob(jobKey, variables) {
-  const toastId = "job-complete-" + jobKey;
-
-  sendCompleteJobRequest(jobKey, variables)
-      .done(key => {
-        showNotificationSuccess(toastId, "Job <code>" + jobKey + "</code> completed.");
-
-        loadProcessInstanceView();
-      })
-      .fail(showFailure(toastId,
-          "Failed to complete job <code>" + jobKey + "</code>.")
-      );
-}
-
-function failJob(jobKey, retries, errorMessage) {
-  const toastId = "job-fail-" + jobKey;
-
-  sendFailJobRequest(jobKey, retries, errorMessage)
-      .done(key => {
-        showNotificationSuccess(toastId, "Job <code>" + jobKey + "</code> failed.");
-
-        loadProcessInstanceView();
-      })
-      .fail(showFailure(toastId,
-          "Failed to fail job <code>" + jobKey + "</code>.")
-      );
-}
-
-function throwErrorJob(jobKey, errorCode, errorMessage) {
-  const toastId = "job-throw-error-" + jobKey;
-
-  sendThrowErrorJobRequest(jobKey, errorCode, errorMessage)
-      .done(key => {
-        showNotificationSuccess(toastId, "An error <code>" + errorCode + "</code> was thrown for the job <code>" + jobKey + "</code>.");
-
-        loadProcessInstanceView();
-      })
-      .fail(showFailure(toastId,
-          "Failed to throw error for the job <code>" + jobKey + "</code>.")
-      );
-}
-
-function fillJobModal(jobKey, type) {
-  $("#jobKey-" + type).val(jobKey);
-}
-
-function completeJobModal() {
-  const jobKey = $("#jobKey-complete").val();
-  const jobVariables = $("#jobVariables").val();
-
-  completeJob(jobKey, jobVariables);
-}
-
-function failJobModal() {
-  const jobKey = $("#jobKey-fail").val();
-  const retries = $("#jobRetries").val();
-  const errorMessage = $("#jobErrorMessage").val();
-
-  failJob(jobKey, retries, errorMessage);
-}
-
-function throwErrorJobModal() {
-  const jobKey = $("#jobKey-throw-error").val();
-  const errorCode = $("#jobErrorCode").val();
-  const errorMessage = $("#job-throw-error-errorMessage").val();
-
-  throwErrorJob(jobKey, errorCode, errorMessage);
-}
-
 function loadIncidentsOfProcessInstance() {
 
   const processInstanceKey = getProcessInstanceKey();
@@ -738,49 +541,6 @@ function loadIncidentsOfProcessInstance() {
           }
         });
       });
-}
-
-function formatIncidentState(state) {
-  switch (state) {
-    case "CREATED":
-      return '<span class="badge bg-primary">created</span>';
-    case "RESOLVED":
-      return '<span class="badge bg-secondary">resolved</span>';
-    default:
-      return "?"
-  }
-}
-
-function resolveIncident(incidentKey, jobKey) {
-  const toastId = "job-update-retries-" + jobKey;
-
-  if (jobKey) {
-    sendUpdateRetriesJobRequest(jobKey, 1)
-        .done(key => {
-          showNotificationSuccess(toastId, "Retries of job <code>" + jobKey + "</code> increase.");
-
-          resolveIncidentByKey(incidentKey);
-        })
-        .fail(showFailure(toastId,
-            "Failed to update retries of the job <code>" + jobKey + "</code>.")
-        );
-
-  } else {
-    resolveIncidentByKey(incidentKey);
-  }
-}
-
-function resolveIncidentByKey(incidentKey) {
-  const toastId = "incident-resolve-" + incidentKey;
-  sendResolveIncidentRequest(incidentKey)
-      .done(key => {
-        showNotificationSuccess(toastId, "Incident <code>" + incidentKey + "</code> resolved.");
-
-        loadProcessInstanceView();
-      })
-      .fail(showFailure(toastId,
-          "Failed to resolve incident <code>" + incidentKey + "</code>.")
-      );
 }
 
 function loadMessageSubscriptionsOfProcessInstance() {
@@ -885,40 +645,6 @@ function loadMessageSubscriptionsOfProcessInstance() {
       });
 }
 
-function formatMessageSubscriptionState(state) {
-  switch (state) {
-    case "CREATED":
-      return '<span class="badge bg-primary">created</span>';
-    case "CORRELATED":
-      return '<span class="badge bg-secondary">correlated</span>';
-    case "DELETED":
-      return '<span class="badge bg-dark">deleted</span>';
-    default:
-      return "?"
-  }
-}
-
-function fillMessageDetailsModal(messageKey) {
-
-  queryMessageByKey(messageKey).done(function (response) {
-
-    const message = response.data.message;
-
-    let variables = {};
-    message.variables.forEach((variable) => {
-      variables[variable.name] = variable.value;
-    });
-    const variablesFormatted = JSON.stringify(variables);
-
-    $("#messageKey").val(message.key);
-    $("#messageName").val(message.name);
-    $("#messageCorrelationKey").val(message.correlationKey);
-    $("#messageVariables").val(variablesFormatted);
-    $("#messageTimeToLive").val(message.timeToLive);
-    $("#messageId").val(message.messageId);
-  });
-}
-
 function loadTimersOfProcessInstance() {
 
   const processInstanceKey = getProcessInstanceKey();
@@ -976,19 +702,6 @@ function loadTimersOfProcessInstance() {
         });
 
       });
-}
-
-function formatTimerState(state) {
-  switch (state) {
-    case "CREATED":
-      return '<span class="badge bg-primary">created</span>';
-    case "TRIGGERED":
-      return '<span class="badge bg-secondary">triggered</span>';
-    case "CANCELED":
-      return '<span class="badge bg-dark">canceled</span>';
-    default:
-      return "?"
-  }
 }
 
 function loadChildInstancesOfProcessInstance() {
