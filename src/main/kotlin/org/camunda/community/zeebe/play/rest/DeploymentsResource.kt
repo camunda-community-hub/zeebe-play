@@ -21,12 +21,12 @@ class DeploymentsResource(private val zeebeClient: ZeebeClient) {
         val firstResource = resources.first()
 
         val deployCommand = zeebeClient.newDeployCommand()
-            .addResourceBytes(firstResource.bytes, firstResource.name)
+            .addResourceBytes(firstResource.bytes, firstResource.resource.filename)
 
         resources
             .drop(1)
             .forEach {
-                deployCommand.addResourceBytes(it.bytes, it.name)
+                deployCommand.addResourceBytes(it.bytes, it.resource.filename)
             }
 
         return deployCommand
