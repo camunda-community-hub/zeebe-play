@@ -944,11 +944,6 @@ function loadTimersOfProcessInstance() {
           let state = formatTimerState(timer.state);
           const isActiveTimer = timer.state === "CREATED";
 
-          let timerRepetitions = timer.repetitions;
-          if (timerRepetitions < 0) {
-            timerRepetitions = '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#infinity"/></svg>';
-          }
-
           const action = 'timeTravel(\'' + timer.dueDate + '\');';
           const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
 
@@ -963,7 +958,7 @@ function loadTimersOfProcessInstance() {
           $("#timers-of-process-instance-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + timer.key +'</td>'
-              + '<td>' + timerRepetitions +'</td>'
+              + '<td>' + formatTimerRepetitions(timer) +'</td>'
               + '<td>' + timer.dueDate +'</td>'
               + '<td>' + elementFormatted +'</td>'
               + '<td>' + timer.elementInstance.key +'</td>'

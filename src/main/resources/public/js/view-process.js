@@ -246,35 +246,22 @@ function loadTimersOfProcess() {
 
         timers.forEach((timer, index) => {
 
+          const state = formatTimerState(timer.state);
+          const isActiveTimer = timer.state === "CREATED";
+
           let actionButton = "";
-          let state = "";
-          switch (timer.state) {
-            case "CREATED":
-              state = '<span class="badge bg-primary">created</span>';
-
-              const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
-              actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#time-travel-modal" title="Time travel" onclick="'+ fillModalAction + '">'
-                  + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
-                  + ' Time Travel'
-                  + '</button>';
-
-              break;
-            case "TRIGGERED":
-              state = '<span class="badge bg-secondary">triggered</span>';
-              break;
-            default:
-              state = "?"
-          }
-
-          let timerRepetitions = timer.repetitions;
-          if (timerRepetitions < 0) {
-            timerRepetitions = '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#infinity"/></svg>';
+          if (isActiveTimer) {
+            const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
+            actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#time-travel-modal" title="Time travel" onclick="'+ fillModalAction + '">'
+                + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
+                + ' Time Travel'
+                + '</button>';
           }
 
           $("#timers-of-process-table tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + timer.key + '</td>'
-              + '<td>' + timerRepetitions +'</td>'
+              + '<td>' + formatTimerRepetitions(timer) +'</td>'
               + '<td>' + timer.dueDate  + '</td>'
               + '<td>' + state +'</td>'
               + '<td>' + actionButton + '</td>'

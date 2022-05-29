@@ -145,3 +145,14 @@ function loadView() {
   }
 }
 
+// ----------------------------------------
+
+function formatTimerRepetitions(timer) {
+  if (timer.repetitions < 0) {
+    // show infinity symbol
+    return '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#infinity"/></svg>';
+  } else {
+    return timer.repetitions;
+  }
+}
+
