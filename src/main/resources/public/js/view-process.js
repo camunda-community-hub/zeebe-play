@@ -185,6 +185,13 @@ function loadTimersOfProcess() {
         let process = response.data.process;
 
         let timers = process.timers;
+        // TODO (saig0): fix filter in ZeeQS
+        timers = timers.filter(function (timer) {
+          // timer start events don't have an element instance
+          console.info(timer);
+          return !timer.elementInstance;
+        });
+
         let totalCount = timers.length;
 
         $("#timers-total-count").text(totalCount);
