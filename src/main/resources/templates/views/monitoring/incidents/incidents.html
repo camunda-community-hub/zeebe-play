@@ -1,0 +1,72 @@
+<div th:fragment="incidents">
+  <div class="row">
+    <div class="col">
+
+      <table class="table table-striped table-hover caption-top" id="incidents-table">
+        <caption>
+          created <span class="badge bg-primary" id="incidents-created">0</span> /
+          resolved <span class="badge bg-secondary"  id="incidents-resolved">0</span>
+        </caption>
+        <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Incident Key</th>
+          <th scope="col">Error Type</th>
+          <th scope="col">Error Message</th>
+          <th scope="col">Process Instance Key</th>
+          <th scope="col">BPMN Process Id</th>
+          <th scope="col">State</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>1</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+        </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-auto">
+
+      <nav aria-label="Page navigation processes" id="incidents-pagination">
+        <ul class="pagination">
+          <li class="page-item" id="incidents-pagination-previous-button"><a class="page-link" href="#" onclick="loadIncidentsPrevious();">Previous</a></li>
+
+          <li class="page-item"><a class="page-link" href="#" id="incidents-pagination-first" onclick="loadIncidentsFirst();">1</a></li>
+
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="gap" id="incidents-pagination-first-gap">
+              <span aria-hidden="true">..</span>
+            </a>
+          </li>
+
+          <li class="page-item"><a class="page-link" href="#" id="incidents-pagination-previous" onclick="loadIncidentsPrevious();">2</a></li>
+
+          <li class="page-item active"><a class="page-link" href="#" id="incidents-pagination-current">3</a></li>
+
+          <li class="page-item"><a class="page-link" href="#" id="incidents-pagination-next" onclick="loadIncidentsNext();">4</a></li>
+
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="gap" id="incidents-pagination-last-gap">
+              <span aria-hidden="true">..</span>
+            </a>
+          </li>
+
+          <li class="page-item"><a class="page-link" href="#" id="incidents-pagination-last" onclick="loadIncidentsLast();">5</a></li>
+
+          <li class="page-item" id="incidents-pagination-next-button"><a class="page-link" href="#" onclick="loadIncidentsNext();">Next</a></li>
+        </ul>
+      </nav>
+
+    </div>
+  </div>
+</div>

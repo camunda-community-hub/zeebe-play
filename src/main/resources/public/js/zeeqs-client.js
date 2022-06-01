@@ -338,6 +338,30 @@ const parentInstanceByProcessInstanceQuery = `query ParentInstanceOfProcessInsta
     }
   }`;
 
+const incidentsQuery = `query Incidents($perPage: Int!, $page: Int!, $zoneId: String!) {  
+  
+  createdIncidents: incidents(stateIn:[CREATED]) { totalCount }
+  resolvedIncidents: incidents(stateIn:[RESOLVED]) { totalCount }
+  
+  incidents(page: $page, perPage: $perPage) {
+    totalCount
+    nodes {
+      key      
+      errorType
+      errorMessage
+      state
+      creationTime(zoneId: $zoneId)
+      resolveTime(zoneId: $zoneId)
+      processInstance {
+        key
+        process {
+          bpmnProcessId
+        }
+      }
+    }
+  }
+  }`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -493,5 +517,14 @@ function queryParentInstanceByProcessInstance(processInstanceKey) {
 
   return fetchData(parentInstanceByProcessInstanceQuery, {
     key: processInstanceKey
+  });
+}
+
+function queryIncidents(perPage, page) {
+
+  return fetchData(incidentsQuery, {
+    perPage: perPage,
+    page: page,
+    zoneId: getTimeZone()
   });
 }
