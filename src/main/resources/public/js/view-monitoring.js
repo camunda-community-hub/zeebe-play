@@ -2,6 +2,7 @@
 function loadMonitoringView() {
   loadProcessInstancesView();
   loadIncidentsView();
+  loadMessagesView();
 }
 
 const processInstancesPerPage = 15;
@@ -82,7 +83,6 @@ function loadProcessInstancesLast() {
 
 //  ------------------------------------------------------------
 
-
 const incidentsPerPage = 15;
 let incidentsCurrentPage = 0;
 
@@ -150,4 +150,76 @@ function loadIncidentsNext() {
 function loadIncidentsLast() {
   let last = $("#incidents-pagination-last").text() - 1;
   loadIncidents(last);
+}
+
+//  ------------------------------------------------------------
+
+const messagesPerPage = 15;
+let messagesCurrentPage = 0;
+
+function loadMessagesView() {
+  loadMessages(0);
+}
+
+function loadMessages(currentPage) {
+
+  messagesCurrentPage = currentPage;
+
+  queryMessages(messagesPerPage, messagesCurrentPage)
+      .done(function (response) {
+        let data = response.data;
+        let messages = data.messages;
+        let totalCount = messages.totalCount;
+
+        $("#messages-total-count").text(totalCount);
+
+        $("#messages-table tbody").empty();
+
+        const indexOffset = messagesCurrentPage * messagesPerPage + 1;
+
+        messages.nodes.forEach((message, index) => {
+
+          const state = formatMessageState(message.state);
+
+          const fillModalAction = 'fillMessageDetailsModal(' + message.key + ');';
+          const actionButton = '<button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#message-detail-modal" title="Message details" onclick="'
+              + fillModalAction + '">'
+              + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
+              + '</button>';
+
+          const correlatedInstances = '';
+
+          $("#messages-table tbody:last-child").append('<tr>'
+              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + message.key + '</td>'
+              + '<td>' + message.name + '</td>'
+              + '<td><code>' + message.correlationKey + '</code></td>'
+              + '<td>' + actionButton + '</td>'
+              + '<td>' + correlatedInstances + '</td>'
+              + '<td>' + state +'</td>'
+              + '</tr>');
+        });
+
+        updateMessagesPagination(totalCount);
+      });
+}
+
+function updateMessagesPagination(totalCount) {
+  updatePagination("messages", messagesPerPage, messagesCurrentPage, totalCount);
+}
+
+function loadMessagesFirst() {
+  loadMessages(0);
+}
+
+function loadMessagesPrevious() {
+  loadMessages(messagesCurrentPage - 1);
+}
+
+function loadMessagesNext() {
+  loadMessages(messagesCurrentPage + 1);
+}
+function loadMessagesLast() {
+  let last = $("#messages-pagination-last").text() - 1;
+  loadMessages(last);
 }

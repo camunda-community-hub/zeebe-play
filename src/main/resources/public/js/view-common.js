@@ -320,6 +320,17 @@ function formatMessageSubscriptionState(state) {
   }
 }
 
+function formatMessageState(state) {
+  switch (state) {
+    case "PUBLISHED":
+      return '<span class="badge bg-primary">published</span>';
+    case "EXPIRED":
+      return '<span class="badge bg-secondary">expired</span>';
+    default:
+      return "?"
+  }
+}
+
 // ----------------------------------------------------------
 
 function publishMessage(messageName, messageCorrelationKey) {

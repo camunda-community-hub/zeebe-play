@@ -5,6 +5,8 @@
 
 <div th:replace="fragments/navbar :: navbar"></div>
 
+<div th:replace="views/modals/message-detail-modal.html :: #message-detail-modal"></div>
+
 <div class="container-fluid">
 
   <ul class="nav nav-tabs" id="monitoring-tabs" role="tablist">
@@ -40,7 +42,7 @@
     </div>
 
     <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
-      <div th:replace="fragments/coming-soon.html :: coming-soon"></div>
+      <div th:replace="views/monitoring/messages/messages.html :: messages"></div>
     </div>
   </div>
 
