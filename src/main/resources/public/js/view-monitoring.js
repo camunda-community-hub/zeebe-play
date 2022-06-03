@@ -187,9 +187,9 @@ function loadMessages(currentPage) {
               + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
               + '</button>';
 
-          const correlatedInstances = '';
+          const correlatedInstances = formatMessageCorrelations(message);
 
-          $("#messages-table tbody:last-child").append('<tr>'
+          $("#messages-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + message.key + '</td>'
               + '<td>' + message.name + '</td>'
@@ -202,6 +202,65 @@ function loadMessages(currentPage) {
 
         updateMessagesPagination(totalCount);
       });
+}
+
+function formatMessageCorrelations(message) {
+  const correlatedInstancesCount = message.messageCorrelations.length;
+  const messageCollapseId = "message-" + message.key;
+  let correlatedMessagesFormatted = '<div class="row row-cols-1">'
+      + '<div class="col">'
+      + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#'
+      + messageCollapseId
+      + '" aria-expanded="false" title="Show correlated instances">'
+      + ' <span class="badge bg-secondary">' + correlatedInstancesCount
+      + '</span>'
+      + '</button>'
+      + '</div>'
+
+  let correlatedMessages = '<table class="table">'
+      + '<thead>'
+      + '<tr>'
+      + '<th scope="col">Process Instance Key</th>'
+      + '<th scope="col">BPMN Process Id</th>'
+      + '<th scope="col">Process Key</th>'
+      + '<th scope="col">Correlation Time</th>'
+      + '<th></th>'
+      + '</tr>'
+      + '</thead>'
+      + '<tbody>';
+
+  message.messageCorrelations.forEach((messageCorrelation) => {
+
+    const messageSubscription = messageCorrelation.messageSubscription;
+    const process = messageSubscription.process;
+    const bpmnProcessId = process.bpmnProcessId;
+    const processKey = process.key;
+
+    let processInstanceKey = '';
+    if (messageSubscription.processInstance) {
+      const key = messageSubscription.processInstance.key;
+      processInstanceKey = '<a href="/view/process-instance/' + key + '">' + key + '</a>';
+    } else {
+      processInstanceKey = '<span class="bpmn-icon-start-event-message"></span> (process message start event)';
+    }
+
+    correlatedMessages += '<tr>'
+        + '<td>' + processInstanceKey + '</td>'
+        + '<td>' + bpmnProcessId + '</td>'
+        + '<td>' + '<a href="/view/process/' + processKey + '">' + processKey + '</a>' + '</td>'
+        + '<td>' + messageCorrelation.timestamp + '</td>'
+        + '</tr>';
+  });
+
+  correlatedMessages += '</tbody></table>';
+  correlatedMessagesFormatted += '<div class="collapse" id="'
+      + messageCollapseId + '">'
+      + '<div class="col">'
+      + correlatedMessages
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  return correlatedMessagesFormatted;
 }
 
 function updateMessagesPagination(totalCount) {
