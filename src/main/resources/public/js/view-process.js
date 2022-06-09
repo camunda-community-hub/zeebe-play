@@ -23,7 +23,6 @@ function loadProcessView() {
         if (!bpmnViewIsLoaded) {
           const bpmnXML = process.bpmnXML;
           showBpmn(bpmnXML).then(ok => {
-            // TODO (saig0): remove this BPMN-JS style
             makeStartEventsPlayable();
           });
 
