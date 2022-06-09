@@ -284,12 +284,12 @@ const timersByProcessInstanceQuery = `query TimersOfProcessInstance($key: ID!, $
       dueDate(zoneId: $zoneId)
       state
       elementInstance {
-        key
-        element {
-          elementId
-          elementName
-          bpmnElementType
-        }
+        key        
+      }
+      element {
+        elementId
+        elementName
+        bpmnElementType
       }
     }
   }

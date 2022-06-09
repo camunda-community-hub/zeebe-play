@@ -678,7 +678,7 @@ function loadTimersOfProcessInstance() {
 
         timers.forEach((timer, index) => {
 
-          const bpmnElement = timer.elementInstance.element;
+          const bpmnElement = timer.element;
           let elementFormatted = formatBpmnElementInstance(bpmnElement);
 
           let state = formatTimerState(timer.state);
