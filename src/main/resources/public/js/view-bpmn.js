@@ -70,31 +70,6 @@ function makeStartEventsPlayable() {
 
 }
 
-function makeMessageStartEventsPlayable() {
-
-  let messageStartEvents = elementRegistry.filter(function (element) {
-    return element.type == 'bpmn:StartEvent'
-        && element.parent.type == 'bpmn:Process'
-        && element.businessObject.eventDefinitions
-        && element.businessObject.eventDefinitions.find(function (eventDefinition) {
-          return eventDefinition.$type == 'bpmn:MessageEventDefinition'
-              && eventDefinition.messageRef
-              && eventDefinition.messageRef.name;
-        });
-  });
-
-  messageStartEvents.forEach(element => {
-
-    let eventDefinition = element.businessObject.eventDefinitions[0];
-    let messageName = eventDefinition.messageRef.name;
-
-    let clickAction = 'publishMessage(\'' + messageName + '\');';
-    let fillModalAction = 'fillPublishMessageModal(\'' + messageName  + '\');';
-
-    addPublishMessageButton(element.id, clickAction, fillModalAction);
-  });
-}
-
 function addPublishMessageButton(elementId, clickAction, fillModalAction) {
 
   const content = '<div class="btn-group">'

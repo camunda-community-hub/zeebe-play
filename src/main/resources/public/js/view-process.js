@@ -23,8 +23,8 @@ function loadProcessView() {
         if (!bpmnViewIsLoaded) {
           const bpmnXML = process.bpmnXML;
           showBpmn(bpmnXML).then(ok => {
+            // TODO (saig0): remove this BPMN-JS style
             makeStartEventsPlayable();
-            makeMessageStartEventsPlayable();
             makeTimerStartEventsPlayable();
           });
 
@@ -168,6 +168,9 @@ function loadMessageSubscriptionsOfProcess() {
               + '<td>' + formatCorrelatedMessages(messageSubscription) + '</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');
+
+          const clickAction = 'publishMessage(\'' + messageSubscription.messageName + '\');';
+          addPublishMessageButton(messageSubscription.element.elementId, clickAction, fillModalAction);
         });
       });
 }
