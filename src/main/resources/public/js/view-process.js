@@ -25,7 +25,6 @@ function loadProcessView() {
           showBpmn(bpmnXML).then(ok => {
             // TODO (saig0): remove this BPMN-JS style
             makeStartEventsPlayable();
-            makeTimerStartEventsPlayable();
           });
 
           bpmnViewIsLoaded = true;
@@ -204,9 +203,10 @@ function loadTimersOfProcess() {
           const state = formatTimerState(timer.state);
           const isActiveTimer = timer.state === "CREATED";
 
+          const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
+
           let actionButton = "";
           if (isActiveTimer) {
-            const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
             actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#time-travel-modal" title="Time travel" onclick="'+ fillModalAction + '">'
                 + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
                 + ' Time Travel'
@@ -222,6 +222,9 @@ function loadTimersOfProcess() {
               + '<td>' + state +'</td>'
               + '<td>' + actionButton + '</td>'
               + '</tr>');
+
+          const action = 'timeTravel(\'' + timer.dueDate + '\');';
+          addTimeTravelButton(timer.element.elementId, action, fillModalAction);
         });
       });
 }

@@ -95,54 +95,6 @@ function removePublishMessageButton(elementId) {
   overlays.remove({ element: elementId, type: 'publish-message' })
 }
 
-function makeTimerStartEventsPlayable() {
-
-  let timerStartEvents = elementRegistry.filter(function (element) {
-    return element.type == 'bpmn:StartEvent'
-        && element.parent.type == 'bpmn:Process'
-        && element.businessObject.eventDefinitions
-        && element.businessObject.eventDefinitions.find(function (eventDefinition) {
-          return eventDefinition.$type == 'bpmn:TimerEventDefinition'
-              && (eventDefinition.timeCycle || eventDefinition.timeDate);
-        });
-  });
-
-  timerStartEvents.forEach(element => {
-
-    let eventDefinition = element.businessObject.eventDefinitions[0];
-    let timeCycle = eventDefinition.timeCycle;
-    let timeDate = eventDefinition.timeDate;
-
-    let timeDefinition;
-    if (timeCycle) {
-      timeDefinition = timeCycle.body;
-    }
-    if (timeDate) {
-      timeDefinition = timeDate.body;
-    }
-
-    const content = '<div class="btn-group">'
-        + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Time Travel" onclick="timeTravel(\'' + timeDefinition + '\');">'
-        + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
-        + '</button>'
-        + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
-        + '<ul class="dropdown-menu">'
-        + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#time-travel-modal" href="#" onclick="fillTimeTravelModal(\'' + timeDefinition  + '\');">with time</a></li>'
-        + '</ul>'
-        + '</div>';
-
-    overlays.add(element.id, {
-      position: {
-        top: -20,
-        left: -40
-      },
-      html: content
-    });
-
-  });
-
-}
-
 function highlightElement(elementId) {
   if (highlightedElementId && highlightedElementId !== elementId) {
     canvas.removeMarker(highlightedElementId, 'bpmn-element-selected');
