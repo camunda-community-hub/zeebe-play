@@ -280,16 +280,16 @@ function formatBpmnElement(bpmnElementType) {
   }
 }
 
-function formatBpmnElementInstance(elementInstance) {
-  const bpmnElement = formatBpmnElement(elementInstance.bpmnElementType);
-  const action = 'highlightElement(\'' + elementInstance.elementId + '\');';
+function formatBpmnElementInstance(element) {
+  const bpmnElement = formatBpmnElement(element.bpmnElementType);
+  const action = 'highlightElement(\'' + element.elementId + '\');';
 
   let elementFormatted = '<button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element" onclick="' + action + '">';
   elementFormatted += bpmnElement + ' ';
-  if (elementInstance.elementName) {
-    elementFormatted += elementInstance.elementName;
+  if (element.elementName) {
+    elementFormatted += element.elementName;
   } else {
-    elementFormatted += elementInstance.elementId;
+    elementFormatted += element.elementId;
   }
   elementFormatted += '</button>';
 

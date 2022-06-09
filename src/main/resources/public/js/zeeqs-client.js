@@ -130,9 +130,11 @@ const variablesByProcessInstanceQuery = `query VariablesOfProcessInstance($key: 
         }
         scope {
           key
-          elementId
-          elementName
-          bpmnElementType
+          element {
+            elementId
+            elementName
+            bpmnElementType
+          }
         }
       }
     }
@@ -142,9 +144,11 @@ const elementInstancesByProcessInstanceQuery = `query ElementInstancesOfProcessI
     processInstance(key: $key) {    
        elementInstances {
         key
-        elementId
-        elementName
-        bpmnElementType
+        element {
+          elementId
+          elementName
+          bpmnElementType
+        }
         state
         startTime(zoneId: $zoneId)
         endTime(zoneId: $zoneId)
@@ -160,27 +164,37 @@ const elementInstancesByProcessInstanceQuery = `query ElementInstancesOfProcessI
       }
       
       activeElementInstances: elementInstances(stateIn:[ACTIVATING, ACTIVATED, COMPLETING]) {
-        elementId
-        bpmnElementType
+        element {
+          elementId
+          bpmnElementType
+        }
       }
       
       completedElementInstances: elementInstances(stateIn:[COMPLETED]) {
-        elementId
-        bpmnElementType
+        element {
+          elementId
+          bpmnElementType
+        }
       }
       
       terminatedElementInstances: elementInstances(stateIn:[TERMINATED]) {
-        elementId
-        bpmnElementType
+        element {
+          elementId
+          bpmnElementType
+        }
       }
       
       takenSequenceFlows: elementInstances(stateIn: [TAKEN]) {
-        elementId
+        element {
+          elementId
+        }
       }
       
       elementInstancesWithIncidents: incidents(stateIn: [CREATED]) {
         elementInstance {
-          elementId
+          element {
+            elementId
+          }
         }
       }
     }
@@ -198,9 +212,11 @@ const jobsByProcessInstanceQuery = `query JobsOfProcessInstance($key: ID!, $zone
           
           elementInstance {
             key
-            elementId
-            elementName
-            bpmnElementType
+            element {
+              elementId
+              elementName
+              bpmnElementType
+            }
           }
       }
     }
@@ -218,9 +234,11 @@ const incidentsByProcessInstanceQuery = `query IncidentsOfProcessInstance($key: 
         
         elementInstance {
           key
-          elementId
-          elementName
-          bpmnElementType
+          element {
+            elementId
+            elementName
+            bpmnElementType
+          }
         }
         
         job { key }
@@ -240,9 +258,11 @@ const messageSubscriptionByProcessInstanceQuery = `query MessageSubscriptionsOfP
         
         elementInstance {
           key
-          elementId
-          elementName
-          bpmnElementType
+          element {
+            elementId
+            elementName
+            bpmnElementType
+          }
           state
         }
         
@@ -265,9 +285,11 @@ const timersByProcessInstanceQuery = `query TimersOfProcessInstance($key: ID!, $
       state
       elementInstance {
         key
-        elementId
-        elementName
-        bpmnElementType
+        element {
+          elementId
+          elementName
+          bpmnElementType
+        }
       }
     }
   }
@@ -301,9 +323,11 @@ const childInstancesByProcessInstanceQuery = `query ChildInstancesOfProcessInsta
         }      
         parentElementInstance {
           key
-          elementId
-          elementName
-          bpmnElementType
+          element {
+            elementId
+            elementName
+            bpmnElementType
+          }
         }
         incidents(stateIn: [CREATED]) {
           key

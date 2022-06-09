@@ -109,7 +109,7 @@ function loadVariablesOfProcessInstance() {
             scopeFormatted = '<span class="badge bg-secondary">local</span>';
           }
 
-          let scopeElement = formatBpmnElementInstance(scope);
+          let scopeElement = formatBpmnElementInstance(scope.element);
 
           let valueFormatted = '<code>' + variable.value + '</code>';
 
@@ -255,7 +255,7 @@ function loadElementInstancesOfProcessInstance() {
 
         elementInstances.forEach((elementInstance, index) => {
 
-          let elementFormatted = formatBpmnElementInstance(elementInstance);
+          let elementFormatted = formatBpmnElementInstance(elementInstance.element);
 
           let scopeFormatted = '';
           if (elementInstance.scope) {
@@ -319,21 +319,22 @@ function loadElementInstancesOfProcessInstance() {
 function markElementInstances(processInstance) {
 
   processInstance.elementInstances.forEach((elementInstance) => {
-    removeBpmnElementMarkers(elementInstance.elementId);
+    removeBpmnElementMarkers(elementInstance.element.elementId);
   });
 
   processInstance.activeElementInstances.forEach((elementInstance) => {
-    if (elementInstance.bpmnElementType !== 'PROCESS') {
-      markBpmnElementAsActive(elementInstance.elementId);
+    let bpmnElement = elementInstance.element;
+    if (bpmnElement.bpmnElementType !== 'PROCESS') {
+      markBpmnElementAsActive(bpmnElement.elementId);
     }
   });
 
   processInstance.takenSequenceFlows.forEach((sequenceFlow) => {
-    markSequenceFlow(sequenceFlow.elementId);
+    markSequenceFlow(sequenceFlow.element.elementId);
   });
 
   processInstance.elementInstancesWithIncidents.forEach((incidents) => {
-    let elementId = incidents.elementInstance.elementId;
+    let elementId = incidents.elementInstance.element.elementId;
     markBpmnElementWithIncident(elementId);
   });
 
@@ -344,19 +345,19 @@ function addElementCounters(processInstance) {
   let elementCounters = {};
 
   processInstance.activeElementInstances.forEach((elementInstance) => {
-    updateElementCounter(elementCounters, elementInstance, function (counter) {
+    updateElementCounter(elementCounters, elementInstance.element, function (counter) {
       counter.active += 1;
     })
   });
 
   processInstance.completedElementInstances.forEach((elementInstance) => {
-    updateElementCounter(elementCounters, elementInstance, function (counter) {
+    updateElementCounter(elementCounters, elementInstance.element, function (counter) {
       counter.completed += 1;
     })
   });
 
   processInstance.terminatedElementInstances.forEach((elementInstance) => {
-    updateElementCounter(elementCounters, elementInstance, function (counter) {
+    updateElementCounter(elementCounters, elementInstance.element, function (counter) {
       counter.terminated += 1;
     })
   });
@@ -397,11 +398,11 @@ function addElementCounters(processInstance) {
   });
 }
 
-function updateElementCounter(elementCounters, elementInstance, updateCounter) {
-  if (elementInstance.bpmnElementType === 'PROCESS') {
+function updateElementCounter(elementCounters, bpmnElement, updateCounter) {
+  if (bpmnElement.bpmnElementType === 'PROCESS') {
     return
   }
-  let elementId = elementInstance.elementId;
+  let elementId = bpmnElement.elementId;
   let counter = elementCounters[elementId];
   if (!counter) {
     counter = {active: 0, completed: 0, terminated: 0};
@@ -430,9 +431,10 @@ function loadJobsOfProcessInstance() {
 
         jobs.forEach((job, index) => {
 
-          let elementFormatted = formatBpmnElementInstance(job.elementInstance);
+          const bpmnElement = job.elementInstance.element;
+          let elementFormatted = formatBpmnElementInstance(bpmnElement);
 
-          const elementId = job.elementInstance.elementId;
+          const elementId = bpmnElement.elementId;
 
           let state = formatJobState(job.state);
           const isActiveJob = job.state === "ACTIVATABLE";
@@ -502,8 +504,9 @@ function loadIncidentsOfProcessInstance() {
 
         incidents.forEach((incident, index) => {
 
-          let elementFormatted = formatBpmnElementInstance(incident.elementInstance);
-          const elementId = incident.elementInstance.elementId;
+          const bpmnElement = incident.elementInstance.element;
+          let elementFormatted = formatBpmnElementInstance(bpmnElement);
+          const elementId = bpmnElement.elementId;
 
           let state = formatIncidentState(incident.state);
           const isActiveIncident = incident.state === "CREATED";
@@ -614,8 +617,9 @@ function loadMessageSubscriptionsOfProcessInstance() {
 
         messageSubscriptions.forEach((messageSubscription, index) => {
 
-          let elementFormatted = formatBpmnElementInstance(messageSubscription.elementInstance);
-          const elementId = messageSubscription.elementInstance.elementId;
+          let bpmnElement = messageSubscription.elementInstance.element;
+          let elementFormatted = formatBpmnElementInstance(bpmnElement);
+          const elementId = bpmnElement.elementId;
 
           let state = formatMessageSubscriptionState(messageSubscription.state);
 
@@ -674,7 +678,8 @@ function loadTimersOfProcessInstance() {
 
         timers.forEach((timer, index) => {
 
-          let elementFormatted = formatBpmnElementInstance(timer.elementInstance);
+          const bpmnElement = timer.elementInstance.element;
+          let elementFormatted = formatBpmnElementInstance(bpmnElement);
 
           let state = formatTimerState(timer.state);
           const isActiveTimer = timer.state === "CREATED";
@@ -701,7 +706,7 @@ function loadTimersOfProcessInstance() {
               + '<td>' + actionButton +'</td>'
               + '</tr>');
 
-          const elementId = timer.elementInstance.elementId;
+          const elementId = bpmnElement.elementId;
 
           if (isActiveTimer) {
             addTimeTravelButton(elementId, action, fillModalAction);
@@ -733,7 +738,8 @@ function loadChildInstancesOfProcessInstance() {
 
         childProcessInstances.forEach((childInstance, index) => {
 
-          const elementFormatted = formatBpmnElementInstance(childInstance.parentElementInstance);
+          const parentBpmnElement = childInstance.parentElementInstance.element;
+          const elementFormatted = formatBpmnElementInstance(parentBpmnElement);
           const state = formatProcessInstanceState(childInstance)
           const hrefChildInstance= '/view/process-instance/' + childInstance.key;
           const childInstanceKeyFormatted = '<a href="' + hrefChildInstance + '">' + childInstance.key + '</a>';
@@ -748,7 +754,7 @@ function loadChildInstancesOfProcessInstance() {
               + '<td>' + state + '</td>'
               + '</tr>');
 
-          const elementId = childInstance.parentElementInstance.elementId;
+          const elementId = parentBpmnElement.elementId;
           addOpenChildInstanceButton(elementId, hrefChildInstance);
         });
 
