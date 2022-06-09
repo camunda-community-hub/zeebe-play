@@ -164,6 +164,7 @@ function loadMessageSubscriptionsOfProcess() {
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + messageSubscription.key + '</td>'
               + '<td>' + messageSubscription.messageName +'</td>'
+              + '<td>' + formatBpmnElementInstance(messageSubscription.element) +'</td>'
               + '<td>' + formatCorrelatedMessages(messageSubscription) + '</td>'
               + '<td>' + actionButton +'</td>'
               + '</tr>');

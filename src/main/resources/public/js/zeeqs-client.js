@@ -57,6 +57,11 @@ const messageSubscriptionsByProcessQuery = `query MessageSubscriptionsOfProcess(
             key
           }
         }
+        element {
+          elementId
+          elementName
+          bpmnElementType
+        }
       }
     }
   }`;
