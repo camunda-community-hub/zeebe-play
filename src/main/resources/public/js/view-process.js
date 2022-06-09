@@ -182,7 +182,7 @@ function loadTimersOfProcess() {
         let process = response.data.process;
 
         let timers = process.timers;
-        // TODO (saig0): fix filter in ZeeQS
+        // TODO (saig0): fix filter in ZeeQS (https://github.com/camunda-community-hub/zeeqs/issues/248)
         timers = timers.filter(function (timer) {
           // timer start events don't have an element instance
           return !timer.elementInstance;
@@ -215,6 +215,7 @@ function loadTimersOfProcess() {
               + '<td>' + timer.key + '</td>'
               + '<td>' + formatTimerRepetitions(timer) +'</td>'
               + '<td>' + timer.dueDate  + '</td>'
+              + '<td>' + formatBpmnElementInstance(timer.element)  + '</td>'
               + '<td>' + state +'</td>'
               + '<td>' + actionButton + '</td>'
               + '</tr>');

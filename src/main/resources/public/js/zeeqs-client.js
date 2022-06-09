@@ -74,7 +74,12 @@ const timersByProcessQuery = `query TimersOfProcess($key: ID!, $zoneId: String!)
         dueDate(zoneId: $zoneId)
         repetitions
         state
-        elementInstance {bpmnElementType}
+        element {
+          elementId
+          elementName
+          bpmnElementType
+        }
+        elementInstance { key }
       }
     }
   }`;
