@@ -409,12 +409,9 @@ const messagesQuery = `query Messages($perPage: Int!, $page: Int!, $zoneId: Stri
       state
       messageCorrelations {
         timestamp(zoneId: $zoneId)
-        messageSubscription {
-          processInstance {
-            key
-          }
+        processInstance {
+          key
           process {
-            key
             bpmnProcessId
           }
         }

@@ -222,7 +222,6 @@ function formatMessageCorrelations(message) {
       + '<tr>'
       + '<th scope="col">Process Instance Key</th>'
       + '<th scope="col">BPMN Process Id</th>'
-      + '<th scope="col">Process Key</th>'
       + '<th scope="col">Correlation Time</th>'
       + '<th></th>'
       + '</tr>'
@@ -232,22 +231,15 @@ function formatMessageCorrelations(message) {
   message.messageCorrelations.forEach((messageCorrelation) => {
 
     const messageSubscription = messageCorrelation.messageSubscription;
-    const process = messageSubscription.process;
+    const processInstance = messageCorrelation.processInstance;
+    const process = processInstance.process;
     const bpmnProcessId = process.bpmnProcessId;
-    const processKey = process.key;
 
-    let processInstanceKey = '';
-    if (messageSubscription.processInstance) {
-      const key = messageSubscription.processInstance.key;
-      processInstanceKey = '<a href="/view/process-instance/' + key + '">' + key + '</a>';
-    } else {
-      processInstanceKey = '<span class="bpmn-icon-start-event-message"></span> (process message start event)';
-    }
+    const processInstanceKey = '<a href="/view/process-instance/' + processInstance.key + '">' + processInstance.key + '</a>';
 
     correlatedMessages += '<tr>'
         + '<td>' + processInstanceKey + '</td>'
         + '<td>' + bpmnProcessId + '</td>'
-        + '<td>' + '<a href="/view/process/' + processKey + '">' + processKey + '</a>' + '</td>'
         + '<td>' + messageCorrelation.timestamp + '</td>'
         + '</tr>';
   });
