@@ -419,6 +419,9 @@ const messagesQuery = `query Messages($perPage: Int!, $page: Int!, $zoneId: Stri
     }
   }
   
+  publishedMessages: messages(stateIn: [PUBLISHED]) { totalCount }
+  expiredMessages: messages(stateIn: [EXPIRED]) { totalCount }
+  
   }`;
 
 function fetchData(query, variables) {

@@ -173,6 +173,9 @@ function loadMessages(currentPage) {
 
         $("#messages-total-count").text(totalCount);
 
+        $("#messages-published").text(data.publishedMessages.totalCount);
+        $("#messages-expired").text(data.expiredMessages.totalCount);
+
         $("#messages-table tbody").empty();
 
         const indexOffset = messagesCurrentPage * messagesPerPage + 1;
