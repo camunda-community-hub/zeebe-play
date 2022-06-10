@@ -550,6 +550,8 @@ function formatCorrelatedMessages(messageSubscription) {
   const correlatedMessageCount = messageSubscription.messageCorrelations.length;
   const messageSubscriptionCollapseId = "message-subscription-"
       + messageSubscription.key;
+
+
   let correlatedMessagesFormatted = '<div class="row row-cols-1">'
       + '<div class="col">'
       + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#'
@@ -560,11 +562,18 @@ function formatCorrelatedMessages(messageSubscription) {
       + '</button>'
       + '</div>'
 
+  let processInstanceColumn = '';
+  const isStartEventSubscription = !messageSubscription.elementInstance;
+  if (isStartEventSubscription) {
+    processInstanceColumn = 'Process Instance Key';
+  }
+
   let correlatedMessages = '<table class="table">'
       + '<thead>'
       + '<tr>'
       + '<th scope="col">Message Key</th>'
       + '<th scope="col">Correlation Time</th>'
+      + '<th scope="col">' + processInstanceColumn + '</th>'
       + '<th></th>'
       + '</tr>'
       + '</thead>'
@@ -579,9 +588,16 @@ function formatCorrelatedMessages(messageSubscription) {
         + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
         + '</button>';
 
+    let processInstanceKeyFormatted = '';
+    if (messageCorrelation.processInstance) {
+      const processInstanceKey = messageCorrelation.processInstance.key;
+      processInstanceKeyFormatted = '<a href="/view/process-instance/' + processInstanceKey + '">' + processInstanceKey + '</a>'
+    }
+
     correlatedMessages += '<tr>'
         + '<td>' + message.key + '</td>'
         + '<td>' + messageCorrelation.timestamp + '</td>'
+        + '<td>' + processInstanceKeyFormatted + '</td>'
         + '<td>' + actionButton + '</td>'
         + '</tr>';
   });
