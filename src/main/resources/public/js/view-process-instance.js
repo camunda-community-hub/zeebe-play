@@ -103,7 +103,7 @@ function loadVariablesOfProcessInstance() {
           let scope = variable.scope;
 
           let scopeFormatted;
-          if (scope.bpmnElementType === 'PROCESS') {
+          if (scope.element.bpmnElementType === 'PROCESS') {
             scopeFormatted = '<span class="badge bg-primary">global</span>';
           } else {
             scopeFormatted = '<span class="badge bg-secondary">local</span>';
