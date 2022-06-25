@@ -136,7 +136,7 @@ function colorSequenceFlow(sequenceFlow, gfx, color) {
 }
 
 function showElementCounters(elementId, activeInstances, completedInstances, terminatedInstances) {
-  let content = '<div style="width: 70px;"><small>'
+  let content = '<div style="width: 150px;"><small>'
       + '<span class="badge bg-primary bg-opacity-75" title="active">' + activeInstances + '</span>'
       + ' <span class="badge bg-secondary bg-opacity-75" title="completed">' + completedInstances + '</span>'
       + ' <span class="badge bg-black bg-opacity-75" title="terminated">' + terminatedInstances + '</span>'
