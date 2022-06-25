@@ -24,11 +24,16 @@ function loadProcessView() {
           const bpmnXML = process.bpmnXML;
           showBpmn(bpmnXML).then(ok => {
             makeStartEventsPlayable();
+            loadProcessElementOverview();
           });
 
           bpmnViewIsLoaded = true;
         }
       });
+
+  if (bpmnViewIsLoaded) {
+    loadProcessElementOverview();
+  }
 
   loadInstancesOfProcess(instancesOfProcessCurrentPage);
   loadMessageSubscriptionsOfProcess();
@@ -218,5 +223,47 @@ function loadTimersOfProcess() {
           const action = 'timeTravel(\'' + timer.dueDate + '\');';
           addTimeTravelButton(timer.element.elementId, action, fillModalAction);
         });
+      });
+}
+
+function loadProcessElementOverview() {
+  const processKey = getProcessKey();
+
+  queryElementsByProcess(processKey)
+      .done(function (response) {
+        const process = response.data.process;
+        const elements = process.elements;
+
+        let elementCounters = {};
+
+        elements.forEach((element) => {
+          const elementId = element.elementId;
+          const activeElementInstancesCount = element.activeElementInstances.totalCount;
+          const completedElementInstancesCount = element.completedElementInstances.totalCount;
+          const terminatedElementInstancesCount = element.terminatedElementInstances.totalCount;
+
+          if (activeElementInstancesCount + completedElementInstancesCount + terminatedElementInstancesCount > 0) {
+            elementCounters[elementId] = {
+              active: activeElementInstancesCount,
+              completed: completedElementInstancesCount,
+              terminated: terminatedElementInstancesCount
+            }
+
+            showElementCounters(elementId, activeElementInstancesCount, completedElementInstancesCount, terminatedElementInstancesCount);
+          }
+        });
+
+        // onBpmnElementHover(function (elementId) {
+        //   const counter = elementCounters[elementId];
+        //   if (counter) {
+        //     showElementCounters(elementId, counter.active, counter.completed, counter.terminated);
+        //   }
+        // });
+        //
+        // onBpmnElementOut(function (elementId) {
+        //   if (elementCounters[elementId]) {
+        //     removeElementCounters(elementId);
+        //   }
+        // });
       });
 }

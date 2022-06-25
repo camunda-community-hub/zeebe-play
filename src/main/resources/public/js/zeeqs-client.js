@@ -87,6 +87,18 @@ const timersByProcessQuery = `query TimersOfProcess($key: ID!, $zoneId: String!)
     }
   }`;
 
+const elementsByProcessQuery = `query ElementsOfProcess($key: ID!) {  
+    process(key: $key) {
+      elements {
+        elementId
+        
+        activeElementInstances: elementInstances(stateIn: [ACTIVATING, ACTIVATED, COMPLETING]) { totalCount }
+        completedElementInstances: elementInstances(stateIn: [COMPLETED]) { totalCount }
+        terminatedElementInstances: elementInstances(stateIn: [TERMINATED]) { totalCount }
+      }
+    }
+  }`;
+
 const processInstancesQuery = `query ProcessInstances($perPage: Int!, $page: Int!, $zoneId: String!) {  
   
   activeProcessInstances: processInstances(stateIn:[ACTIVATED]) { totalCount }
@@ -492,6 +504,13 @@ function queryTimersByProcess(processKey) {
   return fetchData(timersByProcessQuery, {
     key: processKey,
     zoneId: getTimeZone()
+  });
+}
+
+function queryElementsByProcess(processKey) {
+
+  return fetchData(elementsByProcessQuery, {
+    key: processKey
   });
 }
 
