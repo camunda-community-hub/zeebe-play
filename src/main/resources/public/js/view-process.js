@@ -248,22 +248,20 @@ function loadProcessElementOverview() {
               completed: completedElementInstancesCount,
               terminated: terminatedElementInstancesCount
             }
-
-            showElementCounters(elementId, activeElementInstancesCount, completedElementInstancesCount, terminatedElementInstancesCount);
           }
         });
 
-        // onBpmnElementHover(function (elementId) {
-        //   const counter = elementCounters[elementId];
-        //   if (counter) {
-        //     showElementCounters(elementId, counter.active, counter.completed, counter.terminated);
-        //   }
-        // });
-        //
-        // onBpmnElementOut(function (elementId) {
-        //   if (elementCounters[elementId]) {
-        //     removeElementCounters(elementId);
-        //   }
-        // });
+        onBpmnElementHover(function (elementId) {
+          const counter = elementCounters[elementId];
+          if (counter) {
+            showElementCounters(elementId, counter.active, counter.completed, counter.terminated);
+          }
+        });
+
+        onBpmnElementOut(function (elementId) {
+          if (elementCounters[elementId]) {
+            removeElementCounters(elementId);
+          }
+        });
       });
 }
