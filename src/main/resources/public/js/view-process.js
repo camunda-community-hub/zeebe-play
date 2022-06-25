@@ -180,16 +180,9 @@ function loadTimersOfProcess() {
   queryTimersByProcess(processKey)
       .done(function (response) {
 
-        let process = response.data.process;
-
-        let timers = process.timers;
-        // TODO (saig0): fix filter in ZeeQS (https://github.com/camunda-community-hub/zeeqs/issues/248)
-        timers = timers.filter(function (timer) {
-          // timer start events don't have an element instance
-          return !timer.elementInstance;
-        });
-
-        let totalCount = timers.length;
+        const process = response.data.process;
+        const timers = process.timers;
+        const totalCount = timers.length;
 
         $("#timers-total-count").text(totalCount);
 
