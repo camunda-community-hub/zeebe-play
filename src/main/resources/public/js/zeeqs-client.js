@@ -271,12 +271,13 @@ const messageSubscriptionByProcessInstanceQuery = `query MessageSubscriptionsOfP
         
         elementInstance {
           key
-          element {
-            elementId
-            elementName
-            bpmnElementType
-          }
           state
+        }
+        
+        element {
+          elementId
+          elementName
+          bpmnElementType
         }
         
         messageCorrelations {

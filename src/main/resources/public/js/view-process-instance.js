@@ -633,7 +633,7 @@ function loadMessageSubscriptionsOfProcessInstance() {
 
         messageSubscriptions.forEach((messageSubscription, index) => {
 
-          let bpmnElement = messageSubscription.elementInstance.element;
+          let bpmnElement = messageSubscription.element;
           let elementFormatted = formatBpmnElementInstance(bpmnElement);
           const elementId = bpmnElement.elementId;
 
