@@ -99,6 +99,28 @@ const elementsByProcessQuery = `query ElementsOfProcess($key: ID!) {
     }
   }`;
 
+const elementsInfoByProcessQuery = `query ElementsInfoOfProcess($key: ID!) {  
+    process(key: $key) {
+      elements {
+        elementId
+        elementName
+        bpmnElementType
+        
+        metadata {
+          jobType
+          conditionExpression 
+          timerDefinition
+          errorCode
+          calledProcessId
+          messageSubscriptionDefinition {
+            messageName
+            messageCorrelationKey
+          }
+        }
+      }
+    }
+  }`;
+
 const processInstancesQuery = `query ProcessInstances($perPage: Int!, $page: Int!, $zoneId: String!) {  
   
   activeProcessInstances: processInstances(stateIn:[ACTIVATED]) { totalCount }
@@ -321,6 +343,30 @@ const timersByProcessInstanceQuery = `query TimersOfProcessInstance($key: ID!, $
   }
 }`;
 
+const elementsInfoByProcessInstanceQuery = `query ElementsInfoOfProcessInstance($key: ID!) {  
+    processInstance(key: $key) {
+      process {
+        elements {
+          elementId
+          elementName
+          bpmnElementType
+          
+          metadata {
+            jobType
+            conditionExpression 
+            timerDefinition
+            errorCode
+            calledProcessId
+            messageSubscriptionDefinition {
+              messageName
+              messageCorrelationKey
+            }
+          }
+        }
+      }
+    }
+  }`;
+
 const messageByKeyQuery = `query Message($key: ID!, $zoneId: String!) { 
   message(key: $key) {
     key
@@ -514,6 +560,13 @@ function queryElementsByProcess(processKey) {
   });
 }
 
+function queryElementsInfoByProcess(processKey) {
+
+  return fetchData(elementsInfoByProcessQuery, {
+    key: processKey
+  });
+}
+
 function queryProcessInstances(perPage, page) {
 
   return fetchData(processInstancesQuery, {
@@ -598,6 +651,13 @@ function queryChildInstancesByProcessInstance(processInstanceKey) {
 function queryParentInstanceByProcessInstance(processInstanceKey) {
 
   return fetchData(parentInstanceByProcessInstanceQuery, {
+    key: processInstanceKey
+  });
+}
+
+function queryElementInfosByProcessInstance(processInstanceKey) {
+
+  return fetchData(elementsInfoByProcessInstanceQuery, {
     key: processInstanceKey
   });
 }

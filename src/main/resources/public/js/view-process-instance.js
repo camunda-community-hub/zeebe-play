@@ -51,6 +51,7 @@ function loadProcessInstanceView() {
           showBpmn(bpmnXML).then(function (r) {
             // wait until BPMN is loaded
             loadProcessInstanceDetailsViews();
+            loadElementInfoOfProcessInstance();
           });
 
           bpmnViewIsLoaded = true;
@@ -807,4 +808,18 @@ function appendParentProcessInstanceToNav(processInstance) {
 
     appendParentProcessInstanceToNav(parentProcessInstance);
   }
+}
+
+function loadElementInfoOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryElementInfosByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        const processInstance = response.data.processInstance;
+        const process = processInstance.process;
+        const elements = process.elements;
+        elements.forEach(element => showInfoOfBpmnElement(element));
+      });
 }

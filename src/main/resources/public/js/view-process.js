@@ -25,6 +25,7 @@ function loadProcessView() {
           showBpmn(bpmnXML).then(ok => {
             makeStartEventsPlayable();
             loadProcessElementOverview();
+            loadBpmnElementInfos();
           });
 
           bpmnViewIsLoaded = true;
@@ -263,5 +264,18 @@ function loadProcessElementOverview() {
             removeElementCounters(elementId);
           }
         });
+      });
+}
+
+function loadBpmnElementInfos() {
+
+  const processKey = getProcessKey();
+
+  queryElementsInfoByProcess(processKey)
+      .done(function (response) {
+        const process = response.data.process;
+        const elements = process.elements;
+
+        elements.forEach(element => showInfoOfBpmnElement(element));
       });
 }

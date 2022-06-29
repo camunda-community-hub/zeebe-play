@@ -11,6 +11,13 @@
   opacity: 0.9;
 }
 
+.bpmn-element-info {
+  background-color: rgba(0, 125, 255, 0.7);
+  opacity: 0.9;
+  /*border-radius: 5px;*/
+  /*pointer-events: none;*/
+}
+
 /* Colors:
  * blue: rgba(0, 125, 255, 0.7)
  * green: rgba(66, 180, 21, 0.7)

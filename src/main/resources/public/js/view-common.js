@@ -331,6 +331,40 @@ function formatMessageState(state) {
   }
 }
 
+function showInfoOfBpmnElement(element) {
+  const elementId = element.elementId;
+  const bpmnElementType = element.bpmnElementType;
+  const metadata = element.metadata;
+
+  let info;
+  if (metadata.jobType) {
+    info = 'job type: ' + metadata.jobType;
+  }
+  if (metadata.conditionExpression) {
+    info = 'condition: ' + metadata.conditionExpression;
+  }
+  if (metadata.timerDefinition) {
+    info = 'timer: ' + metadata.timerDefinition;
+  }
+  if (metadata.errorCode) {
+    info = 'error code: ' + metadata.errorCode;
+  }
+  if (metadata.calledProcessId) {
+    info = 'called process id: ' + metadata.calledProcessId;
+  }
+  if (metadata.messageSubscriptionDefinition) {
+    let subscription = metadata.messageSubscriptionDefinition;
+    info = 'message name: ' + subscription.messageName;
+    if (subscription.messageCorrelationKey) {
+      info += '<br>' + 'correlation key: ' + subscription.messageCorrelationKey;
+    }
+  }
+
+  if (info) {
+    showElementInfo(elementId, bpmnElementType, info);
+  }
+}
+
 // ----------------------------------------------------------
 
 function publishMessage(messageName, messageCorrelationKey) {

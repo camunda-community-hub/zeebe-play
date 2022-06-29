@@ -269,3 +269,31 @@ function addOpenChildInstanceButton(elementId, href) {
     html: content
   });
 }
+
+function showElementInfo(elementId, bpmnElementType, info) {
+
+  const infoId = "bpmn-element-info-" + elementId;
+  let content = '<div id="' + infoId + '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-customClass="bpmn-element-info" title="'+ info + '">'
+      + '<svg class="bi" width="18" height="18" fill="#007DFFB2"><use xlink:href="/img/bootstrap-icons.svg#info-circle-fill"/></svg>'
+      + '</div>';
+
+  let overlayPosition = {
+    top: -22,
+    right: 10
+  }
+  if (bpmnElementType === 'SEQUENCE_FLOW') {
+    overlayPosition = {
+      top: -25,
+      right: 25
+    }
+  }
+
+  overlays.add(elementId, 'element-info', {
+    position: overlayPosition,
+    html: content
+  });
+
+  new bootstrap.Tooltip($("#" + infoId), {
+    boundary: document.body
+  })
+}
