@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.camunda.community.zeebe.play.rest.ZeebeServiceException
+import org.camunda.community.zeebe.play.zeebe.ZeebeService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.net.URI
@@ -14,65 +15,14 @@ import java.time.Duration
 import java.time.Instant
 
 @Component
-class ZeebeClockService {
-
-    private val httpClient = HttpClient.newHttpClient()
-
-    private val kotlinModule = KotlinModule.Builder().build()
-    private val objectMapper = ObjectMapper().registerModule(kotlinModule)
-
-    @Value(value = "\${zeebe.clock.endpoint}")
-    private lateinit var zeebeClockEndpoint: String
+class ZeebeClockService(private val zeebeService: ZeebeService) {
 
     fun increaseTime(duration: Duration): Long {
-
-        val offsetMilli = duration.toMillis()
-        val requestBody = HttpRequest.BodyPublishers.ofString("""{ "offsetMilli": $offsetMilli }""")
-
-        val clockResponse = sendRequest(
-            request = HttpRequest.newBuilder()
-                .uri(URI.create("http://$zeebeClockEndpoint/add"))
-                .header("Content-Type", "application/json")
-                .POST(requestBody)
-                .build()
-        )
-        return clockResponse.epochMilli;
+        return zeebeService.increaseTime(duration)
     }
 
     fun getCurrentTime(): Instant {
-
-        val clockResponse = sendRequest(
-            request = HttpRequest.newBuilder()
-                .uri(URI.create("http://$zeebeClockEndpoint"))
-                .header("Content-Type", "application/json")
-                .GET()
-                .build()
-        )
-        return Instant.parse(clockResponse.instant);
+        return zeebeService.getCurrentTime()
     }
-
-    private fun sendRequest(request: HttpRequest): ZeebeClockResponse {
-
-        val response = httpClient
-            .send(request, HttpResponse.BodyHandlers.ofString())
-
-        val statusCode = response.statusCode()
-        val responseBody = response.body()
-
-        if (statusCode != 200) {
-            throw ZeebeServiceException(
-                service = "time travel",
-                status = statusCode.toString(),
-                failureMessage = "$responseBody. Check if the clock endpoint is enabled (zeebe.clock.controlled = true)."
-            )
-        }
-
-        return objectMapper.readValue<ZeebeClockResponse>(responseBody)
-    }
-
-    private data class ZeebeClockResponse(
-        val epochMilli: Long,
-        val instant: String
-    )
 
 }

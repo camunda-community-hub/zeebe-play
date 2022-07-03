@@ -1,21 +1,41 @@
 package org.camunda.community.zeebe.play.zeebe
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.camunda.zeebe.spring.client.EnableZeebeClient
+import org.camunda.community.zeebe.play.rest.ZeebeServiceException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
+import java.time.Instant
 
 @Configuration
 @Profile("remote-engine")
 @EnableZeebeClient
 open class RemoteZeebeConfig {
 
+    @Value(value = "\${zeebe.clock.endpoint}")
+    private lateinit var zeebeClockEndpoint: String
+
     @Bean
     open fun remoteZeebeService(): ZeebeService {
-        return RemoteZeebeService()
+        return RemoteZeebeService(zeebeClockEndpoint)
     }
 
-    class RemoteZeebeService: ZeebeService {
+    class RemoteZeebeService(val clockEndpoint: String) : ZeebeService {
+
+        private val httpClient = HttpClient.newHttpClient()
+
+        private val kotlinModule = KotlinModule.Builder().build()
+        private val objectMapper = ObjectMapper().registerModule(kotlinModule)
+
         override fun start() {
             // the lifecycle is managed remotely
         }
@@ -23,6 +43,55 @@ open class RemoteZeebeConfig {
         override fun stop() {
             // the lifecycle is managed remotely
         }
+
+        override fun getCurrentTime(): Instant {
+            val clockResponse = sendRequest(
+                request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://$clockEndpoint"))
+                    .header("Content-Type", "application/json")
+                    .GET()
+                    .build()
+            )
+            return Instant.parse(clockResponse.instant);
+        }
+
+        override fun increaseTime(duration: Duration): Long {
+            val offsetMilli = duration.toMillis()
+            val requestBody = HttpRequest.BodyPublishers.ofString("""{ "offsetMilli": $offsetMilli }""")
+
+            val clockResponse = sendRequest(
+                request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://$clockEndpoint/add"))
+                    .header("Content-Type", "application/json")
+                    .POST(requestBody)
+                    .build()
+            )
+            return clockResponse.epochMilli;
+        }
+
+        private fun sendRequest(request: HttpRequest): ZeebeClockResponse {
+
+            val response = httpClient
+                .send(request, HttpResponse.BodyHandlers.ofString())
+
+            val statusCode = response.statusCode()
+            val responseBody = response.body()
+
+            if (statusCode != 200) {
+                throw ZeebeServiceException(
+                    service = "time travel",
+                    status = statusCode.toString(),
+                    failureMessage = "$responseBody. Check if the clock endpoint is enabled (zeebe.clock.controlled = true)."
+                )
+            }
+
+            return objectMapper.readValue<ZeebeClockResponse>(responseBody)
+        }
+
+        private data class ZeebeClockResponse(
+            val epochMilli: Long,
+            val instant: String
+        )
     }
 
 }

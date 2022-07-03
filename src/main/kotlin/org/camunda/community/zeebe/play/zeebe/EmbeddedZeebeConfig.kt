@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-
+import java.time.Duration
+import java.time.Instant
 
 @Configuration
 @Profile("!remote-engine")
@@ -37,16 +38,22 @@ open class EmbeddedZeebeConfig {
 
         override fun start() {
             logger.info("Start embedded Zeebe engine")
-
             engine.start()
         }
 
         override fun stop() {
             logger.info("Stop embedded Zeebe engine")
-
             engine.stop()
         }
 
+        override fun getCurrentTime(): Instant {
+            return engine.clock().getCurrentTime()
+        }
+
+        override fun increaseTime(duration: Duration): Long {
+            engine.clock().increaseTime(timeToAdd = duration)
+            return getCurrentTime().toEpochMilli()
+        }
     }
 
 }
