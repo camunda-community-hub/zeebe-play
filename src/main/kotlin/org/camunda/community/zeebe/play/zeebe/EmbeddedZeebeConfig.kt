@@ -5,14 +5,14 @@ import io.zeebe.hazelcast.exporter.HazelcastExporter
 import org.camunda.community.eze.EngineFactory
 import org.camunda.community.eze.ZeebeEngine
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import java.time.Duration
 import java.time.Instant
 
 @Configuration
-@Profile("!remote-engine")
+@ConditionalOnProperty(name = ["zeebe.engine"], havingValue = "embedded", matchIfMissing = true)
 open class EmbeddedZeebeConfig {
 
     @Bean
@@ -37,7 +37,7 @@ open class EmbeddedZeebeConfig {
         private val logger = LoggerFactory.getLogger(EmbeddedZeebeService::class.java)
 
         override fun start() {
-            logger.info("Start embedded Zeebe engine")
+            logger.info("Start embedded Zeebe engine at '{}'", engine.getGatewayAddress())
             engine.start()
         }
 

@@ -2,6 +2,10 @@ server:
   port: 8080
 
 zeebe:
+
+  # engine options: 'embedded' (EZE) / 'remote' (external broker via Spring Zeebe)
+  engine: embedded
+
   client:
 
     broker.gatewayAddress: 127.0.0.1:26500

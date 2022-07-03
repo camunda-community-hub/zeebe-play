@@ -6,9 +6,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.camunda.zeebe.spring.client.EnableZeebeClient
 import org.camunda.community.zeebe.play.rest.ZeebeServiceException
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -17,7 +17,7 @@ import java.time.Duration
 import java.time.Instant
 
 @Configuration
-@Profile("remote-engine")
+@ConditionalOnProperty(name = ["zeebe.engine"], havingValue = "remote")
 @EnableZeebeClient
 open class RemoteZeebeConfig {
 

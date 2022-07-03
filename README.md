@@ -15,3 +15,5 @@ In the Zeebe broker:
 In Zeebe Play:
 
 * set the Hazelcast connection
+* set Zeebe broker connection
+* set `zeebe.engine: remote`
