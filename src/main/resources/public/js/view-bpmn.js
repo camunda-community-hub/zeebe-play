@@ -43,7 +43,7 @@ function makeStartEventsPlayable() {
 
   let processStartEvents = elementRegistry.filter(function (element) {
     return element.type == 'bpmn:StartEvent'
-        && element.parent.type == 'bpmn:Process'
+        && ['bpmn:Process', 'bpmn:Participant'].includes(element.parent.type)
         && !element.businessObject.eventDefinitions;
   });
 
