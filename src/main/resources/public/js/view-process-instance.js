@@ -320,7 +320,10 @@ function loadElementInstancesOfProcessInstance() {
 function markElementInstances(processInstance) {
 
   processInstance.elementInstances.forEach((elementInstance) => {
-    removeBpmnElementMarkers(elementInstance.element.elementId);
+    let bpmnElement = elementInstance.element;
+    if (bpmnElement.bpmnElementType !== 'PROCESS') {
+      removeBpmnElementMarkers(bpmnElement.elementId);
+    }
   });
 
   processInstance.activeElementInstances.forEach((elementInstance) => {
