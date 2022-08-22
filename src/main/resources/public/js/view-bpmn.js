@@ -12,6 +12,8 @@ var overlays;
 
 var highlightedElementId;
 
+var detailsCollapsed = false;
+
 async function openDiagram(bpmnXML) {
 
   bpmnViewer = new BpmnJS({
@@ -296,4 +298,28 @@ function showElementInfo(elementId, bpmnElementType, info) {
   new bootstrap.Tooltip($("#" + infoId), {
     boundary: document.body
   })
+}
+
+function toggleDetailsCollapse() {
+  let windowHeight = $(window).height();
+  let canvasElement = $("#canvas");
+  let button = $("#details-collapse-button");
+  let buttonImage = $("#details-collapse-button > svg > use");
+
+  let canvasHeight;
+  if (detailsCollapsed) {
+    // initial state on loading
+    canvasHeight = "400px";
+    button.attr("title", "collapse");
+    buttonImage.attr("href", "/img/bootstrap-icons.svg#arrow-bar-down");
+    detailsCollapsed = false;
+
+  } else {
+    canvasHeight = windowHeight * 0.8;
+    button.attr("title", "expand");
+    buttonImage.attr("href", "/img/bootstrap-icons.svg#arrow-bar-up");
+    detailsCollapsed = true;
+  }
+
+  canvasElement.height(canvasHeight);
 }

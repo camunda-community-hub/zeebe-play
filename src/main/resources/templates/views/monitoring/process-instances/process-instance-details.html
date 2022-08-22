@@ -1,87 +1,100 @@
 <div th:fragment="process-instance-details">
 
-  <ul class="nav nav-tabs" id="process-instance-tabs" role="tablist">
+  <div class="row justify-content-between">
+    <div class="col">
+      <ul class="nav nav-tabs" id="process-instance-tabs" role="tablist">
 
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="variables-tab" data-bs-toggle="tab" data-bs-target="#variables" type="button" role="tab" aria-controls="variables" aria-selected="true">
-        Variables
-        <span class="badge bg-light text-dark" id="variables-total-count">0</span>
-      </button>
-    </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="variables-tab" data-bs-toggle="tab" data-bs-target="#variables" type="button" role="tab" aria-controls="variables" aria-selected="true">
+            Variables
+            <span class="badge bg-light text-dark" id="variables-total-count">0</span>
+          </button>
+        </li>
 
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="element-instances-tab" data-bs-toggle="tab" data-bs-target="#element-instances" type="button" role="tab" aria-controls="element-instances" aria-selected="false">
-        Element Instances
-        <span class="badge bg-light text-dark" id="element-instances-total-count">0</span>
-      </button>
-    </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="element-instances-tab" data-bs-toggle="tab" data-bs-target="#element-instances" type="button" role="tab" aria-controls="element-instances" aria-selected="false">
+            Element Instances
+            <span class="badge bg-light text-dark" id="element-instances-total-count">0</span>
+          </button>
+        </li>
 
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab" aria-controls="jobs" aria-selected="false">
-        Jobs
-        <span class="badge bg-light text-dark" id="jobs-total-count">0</span>
-      </button>
-    </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab" aria-controls="jobs" aria-selected="false">
+            Jobs
+            <span class="badge bg-light text-dark" id="jobs-total-count">0</span>
+          </button>
+        </li>
 
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="incidents-tab" data-bs-toggle="tab" data-bs-target="#incidents" type="button" role="tab" aria-controls="incidents" aria-selected="false">
-        Incidents
-        <span class="badge bg-light text-dark" id="incidents-total-count">0</span>
-      </button>
-    </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="incidents-tab" data-bs-toggle="tab" data-bs-target="#incidents" type="button" role="tab" aria-controls="incidents" aria-selected="false">
+            Incidents
+            <span class="badge bg-light text-dark" id="incidents-total-count">0</span>
+          </button>
+        </li>
 
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="message-subscriptions-tab" data-bs-toggle="tab" data-bs-target="#message-subscriptions" type="button" role="tab" aria-controls="message-subscriptions" aria-selected="false">
-        Message Subscriptions
-        <span class="badge bg-light text-dark" id="message-subscriptions-total-count">0</span>
-      </button>
-    </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="message-subscriptions-tab" data-bs-toggle="tab" data-bs-target="#message-subscriptions" type="button" role="tab" aria-controls="message-subscriptions" aria-selected="false">
+            Message Subscriptions
+            <span class="badge bg-light text-dark" id="message-subscriptions-total-count">0</span>
+          </button>
+        </li>
 
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="timers-tab" data-bs-toggle="tab" data-bs-target="#timers" type="button" role="tab" aria-controls="timers" aria-selected="false">
-        Timers
-        <span class="badge bg-light text-dark" id="timers-total-count">0</span>
-      </button>
-    </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="timers-tab" data-bs-toggle="tab" data-bs-target="#timers" type="button" role="tab" aria-controls="timers" aria-selected="false">
+            Timers
+            <span class="badge bg-light text-dark" id="timers-total-count">0</span>
+          </button>
+        </li>
 
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="child-instances-tab" data-bs-toggle="tab" data-bs-target="#child-instances" type="button" role="tab" aria-controls="child-instances" aria-selected="false">
-        Child Instances
-        <span class="badge bg-light text-dark" id="child-instances-total-count">0</span>
-      </button>
-    </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="child-instances-tab" data-bs-toggle="tab" data-bs-target="#child-instances" type="button" role="tab" aria-controls="child-instances" aria-selected="false">
+            Child Instances
+            <span class="badge bg-light text-dark" id="child-instances-total-count">0</span>
+          </button>
+        </li>
 
-  </ul>
-
-  <div class="tab-content" id="processInstanceTabContent">
-    <div class="tab-pane fade show active" id="variables" role="tabpanel" aria-labelledby="variables-tab">
-      <div th:replace="views/monitoring/process-instances/process-instance-details-variables.html :: process-instance-details-variables"></div>
+      </ul>
     </div>
 
-    <div class="tab-pane fade" id="element-instances" role="tabpanel" aria-labelledby="element-instances-tab">
-      <div th:replace="views/monitoring/process-instances/process-instance-details-element-instances.html :: process-instance-details-element-instances"></div>
+    <div class="col-auto">
+      <button id="details-collapse-button" type="button" class="btn btn-sm btn-light" title="collapse" onclick="toggleDetailsCollapse();">
+        <svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#arrow-bar-down"/></svg>
+      </button>
     </div>
+  </div>
 
-    <div class="tab-pane fade" id="jobs" role="tabpanel" aria-labelledby="jobs-tab">
-      <div th:replace="views/monitoring/process-instances/process-instance-details-jobs.html :: process-instance-details-jobs"></div>
+  <div class="container-fluid">
+
+    <div class="tab-content" id="processInstanceTabContent">
+      <div class="tab-pane fade show active" id="variables" role="tabpanel" aria-labelledby="variables-tab">
+        <div th:replace="views/monitoring/process-instances/process-instance-details-variables.html :: process-instance-details-variables"></div>
+      </div>
+
+      <div class="tab-pane fade" id="element-instances" role="tabpanel" aria-labelledby="element-instances-tab">
+        <div th:replace="views/monitoring/process-instances/process-instance-details-element-instances.html :: process-instance-details-element-instances"></div>
+      </div>
+
+      <div class="tab-pane fade" id="jobs" role="tabpanel" aria-labelledby="jobs-tab">
+        <div th:replace="views/monitoring/process-instances/process-instance-details-jobs.html :: process-instance-details-jobs"></div>
+      </div>
+
+      <div class="tab-pane fade" id="incidents" role="tabpanel" aria-labelledby="incidents-tab">
+        <div th:replace="views/monitoring/process-instances/process-instance-details-incidents.html :: process-instance-details-incidents"></div>
+      </div>
+
+      <div class="tab-pane fade" id="message-subscriptions" role="tabpanel" aria-labelledby="message-subscriptions-tab">
+        <div th:replace="views/monitoring/process-instances/process-instance-details-message-subscriptions.html :: process-instance-details-message-subscriptions"></div>
+      </div>
+
+      <div class="tab-pane fade" id="timers" role="tabpanel" aria-labelledby="timers-tab">
+        <div th:replace="views/monitoring/process-instances/process-instance-details-timers.html :: process-instance-details-timers"></div>
+      </div>
+
+      <div class="tab-pane fade" id="child-instances" role="tabpanel" aria-labelledby="child-instances-tab">
+        <div th:replace="views/monitoring/process-instances/process-instance-details-child-instances.html :: process-instance-details-child-instances"></div>
+      </div>
+
     </div>
-
-    <div class="tab-pane fade" id="incidents" role="tabpanel" aria-labelledby="incidents-tab">
-      <div th:replace="views/monitoring/process-instances/process-instance-details-incidents.html :: process-instance-details-incidents"></div>
-    </div>
-
-    <div class="tab-pane fade" id="message-subscriptions" role="tabpanel" aria-labelledby="message-subscriptions-tab">
-      <div th:replace="views/monitoring/process-instances/process-instance-details-message-subscriptions.html :: process-instance-details-message-subscriptions"></div>
-    </div>
-
-    <div class="tab-pane fade" id="timers" role="tabpanel" aria-labelledby="timers-tab">
-      <div th:replace="views/monitoring/process-instances/process-instance-details-timers.html :: process-instance-details-timers"></div>
-    </div>
-
-    <div class="tab-pane fade" id="child-instances" role="tabpanel" aria-labelledby="child-instances-tab">
-      <div th:replace="views/monitoring/process-instances/process-instance-details-child-instances.html :: process-instance-details-child-instances"></div>
-    </div>
-
   </div>
 
 </div>
