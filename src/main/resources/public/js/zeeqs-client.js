@@ -40,6 +40,9 @@ const instancesByProcessQuery = `query InstancesOfProcess($key: ID!, $perPage: I
           incidents(stateIn: [CREATED]) {
             key
           }
+          error {
+            position
+          }
         }
       }
     }
@@ -139,7 +142,12 @@ const processInstancesQuery = `query ProcessInstances($perPage: Int!, $page: Int
         bpmnProcessId
         version
       }      
-      incidents(stateIn: [CREATED]) { key }
+      incidents(stateIn: [CREATED]) { 
+        key 
+      }
+      error {
+        position
+      }
     }
   }
   }`;
@@ -159,6 +167,10 @@ const processInstanceQuery = `query ProcessInstance($key: ID!, $zoneId: String!)
       
       incidents(stateIn: [CREATED]) {
         key
+      }
+      
+      error {
+        position
       }
     }
   }`;
@@ -367,6 +379,15 @@ const elementsInfoByProcessInstanceQuery = `query ElementsInfoOfProcessInstance(
     }
   }`;
 
+const errorByProcessInstanceQuery = `query ErrorOfProcessInstance($key: ID!) {  
+    processInstance(key: $key) {    
+      error {
+        exceptionMessage
+        stacktrace
+      }
+    }
+  }`;
+
 const messageByKeyQuery = `query Message($key: ID!, $zoneId: String!) { 
   message(key: $key) {
     key
@@ -403,6 +424,9 @@ const childInstancesByProcessInstanceQuery = `query ChildInstancesOfProcessInsta
         }
         incidents(stateIn: [CREATED]) {
           key
+        }
+        error {
+          position
         }
       }
     }
@@ -677,5 +701,12 @@ function queryMessages(perPage, page) {
     perPage: perPage,
     page: page,
     zoneId: getTimeZone()
+  });
+}
+
+function queryErrorByProcessInstanceKey(processInstanceKey) {
+
+  return fetchData(errorByProcessInstanceQuery, {
+    key: processInstanceKey
   });
 }

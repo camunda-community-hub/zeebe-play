@@ -1,0 +1,31 @@
+<div th:fragment="error-detail-modal">
+
+  <div class="modal fade" id="error-detail-modal" tabindex="-1" aria-labelledby="errorDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="errorDetailModal">Error Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <form>
+            <div class="mb-3">
+              <label for="error-exceptionMessage" class="form-label">Exception Message</label>
+              <textarea class="form-control" id="error-exceptionMessage" rows="5" readonly></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="error-stacktrace" class="form-label">Stacktrace</label>
+              <textarea class="form-control" id="error-stacktrace" rows="10" readonly></textarea>
+            </div>
+          </form>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

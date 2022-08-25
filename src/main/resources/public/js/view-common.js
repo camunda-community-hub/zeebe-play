@@ -168,6 +168,16 @@ function formatProcessInstanceState(processInstance) {
     state += ' <span class="badge bg-danger">incidents</span>';
   }
 
+  const error = processInstance.error;
+  if (error) {
+    const fillErrorModalAction = 'fillErrorDetailsModal(\'' + processInstance.key + '\');';
+    state += ' <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#error-detail-modal" title="Show error details" onclick="'
+        + fillErrorModalAction
+        + '">'
+        + '<span class="badge bg-warning">error</span>'
+        + '</button>';
+  }
+
   return state;
 }
 
@@ -593,3 +603,18 @@ function fillMessageDetailsModal(messageKey) {
     $("#messageId").val(message.messageId);
   });
 }
+
+function fillErrorDetailsModal(processInstanceKey) {
+
+  queryErrorByProcessInstanceKey(processInstanceKey).done(function (response) {
+
+    const processInstance = response.data.processInstance;
+    const error = processInstance.error;
+
+    if (error) {
+      $("#error-exceptionMessage").val(error.exceptionMessage);
+      $("#error-stacktrace").val(error.stacktrace);
+    }
+  });
+}
+
