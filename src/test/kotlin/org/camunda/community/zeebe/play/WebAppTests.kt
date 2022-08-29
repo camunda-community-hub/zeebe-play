@@ -4,6 +4,11 @@ import io.zeebe.zeeqs.data.entity.Process
 import io.zeebe.zeeqs.data.repository.ProcessRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple.tuple
+import org.camunda.community.eze.ZeebeEngine
+import org.camunda.community.zeebe.play.zeebe.EmbeddedZeebeConfig
+import org.camunda.community.zeebe.play.zeebe.ZeebeService
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -23,17 +28,21 @@ class WebAppTests(
     @Test
     fun `should deploy demo process`() {
         // when
-        mvc.perform(
+        val response = mvc.perform(
             post("/rest/demo/")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk())
+            .andReturn()
+            .response
+            .contentAsString;
 
         // then
-        assertThat(processRepository.findAll())
-            .hasSize(1)
+        assertThat(processRepository.findById(response.toLong()))
+            .isPresent
+            .get()
             .extracting(Process::bpmnProcessId)
-            .contains(tuple("play-demo"))
+            .isEqualTo("play-demo")
     }
 
 }
