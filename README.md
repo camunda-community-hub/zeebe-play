@@ -6,20 +6,32 @@
 
 [![Compatible with: Camunda Platform 8](https://img.shields.io/badge/Compatible%20with-Camunda%20Platform%208-0072Ce)](https://github.com/camunda-community-hub/community/blob/main/extension-lifecycle.md#compatiblilty)
 
-A web application for [Zeebe](https://camunda.com/platform/zeebe/) to play with processes. 
- 
-:sparkle: Features: 
-- walk through a process by completing tasks and triggering events
-- run the processes on Zeebe, the workflow engine of Camunda Platform 8
-- easy to set up, no external services required by using an embedded Zeebe engine
+A web application for [Zeebe](https://camunda.com/platform/zeebe/) to play with processes. You could describe it as a [token simulation](https://github.com/bpmn-io/bpmn-js-token-simulation) for executable processes (i.e. modeles enhanced with technical properties). It enables you to walk through your process by completing tasks and triggering events, in an intuative way.
 
-> Disclaimer: This project is a **community-driven** extension and not officially supported by
-> Camunda. It is **not recommended** to be used in a production environment, or to be used as a
-> monitoring application for processes.  
+You could use it to:
+- explore how your process runs on Zeebe, the workflow engine of Camunda Platform 8
+- check if your process with its technical properties behaves as expected
+- replay a given scenario  
+
+> **Disclaimer:** 
+> This project is a **community-driven** extension and not officially supported by 
+> Camunda. It is **not recommended** to be used in a production environment.  
+
+### About
+
+### Architecture
 
 ## Install
 
-### Connecting to remote Zeebe
+### Docker
+
+### Docker Compose
+
+## Configuration
+
+### Using the embedded Zeebe engine
+
+### Connecting to remote Zeebe engine
 
 In the Zeebe broker:
 
@@ -35,11 +47,42 @@ In Zeebe Play:
 * set Zeebe clock API (if needed)
 * set `zeebe.engine: remote`
 
-## Hints
+### Enable persistence
+
+## Usage
 
 For development, the ZeeQS's GraphQL API can be inspected by using http://localhost:8080/graphiql.
 
+## Contributions
+
+Contributions are welcome 🎉 Please have a look at the [Contribution Guide](./CONTRIBUTING.md).
 
 ## FAQ
 
-...
+### What is the difference to the bpmn-js token simulation?
+
+The [bpmn-js token simulation](https://github.com/bpmn-io/bpmn-js-token-simulation) is a great tool to get started with BPMN and to explore how your process is executed. 
+
+You could use it model your process until it behaves as expected.
+
+
+### What is the difference to the Zeebe Simple Monitor?
+
+### Why did I create the project?
+
+### Can I use it in production?
+
+No. It is not recommended to use Zeebe Play in a production environment. 
+
+The application is not designed to handle a big data, or to import the data reliable. And, it is too easy to manipulate a process accidentally.
+
+
+## Code of Conduct
+
+This project adheres to the Contributor Covenant [Code of
+Conduct](/CODE_OF_CONDUCT.md). By participating, you are expected to uphold
+this code. Read more about the [Camunda Community Code of Conduct](https://camunda.com/events/code-conduct/) and how to report unacceptable behavior.
+
+## License
+
+[Apache License, Version 2.0](/LICENSE) 
