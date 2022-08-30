@@ -42,7 +42,7 @@ class WebAppTests(
             .isPresent
             .get()
             .extracting(Process::bpmnProcessId)
-            .isEqualTo("play-demo")
+            .isEqualTo("solos-transport-process")
     }
 
 }
