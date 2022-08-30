@@ -3,12 +3,7 @@ package org.camunda.community.zeebe.play
 import io.zeebe.zeeqs.data.entity.Process
 import io.zeebe.zeeqs.data.repository.ProcessRepository
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.groups.Tuple.tuple
-import org.camunda.community.eze.ZeebeEngine
-import org.camunda.community.zeebe.play.zeebe.EmbeddedZeebeConfig
-import org.camunda.community.zeebe.play.zeebe.ZeebeService
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -24,6 +19,11 @@ class WebAppTests(
     @Autowired val mvc: MockMvc,
     @Autowired val processRepository: ProcessRepository
 ) {
+
+    @BeforeEach
+    fun `clean database`() {
+        processRepository.deleteAll()
+    }
 
     @Test
     fun `should deploy demo process`() {
@@ -42,7 +42,7 @@ class WebAppTests(
             .isPresent
             .get()
             .extracting(Process::bpmnProcessId)
-            .isEqualTo("play-demo")
+            .isEqualTo("solos-transport-process")
     }
 
 }
