@@ -186,6 +186,12 @@
     <dependency>
       <groupId>org.camunda.community</groupId>
       <artifactId>eze</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-slf4j-impl</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
