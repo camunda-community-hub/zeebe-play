@@ -11,7 +11,20 @@ function deployDemo() {
         const createInstanceButton = $("#demo-create-instance-button");
         createInstanceButton.attr('disabled', false);
         createInstanceButton.click(function () {
-          createNewProcessInstanceWith(processKey, {key: "demo"});
+          createNewProcessInstanceWith(processKey, {
+            "captain": "Han Solo",
+            "ship": "Millennium Falcon",
+            "cargo": [
+              {
+                "item": "mining tools",
+                "is_legal": true,
+              },
+              {
+                "item": "spice",
+                "is_legal": false
+              }
+              ]
+          });
         });
       })
       .fail(showFailure(

@@ -14,7 +14,7 @@ class DemoResource(private val zeebeClient: ZeebeClient) {
 
         val deployCommand = zeebeClient
             .newDeployResourceCommand()
-            .addResourceFromClasspath("demo/play-demo.bpmn")
+            .addResourceFromClasspath("demo/solos-transport-process.bpmn")
 
         return deployCommand
             .send()
