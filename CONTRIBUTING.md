@@ -32,15 +32,17 @@ the code formatting.
 Please note that this is a community-driven project. The maintainers may have no time to review your pull request
 immediately. Stay patient!
 
-#### Architecture
+## Hints for developers
 
---- IMAGE ---
+### Architecture
+
+--- Architecture ---
 
 For development, ZeeQS's GraphQL API can be inspected by using http://localhost:8080/graphiql. 
 
-#### Contribute to frontend
+### Contribute to frontend
 
-#### Contribute to backend 
+### Contribute to backend 
 
 ## Building the project from source
 
