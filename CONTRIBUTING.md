@@ -2,15 +2,15 @@
 
 :tada: First off, thanks for taking the time to contribute! :+1:
 
-## How Can I Contribute?
+## How can I contribute?
 
-### Reporting Bugs
+### Reporting bugs
 
 If you found a bug or an unexpected behevior then please create
 a [new issue](https://github.com/camunda-community-hub/zeebe-play/issues). Before creating an issue, make sure
 that there is no issue yet. Any information you provide in the issue, helps to solve it.
 
-### Suggesting Enhancements
+### Suggesting enhancements
 
 If you have an idea how to improve the project then please create
 a [new issue](https://github.com/camunda-community-hub/zeebe-play/issues). Describe your idea and the
@@ -19,7 +19,7 @@ motivation behind it.
 Please note that this is a community-driven project. The maintainers may have not much time to implement new features if
 they don't benefit directly from it. So, think about providing a pull request.
 
-### Providing Pull Requests
+### Providing a pull requests
 
 You want to provide a bug fix or an improvement? Great! :tada:
 
@@ -32,7 +32,17 @@ the code formatting.
 Please note that this is a community-driven project. The maintainers may have no time to review your pull request
 immediately. Stay patient!
 
-## Building the Project from Source
+#### Architecture
+
+--- IMAGE ---
+
+For development, ZeeQS's GraphQL API can be inspected by using http://localhost:8080/graphiql. 
+
+#### Contribute to frontend
+
+#### Contribute to backend 
+
+## Building the project from source
 
 You can build the project with [Maven](http://maven.apache.org).
 
@@ -52,11 +62,11 @@ mvn clean install
 
 ## Styleguides
 
-### Source Code
+### Formatting the source code
 
 The Java code should be formatted using [Google's Java Format](https://github.com/google/google-java-format).
 
-### Git Commit Messages
+### Git commit messages
 
 Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) format.
 
