@@ -13,6 +13,8 @@ A web application for [Zeebe](https://camunda.com/platform/zeebe/) to play with 
 - check if your process with its technical properties behaves as expected
 - replay a given scenario  
 
+--- DEMO ---
+
 ### 🍪 Credits
 
 Zeebe-Play is build on top of other great community projects, for example:
@@ -34,7 +36,7 @@ This project is a **community-driven** extension and not officially supported by
 
 ..
 
-## 🔧 Configuration
+## 🔧 Configuration 
 
 ### Default
 
@@ -56,10 +58,6 @@ In Zeebe Play:
 
 ### Enable persistence
 
-## 🎮 Usage
-
-INSERT GIF
-
 ## 🏗️ Contributions
 
 Contributions are welcome 🎉 Please have a look at the [Contribution Guide](./CONTRIBUTING.md).
@@ -80,7 +78,7 @@ The [Zeebe Simple Monitor](https://github.com/camunda-community-hub/zeebe-simple
 
 No. It is not recommended to use Zeebe Play in a production environment. 
 
-The application is not designed to handle a big data, or to import the data reliable. And, it is too easy to manipulate a process accidentally.
+The application is not designed to handle big data, or to import the data reliable. And, it is too easy to manipulate a process accidentally.
 
 ## 🛂 Code of Conduct
 
