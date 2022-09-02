@@ -13,7 +13,11 @@ A web application for [Zeebe](https://camunda.com/platform/zeebe/) to play with 
 - check if your process with its technical properties behaves as expected
 - replay a given scenario  
 
---- DEMO ---
+---
+
+![Demo](assets/zeebe-play-demo.gif)
+
+---
 
 ### 🍪 Credits
 
