@@ -40,6 +40,8 @@ This project is a **community-driven** extension and not officially supported by
 
 ### Default
 
+..
+
 ### Connecting to remote Zeebe engine
 
 In the Zeebe broker:
@@ -72,7 +74,9 @@ The token simulation is especially handy when crafting the process. Zeebe-Play s
 
 ### What is the difference to the Zeebe Simple Monitor?
 
-The [Zeebe Simple Monitor](https://github.com/camunda-community-hub/zeebe-simple-monitor) is similar to Zeebe-Play but it focuses more on monitoring process instances. The goal of Zeebe-Play is to walk through a single process instance in an intuative way to understand how it is executed.  
+The [Zeebe Simple Monitor](https://github.com/camunda-community-hub/zeebe-simple-monitor) is similar to Zeebe-Play but it focuses more on monitoring process instances. 
+
+The goal of Zeebe-Play is to walk through a single process instance in an intuative way to understand how it is executed.  
 
 ### Can I use it in production?
 
