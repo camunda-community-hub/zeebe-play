@@ -34,15 +34,39 @@ immediately. Stay patient!
 
 ## Hints for developers
 
-### Architecture
-
---- Architecture ---
-
 For development, ZeeQS's GraphQL API can be inspected by using http://localhost:8080/graphiql. 
 
-### Contribute to frontend
+### Architecture
 
-### Contribute to backend 
+...
+
+### Contributing to the frontend
+
+The frontend of Zeebe-Play is based on HTML and (plain) JavaScript. 
+
+The following libraries are used:
+
+- [Bootstrap](https://getbootstrap.com/)
+- [Bootstrap icons](https://icons.getbootstrap.com/)
+- [jQuery](https://jquery.com/)
+- [Thymeleaf](https://www.thymeleaf.org/) (for splitting the HTML page/fragments)
+- [bpmn-js](https://github.com/bpmn-io/bpmn-js) 
+- [bpmn-font](https://github.com/bpmn-io/bpmn-font) 
+
+Enhancing the user interface (UI) or the user experience (UX) are good areas for contributions. But also improvements of the JavaScript code are welcome. Since I don't have much experience in this area, it might look odd and not following best practices.  
+
+### Contributing to the backend 
+
+The backend of Zeebe-Play is written in [Kotlin](https://kotlinlang.org/) and based on the [Spring Boot](https://spring.io/projects/spring-boot/) framework.  
+
+Currently, it contains only the REST command API and a few services. The other parts are included from libraries, like the following:
+
+- [EZE](https://github.com/camunda-community-hub/eze), runs processes on an embedded Zeebe engine 
+- [ZeeQS](https://github.com/camunda-community-hub/zeeqs), exposes Zeebe's data as a GraphQL API
+- [Zeebe Hazelcast Exporter](https://github.com/camunda-community-hub/zeebe-hazelcast-exporter), transmits Zeebe's data via Hazelcast
+- [Zeebe Exporter Protobuf](https://github.com/camunda-community-hub/zeebe-exporter-protobuf), serializes Zeebe's data to Protobuf
+
+Contributions in the dependent libraries are very welcome and are directly useful for Zeebe-Play. 
 
 ## Building the project from source
 
