@@ -38,7 +38,7 @@ Zeebe-Play is build on top of other great community projects, for example:
 This project is a **community-driven** extension and not officially supported by Camunda. It is **
 not recommended** to be used in a production environment.
 
-## 🚀 Install
+## :fuelpump: Install 
 
 ### Docker
 
@@ -77,7 +77,7 @@ docker-compose --profile postgres up
 
 After Zeebe-Play is started, go to http://localhost:8080 and play.
 
-## 🔧 Usage
+## 🚀 Usage
 
 Zeebe-Play can be used in different configurations:
 
