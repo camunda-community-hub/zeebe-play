@@ -177,6 +177,7 @@ SPRING_DATASOURCE_USERNAME=postgres
 SPRING_DATASOURCE_PASSWORD=zeebe
 SPRING_DATASOURCE_DRIVERCLASSNAME=org.postgresql.Driver
 SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+SPRING_JPA_HIBERNATE_DLL_AUTO=create
 ```
 
 (application.yaml)
@@ -188,7 +189,9 @@ spring:
     username: postgres
     password: zeebe
     driverClassName: org.postgresql.Driver
-  jpa.properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+  jpa:
+    properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate.dll-auto=create
 ```
 
 ## 🏗️ Contributions

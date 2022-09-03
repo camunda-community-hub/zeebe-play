@@ -34,7 +34,7 @@ services:
       - remote-engine
 
   zeebe-play-postgres:
-    container_name:   zeebe-play-postgres
+    container_name: zeebe-play-postgres
     image: ghcr.io/camunda-community-hub/zeebe-play:1.0.0
     environment:
       - ZEEBE_ENGINE=remote
@@ -46,6 +46,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=zeebe
       - SPRING_DATASOURCE_DRIVERCLASSNAME=org.postgresql.Driver
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_JPA_HIBERNATE_DLL_AUTO=create
     ports:
       - "8080:8080"
     networks:
@@ -69,6 +70,7 @@ services:
       - zeebe_network
     profiles:
       - remote-engine
+      - postgres
 
   postgres-zeebe-play:
     image: postgres:12.2
