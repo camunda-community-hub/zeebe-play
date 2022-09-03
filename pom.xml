@@ -124,6 +124,12 @@
         <version>1.4.200</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility-kotlin</artifactId>
+        <version>4.2.0</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -216,6 +222,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility-kotlin</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -312,7 +324,7 @@
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <version>3.2.1</version>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <phase>deploy</phase>
