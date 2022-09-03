@@ -329,6 +329,7 @@
           <container>
             <ports>
               <port>8080</port>
+              <port>26500</port>
             </ports>
           </container>
         </configuration>
