@@ -1,0 +1,87 @@
+version: "3"
+
+networks:
+  zeebe_network:
+    driver: bridge
+
+services:
+  zeebe-play-in-memory:
+    container_name: zeebe-play-in-memory
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.0.0
+    ports:
+      - "8080:8080"
+      - "26500:26500"
+    networks:
+      - zeebe_network
+    profiles:
+      - in-memory
+
+  zeebe-play-remote-engine:
+    container_name: zeebe-play-remote-engine
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.0.0
+    environment:
+      - ZEEBE_ENGINE=remote
+      - ZEEBE_CLIENT_BROKER_GATEWAYADDRESS=zeebe:26500
+      - ZEEBE_CLOCK_ENDPOINT=zeebe:9600/actuator/clock
+      - ZEEBE_CLIENT_WORKER_HAZELCAST_CONNECTION=zeebe:5701
+    ports:
+      - "8080:8080"
+    networks:
+      - zeebe_network
+    depends_on:
+      - zeebe
+    profiles:
+      - remote-engine
+
+  zeebe-play-postgres:
+    container_name:   zeebe-play-postgres
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.0.0
+    environment:
+      - ZEEBE_ENGINE=remote
+      - ZEEBE_CLIENT_BROKER_GATEWAYADDRESS=zeebe:26500
+      - ZEEBE_CLOCK_ENDPOINT=zeebe:9600/actuator/clock
+      - ZEEBE_CLIENT_WORKER_HAZELCAST_CONNECTION=zeebe:5701
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-zeebe-play:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=zeebe
+      - SPRING_DATASOURCE_DRIVERCLASSNAME=org.postgresql.Driver
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+    ports:
+      - "8080:8080"
+    networks:
+      - zeebe_network
+    depends_on:
+      - zeebe
+      - postgres-zeebe-play
+    profiles:
+      - postgres
+
+  zeebe:
+    container_name: zeebe_broker
+    image: ghcr.io/camunda-community-hub/zeebe-with-hazelcast-exporter:8.0.5
+    environment:
+      - ZEEBE_LOG_LEVEL=debug
+      - ZEEBE_CLOCK_CONTROLLED=true
+    ports:
+      - "26500:26500"
+      - "5701:5701"
+    networks:
+      - zeebe_network
+    profiles:
+      - remote-engine
+
+  postgres-zeebe-play:
+    image: postgres:12.2
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: zeebe
+    volumes:
+      - postgres-zeebe-play-data:/var/lib/postgresql/data
+    networks:
+      - zeebe_network
+    profiles:
+      - postgres
+
+volumes:
+  postgres-zeebe-play-data:
+    driver: local

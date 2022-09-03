@@ -54,9 +54,39 @@ docker pull ghcr.io/camunda-community-hub/zeebe-play:1.0.0
 
 ### Docker Compose
 
-..
+For a local setup, the repository contains a [docker-compose file](docker/docker-compose.yml). It
+contains multiple profiles for different configurations.
+
+Embedded Zeebe engine and in-memory database:
+
+```
+docker-compose --profile in-memory up
+```
+
+Remote Zeebe engine and in-memory database:
+
+```
+docker-compose --profile remote-engine up
+```
+
+Embedded Zeebe engine and PostgreSQL database:
+
+```
+docker-compose --profile postgres up
+```
+
+After Zeebe-Play is started, go to http://localhost:8080 and play.
 
 ## 🔧 Usage
+
+Zeebe-Play can be used in different configurations:
+
+- with embedded or remote Zeebe engine (default: embedded)
+- with in-memory or persistent database (default: in-memory)
+
+See the following sections for detailed instructions.
+
+After Zeebe-Play is started, go to http://localhost:8080 and play.
 
 ### Default
 
@@ -81,7 +111,7 @@ docker run --network="host" ghcr.io/camunda-community-hub/zeebe-play:1.0.0
 
 ### Connecting to a remote Zeebe engine
 
-Alternatively, Zeebe-Play can connect to a remote Zeebe engine to run the processes.
+Zeebe-Play can connect to a remote Zeebe engine to run the processes.
 
 #### In the Zeebe broker
 
@@ -90,9 +120,9 @@ Alternatively, Zeebe-Play can connect to a remote Zeebe engine to run the proces
 - enable the clock endpoint to use the time travel function
     - `ZEEBE_CLOCK_CONTROLLED=true` (environment variable)
     - `zeebe.clock.controlled: true` (application.yaml)
-- expose the ports 
-  - `26500` for connecting the Zeebe client
-  - `5701` for connection to Hazelcast
+- expose the ports
+    - `26500` for connecting the Zeebe client
+    - `5701` for connection to Hazelcast
 
 For example, using the pre-built community Zeebe image with Hazelcast exporter:
 
@@ -109,17 +139,17 @@ docker run --network="host" -e ZEEBE_CLOCK_CONTROLLED=true ghcr.io/camunda-commu
 #### In Zeebe-Play
 
 - set the Zeebe engine to `remote`:
-  - `ZEEBE_ENGINE=remote` (environment variable)
-  - `zeebe.engine: remote` (application.yaml)
+    - `ZEEBE_ENGINE=remote` (environment variable)
+    - `zeebe.engine: remote` (application.yaml)
 - (optional) configure the Zeebe broker connection (default: `127.0.0.1:26500`)
-  - `ZEEBE_CLIENT_BROKER_GATEWAYADDRESS` (environment variable)
-  - `zeebe.client.broker.gatewayAddress` (application.yaml) 
+    - `ZEEBE_CLIENT_BROKER_GATEWAYADDRESS` (environment variable)
+    - `zeebe.client.broker.gatewayAddress` (application.yaml)
 - (optional) configure the Zeebe clock API (default: `127.0.0.1:9600/actuator/clock`)
-  - `ZEEBE_CLOCK_ENDPOINT` (environment variable)
-  - `zeebe.clock.endpoint` (application.yaml) 
+    - `ZEEBE_CLOCK_ENDPOINT` (environment variable)
+    - `zeebe.clock.endpoint` (application.yaml)
 - (optional) configure the Hazelcast connection (default: `localhost:5701`)
-  - `ZEEBE_CLIENT_WORKER_HAZELCAST_CONNECTION` (environment variable)
-  - `zeebe.client.worker.hazelcast.connection` (application.yaml)
+    - `ZEEBE_CLIENT_WORKER_HAZELCAST_CONNECTION` (environment variable)
+    - `zeebe.client.worker.hazelcast.connection` (application.yaml)
 
 ```
 docker run -p 8080:8080 -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.0.0
@@ -133,7 +163,33 @@ docker run --network="host" -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub
 
 ### Enable persistence
 
-...
+Zeebe-Play can store data in a persistent database, like PostgreSQL. This option is only useful in
+combination with a remote Zeebe engine because the embedded Engine doesn't persist its data. As a
+result, Zeebe-Play would show data of processes and instances but Zeebe wouldn't know about these.
+
+Configure the following properties in Zeebe-Play:
+
+(environment variables)
+
+```
+SPRING_DATASOURCE_URL=jdbc:postgresql://127.0.0.1:5432/postgres
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=zeebe
+SPRING_DATASOURCE_DRIVERCLASSNAME=org.postgresql.Driver
+SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+```
+
+(application.yaml)
+
+```
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/postgres
+    username: postgres
+    password: zeebe
+    driverClassName: org.postgresql.Driver
+  jpa.properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+```
 
 ## 🏗️ Contributions
 
