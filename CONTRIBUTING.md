@@ -38,7 +38,7 @@ For development, ZeeQS's GraphQL API can be inspected by using http://localhost:
 
 ### Architecture
 
-...
+![architecture](assets/zeebe-play-architecture.png)
 
 ### Contributing to the frontend
 
