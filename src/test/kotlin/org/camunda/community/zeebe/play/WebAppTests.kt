@@ -3,6 +3,7 @@ package org.camunda.community.zeebe.play
 import io.zeebe.zeeqs.data.entity.Process
 import io.zeebe.zeeqs.data.repository.ProcessRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,11 +39,13 @@ class WebAppTests(
             .contentAsString;
 
         // then
-        assertThat(processRepository.findById(response.toLong()))
-            .isPresent
-            .get()
-            .extracting(Process::bpmnProcessId)
-            .isEqualTo("solos-transport-process")
+        await.untilAsserted {
+            assertThat(processRepository.findById(response.toLong()))
+                .isPresent
+                .get()
+                .extracting(Process::bpmnProcessId)
+                .isEqualTo("solos-transport-process")
+        }
     }
 
 }
