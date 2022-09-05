@@ -114,7 +114,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.3.6</version>
+        <version>42.5.0</version>
       </dependency>
 
       <!-- need to use the same H2 version as ZeeQS (https://github.com/camunda-community-hub/zeeqs/pull/263#issuecomment-1202464491)-->
