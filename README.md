@@ -7,7 +7,7 @@
 [![Compatible with: Camunda Platform 8](https://img.shields.io/badge/Compatible%20with-Camunda%20Platform%208-0072Ce)](https://github.com/camunda-community-hub/community/blob/main/extension-lifecycle.md#compatiblilty)
 
 A web application for [Zeebe](https://camunda.com/platform/zeebe/) to play with processes. You could
-describe it as a [token simulation](https://github.com/bpmn-io/bpmn-js-token-simulation) for
+describe it as a [token simulation](https://github.com/bpmn-io/bpmn-js-token-simulation) but for
 executable processes (i.e. modeles enhanced with technical properties). It enables you to walk
 through your process by completing tasks and triggering events, in an intuative way.
 
@@ -219,6 +219,10 @@ to Zeebe-Play but it focuses more on monitoring process instances.
 
 The goal of Zeebe-Play is to walk through a single process instance in an intuative way to
 understand how it is executed.
+
+Additionally, Zeebe-Play has a different 
+[architecture](https://github.com/camunda-community-hub/zeebe-play/blob/main/CONTRIBUTING.md#architecture)
+to benefit from other community projects and to build a more responsive frontend. 
 
 ### Can I use it in production?
 
