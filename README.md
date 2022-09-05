@@ -52,6 +52,8 @@ Pull the image using the following command:
 docker pull ghcr.io/camunda-community-hub/zeebe-play:1.0.0
 ```
 
+Next, have a look at [usage](#-usage) on how to start the docker container, and the different configurations.
+
 ### Docker Compose
 
 For a local setup, the repository contains a [docker-compose file](docker/docker-compose.yml). It
