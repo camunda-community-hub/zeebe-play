@@ -35,8 +35,8 @@ Zeebe-Play is build on top of other great community projects, for example:
 
 ### 🔥 Disclaimer
 
-This project is a **community-driven** extension and not officially supported by Camunda. It is **
-not recommended** to be used in a production environment.
+This project is a **community-driven** extension and not officially supported by Camunda. It is 
+**not recommended** to be used in a production environment.
 
 ## :fuelpump: Install 
 
