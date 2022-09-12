@@ -8,8 +8,8 @@
 
 A web application for [Zeebe](https://camunda.com/platform/zeebe/) to play with processes. You could
 describe it as a [token simulation](https://github.com/bpmn-io/bpmn-js-token-simulation) but for
-executable processes (i.e. modeles enhanced with technical properties). It enables you to walk
-through your process by completing tasks and triggering events, in an intuative way.
+executable processes (i.e. models enhanced with technical properties). It enables you to walk
+through your process by completing tasks and triggering events, in an intuitive way.
 
 ✨ You could use it to:
 
