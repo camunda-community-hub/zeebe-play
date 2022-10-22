@@ -848,6 +848,9 @@ function loadParentInstanceOfProcessInstance() {
   queryParentInstanceByProcessInstance(processInstanceKey)
       .done(function (response) {
 
+        // remove all parent elements from nav before appending
+        $(".parent-process-instance").remove();
+
         const processInstance = response.data.processInstance;
         appendParentProcessInstanceToNav(processInstance);
       });
@@ -863,7 +866,7 @@ function appendParentProcessInstanceToNav(processInstance) {
     const parentBpmnProcessId = parentProcessInstance.process.bpmnProcessId;
 
     $("#process-instance-breadcrumb > ol:last-child").append(
-        '<li class="breadcrumb-item" aria-current="page">'
+        '<li class="breadcrumb-item parent-process-instance" aria-current="page">'
         + '<a href="/view/process-instance/' + parentProcessInstanceKey
         + '">' + parentProcessInstanceKey + '</a>'
         + ' <span class="text-muted">(' + parentBpmnProcessId + ')</span>'
