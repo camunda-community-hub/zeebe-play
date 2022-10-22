@@ -266,7 +266,7 @@ function addOpenChildInstanceButton(elementId, href) {
   overlays.add(elementId, 'open-child-instance', {
     position: {
       top: -20,
-      left: -20
+      right: 20
     },
     html: content
   });
@@ -275,20 +275,29 @@ function addOpenChildInstanceButton(elementId, href) {
 function showElementInfo(elementId, bpmnElementType, info) {
 
   const infoId = "bpmn-element-info-" + elementId;
-  let content = '<div id="' + infoId + '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-customClass="bpmn-element-info" title="'+ info + '">'
-      + '<svg class="bi" width="18" height="18" fill="#007DFFB2"><use xlink:href="/img/bootstrap-icons.svg#info-circle-fill"/></svg>'
-      + '</div>';
+  let tooltipPlacement = 'bottom';
 
   let overlayPosition = {
-    top: -22,
+    bottom: 5,
     right: 10
   }
   if (bpmnElementType === 'SEQUENCE_FLOW') {
     overlayPosition = {
-      top: -25,
+      bottom: 0,
       right: 25
     }
   }
+  if (bpmnElementType.includes('EVENT')) {
+    overlayPosition = {
+      top: -22,
+      right: 10
+    }
+    tooltipPlacement = 'top';
+  }
+
+  let content = '<div id="' + infoId + '" data-bs-toggle="tooltip" data-bs-placement="' + tooltipPlacement + '" data-bs-html="true" data-bs-customClass="bpmn-element-info" title="'+ info + '">'
+      + '<svg class="bi" width="18" height="18" fill="#007DFFB2"><use xlink:href="/img/bootstrap-icons.svg#info-circle-fill"/></svg>'
+      + '</div>';
 
   overlays.add(elementId, 'element-info', {
     position: overlayPosition,
