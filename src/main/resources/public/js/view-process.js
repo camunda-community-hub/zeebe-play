@@ -164,7 +164,7 @@ function loadMessageSubscriptionsOfProcess() {
               + ' Publish Message'
               + '</button>';
 
-          $("#message-subscriptions-of-process-table tbody:last-child").append('<tr>'
+          $("#message-subscriptions-of-process-table > tbody:last-child").append('<tr>'
               + '<td>' + (indexOffset + index) +'</td>'
               + '<td>' + messageSubscription.key + '</td>'
               + '<td>' + messageSubscription.messageName +'</td>'
