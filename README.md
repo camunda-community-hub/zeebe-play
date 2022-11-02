@@ -105,7 +105,7 @@ docker run -p 8080:8080 -p 26500:26500 ghcr.io/camunda-community-hub/zeebe-play:
 - expose port `8080` for the web application
 - (optional) expose port `26500` for the Camunda modeler and Zeebe clients
 
-Or, if you run it on your local machine:
+Or, if you run it on your local machine (Linux only):
 
 ```
 docker run --network="host" ghcr.io/camunda-community-hub/zeebe-play:1.0.0
@@ -132,7 +132,7 @@ For example, using the pre-built community Zeebe image with Hazelcast exporter:
 docker run -p 26500:26500 -p 5701:5701 -e ZEEBE_CLOCK_CONTROLLED=true ghcr.io/camunda-community-hub/zeebe-with-hazelcast-exporter:8.0.5
 ```
 
-Or, if you run it on your local machine:
+Or, if you run it on your local machine (Linux only): 
 
 ```
 docker run --network="host" -e ZEEBE_CLOCK_CONTROLLED=true ghcr.io/camunda-community-hub/zeebe-with-hazelcast-exporter:8.0.5
@@ -157,7 +157,7 @@ docker run --network="host" -e ZEEBE_CLOCK_CONTROLLED=true ghcr.io/camunda-commu
 docker run -p 8080:8080 -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.0.0
 ```
 
-Or, if you run it on your local machine:
+Or, if you run it on your local machine (Linux only):
 
 ```
 docker run --network="host" -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.0.0
