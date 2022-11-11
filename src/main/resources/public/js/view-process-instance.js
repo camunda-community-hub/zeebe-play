@@ -1,6 +1,8 @@
 var bpmnViewIsLoaded = false;
 var markedBpmnElement;
 
+var isElementCountersViewEnabled = false;
+
 function getProcessInstanceKey() {
   return $("#process-instance-page-key").text();
 }
@@ -389,7 +391,7 @@ function addElementCounters(processInstance) {
   });
 
   onBpmnElementOut(function (elementId) {
-    if (elementId === markedBpmnElement) {
+    if (elementId === markedBpmnElement || isElementCountersViewEnabled) {
       return;
     }
 
@@ -400,6 +402,10 @@ function addElementCounters(processInstance) {
   });
 
   onBpmnElementClick(function (elementId) {
+    if (isElementCountersViewEnabled) {
+      return;
+    }
+
     if (markedBpmnElement) {
       removeElementCounters(markedBpmnElement);
     }
@@ -416,6 +422,37 @@ function addElementCounters(processInstance) {
           counter.terminated);
     }
   });
+
+  const showElementCountersButton = $("#process-instance-show-element-counters");
+  const hideElementCountersButton = $("#process-instance-hide-element-counters");
+
+  showElementCountersButton.click(function () {
+    isElementCountersViewEnabled = true;
+    showElementCountersButton.addClass("visually-hidden");
+    hideElementCountersButton.removeClass("visually-hidden");
+
+    showAllElementCounters(elementCounters);
+  });
+  hideElementCountersButton.click(function () {
+    isElementCountersViewEnabled = false;
+    hideElementCountersButton.addClass("visually-hidden");
+    showElementCountersButton.removeClass("visually-hidden");
+
+    for (const elementId of Object.keys(elementCounters)) {
+      removeElementCounters(elementId);
+    }
+  });
+
+  if (isElementCountersViewEnabled) {
+    showAllElementCounters(elementCounters);
+  }
+}
+
+function showAllElementCounters(elementCounters) {
+  for (const [elementId, counter] of Object.entries(elementCounters)) {
+    showElementCounters(elementId, counter.active, counter.completed,
+        counter.terminated);
+  }
 }
 
 function updateElementCounter(elementCounters, bpmnElement, updateCounter) {
