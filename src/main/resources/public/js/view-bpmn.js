@@ -138,17 +138,25 @@ function colorSequenceFlow(sequenceFlow, gfx, color) {
 }
 
 function showElementCounters(elementId, activeInstances, completedInstances, terminatedInstances) {
-  let content = '<div style="width: 150px;"><small>'
-      + '<span class="badge bg-primary bg-opacity-75" title="active">'
-      + '<svg class="bi" width="14" height="14" fill="white"><use xlink:href="/img/bootstrap-icons.svg#pause"/></svg>'
-      + activeInstances + '</span>'
-      + ' <span class="badge bg-secondary bg-opacity-75" title="completed">'
-      + '<svg class="bi" width="14" height="14" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>'
-      + completedInstances + '</span>'
-      + ' <span class="badge bg-black bg-opacity-75" title="terminated">'
-      + '<svg class="bi" width="14" height="14" fill="white"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>'
-      + terminatedInstances + '</span>'
-      + '</small></div>';
+  let content = '<div style="width: 150px;"><small>';
+
+  if (activeInstances > 0) {
+    content += '<span class="badge bg-primary bg-opacity-75" title="active">'
+        + '<svg class="bi" width="14" height="14" fill="white"><use xlink:href="/img/bootstrap-icons.svg#pause"/></svg>'
+        + activeInstances + '</span>';
+  }
+  if (completedInstances > 0) {
+    content += ' <span class="badge bg-secondary bg-opacity-75" title="completed">'
+        + '<svg class="bi" width="14" height="14" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>'
+        + completedInstances + '</span>';
+  }
+  if (terminatedInstances > 0) {
+    content += ' <span class="badge bg-black bg-opacity-75" title="terminated">'
+        + '<svg class="bi" width="14" height="14" fill="white"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>'
+        + terminatedInstances + '</span>';
+  }
+
+  content += '</small></div>';
 
   overlays.add(elementId, 'element-counters', {
     position: {
