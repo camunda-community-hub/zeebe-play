@@ -185,9 +185,9 @@ function loadMessages(currentPage) {
           const state = formatMessageState(message.state);
 
           const fillModalAction = 'fillMessageDetailsModal(' + message.key + ');';
-          const actionButton = '<button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#message-detail-modal" title="Message details" onclick="'
+          const actionButton = '<button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#message-detail-modal" title="Show message details" onclick="'
               + fillModalAction + '">'
-              + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
+              + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
               + '</button>';
 
           const correlatedInstances = formatMessageCorrelations(message);
@@ -212,11 +212,11 @@ function formatMessageCorrelations(message) {
   const messageCollapseId = "message-" + message.key;
   let correlatedMessagesFormatted = '<div class="row row-cols-1">'
       + '<div class="col">'
+      + '<span class="badge bg-secondary">' + correlatedInstancesCount + '</span>'
       + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#'
       + messageCollapseId
       + '" aria-expanded="false" title="Show correlated instances">'
-      + ' <span class="badge bg-secondary">' + correlatedInstancesCount
-      + '</span>'
+      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
       + '</button>'
       + '</div>'
 

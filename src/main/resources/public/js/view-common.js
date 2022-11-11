@@ -171,10 +171,11 @@ function formatProcessInstanceState(processInstance) {
   const error = processInstance.error;
   if (error) {
     const fillErrorModalAction = 'fillErrorDetailsModal(\'' + processInstance.key + '\');';
-    state += ' <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#error-detail-modal" title="Show error details" onclick="'
+    state += ' <span class="badge bg-warning">error</span>'
+        + ' <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#error-detail-modal" title="Show error details" onclick="'
         + fillErrorModalAction
         + '">'
-        + '<span class="badge bg-warning">error</span>'
+        + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
         + '</button>';
   }
 
@@ -294,15 +295,16 @@ function formatBpmnElementInstance(element) {
   const bpmnElement = formatBpmnElement(element.bpmnElementType);
   const action = 'highlightElement(\'' + element.elementId + '\');';
 
-  let elementFormatted = '<button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element" onclick="' + action + '">';
-  elementFormatted += bpmnElement + ' ';
+  const highlightButton = '<button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element"  onclick="' + action + '">'
+      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
+      + '</button> ';
+
+  let elementFormatted = highlightButton + bpmnElement + " ";
   if (element.elementName) {
     elementFormatted += element.elementName;
   } else {
     elementFormatted += element.elementId;
   }
-  elementFormatted += '</button>';
-
   return elementFormatted;
 }
 
