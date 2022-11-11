@@ -138,6 +138,9 @@ function colorSequenceFlow(sequenceFlow, gfx, color) {
 }
 
 function showElementCounters(elementId, activeInstances, completedInstances, terminatedInstances) {
+  // remove existing overlay to avoid multiple overlays on reload
+  removeElementCounters(elementId);
+
   let content = '<div style="width: 150px;"><small>';
 
   if (activeInstances > 0) {
