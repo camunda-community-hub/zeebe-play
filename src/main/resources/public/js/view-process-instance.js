@@ -123,10 +123,11 @@ function loadVariablesOfProcessInstance() {
           let variableUpdatesId = 'variable-updates-' + variable.key;
 
           if (variable.updates.length > 1) {
+            lastUpdatedFormatted += ' <span class="badge bg-secondary">modified</span>';
             lastUpdatedFormatted += ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#'
                 + variableUpdatesId
                 + '" aria-expanded="false" title="Show updates">'
-                + '<span class="badge bg-secondary">modified</span>'
+                + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
                 + '</button>';
           }
 
@@ -280,12 +281,13 @@ function loadElementInstancesOfProcessInstance() {
 
           let stateFormatted = '<div class="row row-cols-1">'
               + '<div class="col">'
+              + formatElementInstanceState(elementInstance.state)
               + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#'
               + stateTransitionsId
               + '" aria-expanded="false" title="Show state transitions">'
-              + formatElementInstanceState(elementInstance.state)
+              + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
               + '</button>'
-              + '</div>'
+              + '</div>';
 
           let stateTransitions = '<table class="table">'
               + '<thead>'
@@ -639,11 +641,11 @@ function formatCorrelatedMessages(messageSubscription) {
 
   let correlatedMessagesFormatted = '<div class="row row-cols-1">'
       + '<div class="col">'
+      + '<span class="badge bg-secondary">' + correlatedMessageCount+ '</span>'
       + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#'
       + messageSubscriptionCollapseId
       + '" aria-expanded="false" title="Show correlated messages">'
-      + ' <span class="badge bg-secondary">' + correlatedMessageCount
-      + '</span>'
+      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
       + '</button>'
       + '</div>'
 
