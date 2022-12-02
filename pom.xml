@@ -25,7 +25,7 @@
     <eze.version>1.1.0</eze.version>
     <hazelcast.version>1.2.1</hazelcast.version>
 
-    <kotlin.version>1.7.20</kotlin.version>
+    <kotlin.version>1.7.22</kotlin.version>
     <spring.boot.version>2.7.5</spring.boot.version>
 
     <!-- release parent settings -->
