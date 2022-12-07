@@ -21,7 +21,7 @@
 
     <maven.version>3.0</maven.version>
     <zeebe.version>8.0.5</zeebe.version>
-    <zeeqs.version>2.4.0</zeeqs.version>
+    <zeeqs.version>2.5.0</zeeqs.version>
     <eze.version>1.1.0</eze.version>
     <hazelcast.version>1.2.1</hazelcast.version>
 
