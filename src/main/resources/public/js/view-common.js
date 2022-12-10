@@ -375,9 +375,16 @@ function showInfoOfBpmnElement(element) {
   }
   if (metadata.userTaskAssignmentDefinition) {
     let userTask = metadata.userTaskAssignmentDefinition;
-    info = 'assignee: ' + userTask.assignee;
+    if (userTask.assignee) {
+      info = 'assignee: ' + userTask.assignee;
+    }
+
     if (userTask.candidateGroups) {
-      info += '<br>' + 'candidateGroups: ' + userTask.candidateGroups;
+      if (info) {
+        info += '<br> candidateGroups: ' + userTask.candidateGroups;
+      } else {
+        info = 'candidateGroups: ' + userTask.candidateGroups;
+      }
     }
   }
 
