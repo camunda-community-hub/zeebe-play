@@ -7,7 +7,7 @@ networks:
 services:
   zeebe-play-in-memory:
     container_name: zeebe-play-in-memory
-    image: ghcr.io/camunda-community-hub/zeebe-play:1.0.0
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.1.0
     ports:
       - "8080:8080"
       - "26500:26500"
@@ -18,7 +18,7 @@ services:
 
   zeebe-play-remote-engine:
     container_name: zeebe-play-remote-engine
-    image: ghcr.io/camunda-community-hub/zeebe-play:1.0.0
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.1.0
     environment:
       - ZEEBE_ENGINE=remote
       - ZEEBE_CLIENT_BROKER_GATEWAYADDRESS=zeebe:26500
@@ -35,7 +35,7 @@ services:
 
   zeebe-play-postgres:
     container_name: zeebe-play-postgres
-    image: ghcr.io/camunda-community-hub/zeebe-play:1.0.0
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.1.0
     environment:
       - ZEEBE_ENGINE=remote
       - ZEEBE_CLIENT_BROKER_GATEWAYADDRESS=zeebe:26500
@@ -57,6 +57,31 @@ services:
     profiles:
       - postgres
 
+  zeebe-play-mysql:
+    container_name: zeebe-play-mysql
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.1.0
+    environment:
+      - ZEEBE_ENGINE=remote
+      - ZEEBE_CLIENT_BROKER_GATEWAYADDRESS=zeebe:26500
+      - ZEEBE_CLOCK_ENDPOINT=zeebe:9600/actuator/clock
+      - ZEEBE_CLIENT_WORKER_HAZELCAST_CONNECTION=zeebe:5701
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-zeebe-play:3306/zeebe-play?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=zeebe
+      - SPRING_DATASOURCE_DRIVERCLASSNAME=com.mysql.cj.jdbc.Driver
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+      - SPRING_JPA_HIBERNATE_NAMING_PHYSICAL_STRATEGY=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      - SPRING_JPA_HIBERNATE_DLL_AUTO=create
+    ports:
+      - "8080:8080"
+    networks:
+      - zeebe_network
+    depends_on:
+      - zeebe
+      - mysql-zeebe-play
+    profiles:
+      - mysql
+
   zeebe:
     container_name: zeebe_broker
     image: ghcr.io/camunda-community-hub/zeebe-with-hazelcast-exporter:8.0.5
@@ -71,6 +96,7 @@ services:
     profiles:
       - remote-engine
       - postgres
+      - mysql
 
   postgres-zeebe-play:
     image: postgres:12.2
@@ -84,6 +110,20 @@ services:
     profiles:
       - postgres
 
+  mysql-zeebe-play:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: zeebe
+    volumes:
+      - mysql-zeebe-play-data:/var/lib/mysql
+    networks:
+      - zeebe_network
+    profiles:
+      - mysql
+
 volumes:
   postgres-zeebe-play-data:
+    driver: local
+  mysql-zeebe-play-data:
     driver: local
