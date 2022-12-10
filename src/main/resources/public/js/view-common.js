@@ -254,6 +254,8 @@ function formatBpmnElement(bpmnElementType) {
       return '<span class="bpmn-icon-service-task"></span>';
     case "EXCLUSIVE_GATEWAY":
       return '<span class="bpmn-icon-gateway-xor"></span>';
+    case "INCLUSIVE_GATEWAY":
+      return '<span class="bpmn-icon-gateway-or"></span>';
     case "PARALLEL_GATEWAY":
       return '<span class="bpmn-icon-gateway-parallel"></span>';
     case "EVENT_BASED_GATEWAY":
@@ -369,6 +371,20 @@ function showInfoOfBpmnElement(element) {
     info = 'message name: ' + subscription.messageName;
     if (subscription.messageCorrelationKey) {
       info += '<br>' + 'correlation key: ' + subscription.messageCorrelationKey;
+    }
+  }
+  if (metadata.userTaskAssignmentDefinition) {
+    let userTask = metadata.userTaskAssignmentDefinition;
+    if (userTask.assignee) {
+      info = 'assignee: ' + userTask.assignee;
+    }
+
+    if (userTask.candidateGroups) {
+      if (info) {
+        info += '<br> candidateGroups: ' + userTask.candidateGroups;
+      } else {
+        info = 'candidateGroups: ' + userTask.candidateGroups;
+      }
     }
   }
 

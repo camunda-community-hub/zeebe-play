@@ -119,6 +119,10 @@ const elementsInfoByProcessQuery = `query ElementsInfoOfProcess($key: ID!) {
             messageName
             messageCorrelationKey
           }
+          userTaskAssignmentDefinition {
+            assignee
+            candidateGroups
+          }
         }
       }
     }
@@ -372,6 +376,10 @@ const elementsInfoByProcessInstanceQuery = `query ElementsInfoOfProcessInstance(
             messageSubscriptionDefinition {
               messageName
               messageCorrelationKey
+            }
+            userTaskAssignmentDefinition {
+              assignee
+              candidateGroups
             }
           }
         }
