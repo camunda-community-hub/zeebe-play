@@ -196,14 +196,19 @@ function onBpmnElementClick(callback) {
 }
 
 function makeTaskPlayable(elementId, jobKey) {
+  const formKey = getFormKeyForElement(elementId);
 
-  const completeJob = "completeJob(" + jobKey + ", '{}');";
+  let primaryAction = `completeJob(${jobKey}, '{}');`;
+  if(formKey) {
+    primaryAction = `showTaskModal('${formKey}', ${jobKey})`;
+  }
+
   let fillModalAction = function (type) {
     return 'fillJobModal(\'' + jobKey + '\', \'' + type + '\');';
   }
 
   const content = '<div class="btn-group">'
-      + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Complete job" onclick="' + completeJob + '">'
+      + '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Complete job" onclick="' + primaryAction + '">'
       + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>'
       + '</button>'
       + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
