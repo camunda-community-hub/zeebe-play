@@ -1,0 +1,620 @@
+/**
+ * Theming
+ */
+ .fjs-container {
+  --color-grey-225-10-15: hsl(225, 10%, 15%);
+  --color-grey-225-10-35: hsl(225, 10%, 35%);
+  --color-grey-225-10-45: hsl(225, 10%, 45%);
+  --color-grey-225-10-55: hsl(225, 10%, 55%);
+  --color-grey-225-10-75: hsl(225, 10%, 75%);
+  --color-grey-225-10-80: hsl(225, 10%, 80%);
+  --color-grey-225-10-85: hsl(225, 10%, 85%);
+  --color-grey-225-10-90: hsl(225, 10%, 90%);
+  --color-grey-225-10-93: hsl(225, 10%, 93%);
+  --color-grey-225-10-95: hsl(225, 10%, 95%);
+  --color-grey-225-10-97: hsl(225, 10%, 97%);
+
+  --color-blue-205-100-40: hsl(205, 100%, 40%);
+  --color-blue-205-100-45: hsl(205, 100%, 45%);
+  --color-blue-205-100-50: hsl(205, 100%, 50%);
+  --color-blue-205-100-80: hsl(205, 100%, 80%);
+  --color-blue-205-100-95: hsl(205, 100%, 95%);
+
+  --color-green-150-86-44: hsl(150, 86%, 44%);
+
+  --color-red-360-100-40: hsl(360, 100%, 40%);
+  --color-red-360-100-45: hsl(360, 100%, 45%);
+  --color-red-360-100-92: hsl(360, 100%, 92%);
+  --color-red-360-100-95: hsl(360, 100%, 95%);
+  --color-red-360-100-97: hsl(360, 100%, 97%);
+
+  --color-white: hsl(0, 0%, 100%);
+  --color-black: hsl(0, 0%, 0%);
+
+  --color-background: var(--color-white);
+  --color-background-disabled: var(--color-grey-225-10-95);
+  --color-background-adornment: var(--color-grey-225-10-95);
+  --color-text: var(--color-grey-225-10-15);
+  --color-text-light: var(--color-grey-225-10-35);
+  --color-text-lighter: var(--color-grey-225-10-45);
+  --color-text-lightest: var(--color-grey-225-10-55);
+  --color-text-inverted: var(--color-white);
+  --color-borders: var(--color-grey-225-10-55);
+  --color-borders-disabled: var(--color-grey-225-10-75);
+  --color-borders-adornment: var(--color-grey-225-10-85);
+  --color-warning: var(--color-red-360-100-45);
+  --color-accent: var(--color-blue-205-100-40);
+  --color-datepicker-focused-day: var(--color-grey-225-10-55);
+
+  --font-family: 'IBM Plex Sans', sans-serif;
+
+  --border-definition: 1px solid var(--color-borders);
+  --border-definition-adornment: 1px solid var(--color-borders-adornment);
+  --outline-definition: 1px solid var(--color-borders);
+  --border-definition-disabled: 1px solid var(--color-borders-disabled);
+
+  height: 100%;
+}
+
+/**
+ * Layout styles
+ */
+.fjs-container .fjs-vertical-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+.fjs-container .fjs-columns {
+  display: flex;
+  flex-direction: row;
+}
+
+.fjs-container .fjs-vertical-group {
+  display: flex;
+  flex: 1;
+  width: 100%;
+}
+
+.fjs-container .fjs-column {
+  flex-grow: 1;
+}
+
+.fjs-container img {
+  max-width: 100%;
+}
+
+/**
+ * Visual styles
+ */
+.fjs-container .fjs-form {
+  font-family: var(--font-family);
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 400;
+  color: var(--color-text);
+  background-color: var(--color-background);
+  position: relative;
+}
+
+.fjs-container .fjs-form * {
+  box-sizing: border-box;
+}
+
+.fjs-container .fjs-form-field {
+  margin: 16px;
+}
+
+.fjs-container .fjs-form-field-placeholder {
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+.fjs-container .fjs-form-field-placeholder svg {
+  width: 36px;
+  height: 36px;
+  vertical-align: middle;
+  margin-top: -2px;
+  margin-right: 2px;
+}
+
+.fjs-container .fjs-input,
+.fjs-container .fjs-textarea,
+.fjs-container .fjs-select {
+  border-color: var(--color-borders);
+  background-color: var(--color-background);
+  font-family: inherit;
+}
+
+.fjs-container .fjs-input::placeholder,
+.fjs-container .fjs-textarea::placeholder,
+.fjs-container .fjs-select > option:disabled,
+.fjs-container .fjs-select [disabled] {
+  font-style: italic;
+  letter-spacing: 0.25px;
+  color: var(--color-text-lightest);
+}
+
+.fjs-container .fjs-form-field-label {
+  display: flex;
+  align-items: center;
+}
+
+.fjs-container .fjs-incollapsible-label {
+  min-height: 18.2px;
+}
+
+.fjs-container .fjs-form-field-description {
+  display: block;
+  color: var(--color-text-light);
+}
+
+.fjs-container .fjs-form-field-label,
+.fjs-container .fjs-form-field-description {
+  margin: 4px 0;
+}
+
+.fjs-container .fjs-form-field.required label::after,
+.fjs-container .fjs-form-field.required .group-title::after {
+  content: '*';
+}
+
+.fjs-container .fjs-checkbox.group.required label::after,
+.fjs-container .fjs-radio.required label::after {
+  display: none;
+}
+
+.fjs-container .fjs-input,
+.fjs-container .fjs-textarea,
+.fjs-container .fjs-select {
+  background-color: var(--color-background);
+}
+
+.fjs-container .fjs-input-adornment {
+  border-style: solid;
+  border-color: var(--color-borders-adornment);
+  background-color: var(--color-background-adornment);
+  color: var(--color-text-lighter);
+  padding: 8px;
+  width: auto !important;
+  min-width: 34px;
+  text-align: center;
+}
+
+.fjs-container .fjs-input-adornment svg {
+  display: block;
+  margin: auto;
+  width: 15px;
+}
+
+.fjs-container .fjs-input-adornment span {
+  color: var(--color-background-adornment);
+}
+
+.fjs-container .fjs-input::placeholder,
+.fjs-container .fjs-textarea::placeholder,
+.fjs-container .fjs-select > option:disabled,
+.fjs-container .fjs-select [disabled] {
+  font-style: italic;
+  letter-spacing: 0.25px;
+  color: var(--color-text-lightest);
+}
+
+.fjs-container .fjs-input[type='text'],
+.fjs-container .fjs-input[type='email'],
+.fjs-container .fjs-input[type='tel'],
+.fjs-container .fjs-input[type='number'],
+.fjs-container .fjs-button[type='submit'],
+.fjs-container .fjs-button[type='reset'],
+.fjs-container .fjs-textarea,
+.fjs-container .fjs-select {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin: 4px 0;
+  border: var(--border-definition);
+  border-radius: 3px;
+}
+
+.fjs-container .fjs-datepicker,
+.fjs-container .fjs-timepicker,
+.fjs-container .fjs-datetime-subsection {
+  width: 100%;
+}
+
+.fjs-container .fjs-datetime-separator {
+  width: 10px;
+}
+
+.fjs-container .fjs-input-group {
+  display: flex;
+  width: 100%;
+  margin: 4px, 0;
+  border: var(--border-definition);
+  border-radius: 3px;
+}
+
+.fjs-container .fjs-input-group.disabled {
+  background-color: var(--color-background-disabled);
+}
+
+.fjs-container .fjs-input-group.disabled,
+.fjs-container .fjs-input-group.disabled .fjs-input,
+.fjs-container .fjs-input-group.disabled .fjs-input-adornment {
+  border-color: var(--color-borders-disabled);
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-input,
+.fjs-container .fjs-input-group .fjs-input {
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  outline: 0;
+  width: auto;
+  flex-grow: 1;
+}
+
+.fjs-container .fjs-input-group .fjs-input-adornment {
+  border-width: 0;
+}
+
+.fjs-container .fjs-input-group .fjs-input-adornment.border-left {
+  border-left-width: 1px;
+}
+
+.fjs-container .fjs-input-group .fjs-input-adornment.border-right {
+  border-right-width: 1px;
+}
+
+.fjs-container .fjs-input-group .fjs-input-adornment.border-radius-right {
+  border-radius: 0 3px 3px 0;
+}
+
+.fjs-container .fjs-input-group .fjs-input-adornment.border-radius-left {
+  border-radius: 3px 0 0 3px;
+}
+
+.fjs-container .fjs-input-group .fjs-input,
+.fjs-container .fjs-input-group.disabled .fjs-input {
+  border-radius: 3px;
+}
+
+.fjs-container .fjs-vertical-group {
+  display: flex;
+  width: 100%;
+}
+
+.fjs-container .flatpickr-wrapper {
+  width: 100%;
+}
+
+.fjs-container .fjs-textarea {
+  resize: none;
+  overflow: hidden;
+  height: 75px;
+  font-size: 14px;
+}
+
+.fjs-container .fjs-number-arrow-container {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 2px 2px 0;
+  width: 23px;
+  overflow: clip;
+  border-left: var(--border-definition-adornment);
+}
+
+.fjs-container .fjs-number-arrow-separator {
+  height: 1px;
+  background-color: var(--color-borders-adornment);
+}
+
+.fjs-container .fjs-number-arrow-container button {
+  border: none;
+  flex: 1;
+  color: var(--color-text-light);
+  background-color: var(--color-grey-225-10-95);
+  font-weight: bold;
+  font-size: 10px;
+}
+
+.fjs-container .fjs-number-arrow-container button:hover {
+  background-color: var(--color-grey-225-10-93);
+  color: var(--color-text);
+}
+
+.fjs-container .fjs-number-arrow-container.disabled button {
+  background-color: var(--color-grey-225-10-95);
+}
+
+.fjs-container .fjs-radio {
+  display: flex;
+  flex-direction: column;
+}
+
+.fjs-container .fjs-input[type='checkbox'],
+.fjs-container .fjs-input[type='radio'] {
+  margin: 6px 10px 6px 4px;
+}
+
+.fjs-container .fjs-button[type='submit'] {
+  color: var(--color-text-inverted);
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.fjs-container .fjs-button[type='reset'] {
+  color: var(--color-text);
+  background-color: transparent;
+  border-color: var(--color-borders);
+}
+
+.fjs-container .fjs-button[type='submit'],
+.fjs-container .fjs-button[type='reset'] {
+  min-width: 100px;
+  width: auto;
+}
+
+.fjs-container .fjs-button[type='submit'] {
+  font-weight: 600;
+}
+
+.fjs-container .fjs-taglist:focus-within,
+.fjs-container .fjs-input-group:focus-within,
+.fjs-container .fjs-input[type='text']:focus,
+.fjs-container .fjs-input[type='email']:focus,
+.fjs-container .fjs-input[type='tel']:focus,
+.fjs-container .fjs-input[type='number']:focus,
+.fjs-container .fjs-button[type='submit']:focus,
+.fjs-container .fjs-button[type='reset']:focus,
+.fjs-container .fjs-textarea:focus,
+.fjs-container .fjs-select:focus {
+  outline: var(--outline-definition);
+}
+
+.fjs-container .fjs-input-group .fjs-input,
+.fjs-container .fjs-input-group .fjs-input:focus {
+  outline: none;
+}
+
+.fjs-container .fjs-input-group .fjs-input,
+.fjs-container .fjs-input-group .fjs-input:focus {
+  outline: none;
+}
+
+.fjs-container .fjs-button[type='submit']:focus {
+  border-color: var(--color-accent);
+}
+
+.fjs-container .fjs-input:disabled,
+.fjs-container .fjs-textarea:disabled,
+.fjs-container .fjs-select:disabled,
+.fjs-container .fjs-taglist.disabled {
+  background-color: var(--color-background-disabled);
+  border-color: var(--color-borders-disabled);
+}
+
+.fjs-container .fjs-button[type='submit']:disabled,
+.fjs-container .fjs-button[type='reset']:disabled {
+  color: var(--text-light);
+  background-color: var(--color-background-disabled);
+  border-color: var(--color-borders-disabled);
+}
+
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-input,
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-select,
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-textarea,
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-input-group,
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-input-group .fjs-input {
+  border-color: var(--color-warning);
+  outline-color: var(--color-warning);
+}
+
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-number-arrow-container {
+  border-color: var(--color-red-360-100-92); 
+}
+
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-number-arrow-separator {
+  background-color: var(--color-red-360-100-92);
+}
+
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-number-arrow-container button {
+  background-color: var(--color-red-360-100-97);
+}
+
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-number-arrow-container button:hover {
+  background-color: var(--color-red-360-100-95);
+}
+
+.fjs-container .fjs-form-field.fjs-has-errors .fjs-input-adornment {
+  border-color: var(--color-red-360-100-92);
+  background: var(--color-red-360-100-97);
+}
+
+.fjs-container .fjs-form-field-error {
+  color: var(--color-warning);
+}
+
+.fjs-container .fjs-form-field-error > ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fjs-container .fjs-form-field-error > ul > li {
+  list-style-type: none;
+}
+
+.fjs-container .fjs-form-field-text a {
+  color: var(--color-accent);
+}
+
+.fjs-container .fjs-taglist-anchor,
+.fjs-container .fjs-timepicker-anchor {
+  position: relative;
+}
+
+.fjs-container .fjs-taglist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  border: var(--color-borders) solid 1px;
+  border-radius: 3px;
+  padding: 5px;
+  background-color: var(--color-background);
+}
+
+.fjs-container .fjs-taglist.disabled {
+  border: var(--color-borders-disabled) solid 1px;
+  background-color: var(--color-background-disabled);
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-tag {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  border-radius: 2px;
+  background-color: var(--color-grey-225-10-90);
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-tag .fjs-taglist-tag-label {
+  padding: 2px 6px 2px 8px;
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-tag .fjs-taglist-tag-remove {
+  overflow: clip;
+  width: 22px;
+  height: 22px;
+  text-align: center;
+  line-height: 28px;
+  background-color: var(--color-grey-225-10-80);
+  border: none;
+  padding: 1px 0;
+  color: var(--color-black);
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-tag .fjs-taglist-tag-remove svg {
+  opacity: 0.6;
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-tag .fjs-taglist-tag-remove:hover,
+.fjs-container .fjs-taglist .fjs-taglist-tag .fjs-taglist-tag-remove:focus-visible {
+  background-color: var(--color-grey-225-10-75);
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-tag .fjs-taglist-tag-remove:hover > svg,
+.fjs-container .fjs-taglist .fjs-taglist-tag .fjs-taglist-tag-remove:focus-visible > svg {
+  opacity: 1;
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-tag .fjs-taglist-tag-remove:focus-visible {
+  outline: none;
+}
+
+.fjs-container .fjs-taglist .fjs-taglist-input {
+  border: none;
+  background-color: transparent;
+  min-width: 100px;
+  height: 22px;
+  flex-grow: 1;
+}
+
+.fjs-container .fjs-dropdownlist {
+  z-index: 1;
+  position: absolute;
+  user-select: none;
+  overflow-y: auto;
+  width: 100%;
+  border-radius: 3px;
+  margin-top: 3px;
+  box-shadow: 0px 0px 5px var(--color-grey-225-10-85);
+  background-color: var(--color-white);
+}
+
+.fjs-container .fjs-dropdownlist .fjs-dropdownlist-item {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-grey-225-10-90);
+  color: var(--color-grey-225-10-35);
+}
+
+.fjs-container .fjs-dropdownlist .fjs-dropdownlist-item:last-child {
+  border-bottom: none;
+}
+
+.fjs-container .fjs-dropdownlist .fjs-dropdownlist-item.focused {
+  background-color: var(--color-grey-225-10-90);
+  color: var(--color-black);
+}
+
+.fjs-container .fjs-dropdownlist .fjs-dropdownlist-empty {
+  padding: 6px 8px;
+  color: var(--color-text-lightest);
+}
+
+.fjs-container .fjs-image-container {
+  width: fit-content;
+  height: fit-content;
+}
+
+.fjs-container .fjs-image {
+  object-fit: contain;
+}
+
+.fjs-container .fjs-image-placeholder {
+  height: 64px;
+  margin: 2px 0;
+}
+
+/**
+* Flatpickr style adjustments
+*/
+
+.flatpickr-day.today {
+  border-color: transparent !important;
+  background-color: transparent !important;
+  font-weight: bold !important;
+}
+
+.flatpickr-day.today:hover,
+.flatpickr-day.today:focus {
+  border-color: var(--color-borders) !important;
+  background-color: var(--color-datepicker-focused-day) !important;
+  color: var(--color-text-inverted) !important;
+}
+
+.flatpickr-day.selected {
+  border-color: var(--color-accent) !important;
+  background-color: inherit !important;
+  color: inherit !important;
+  font-weight: normal !important;
+}
+
+.flatpickr-day.selected.today {
+  font-weight: bold !important;
+}
+
+.flatpickr-day.selected:hover,
+.flatpickr-day.selected:focus {
+  background-color: var(--color-accent) !important;
+  font-weight: bold !important; 
+  color: var(--color-text-inverted) !important;
+}
+
+.flatpickr-days, .flatpickr-weekdays {
+  padding: 10px !important;
+  width: 100% !important;
+}
+
+.fjs-container .flatpickr-calendar.hasTime.noCalendar {
+  width: auto !important;
+  max-width: 250px !important;
+}
+
+.flatpickr-calendar {
+  width: 326px !important;
+}

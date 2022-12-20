@@ -38,3 +38,8 @@
 .bpmn-element-incident .djs-visual > :nth-child(1) {
   stroke: rgba(255, 47, 0, 0.7) !important;
 }
+
+/* make form-js powered by appear above bootstrap modal */
+.fjs-powered-by-lightbox {
+  z-index: 1100 !important;
+}
