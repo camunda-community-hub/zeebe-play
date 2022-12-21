@@ -71,6 +71,7 @@ function loadProcessInstanceDetailsViews() {
 
   loadElementInstancesOfProcessInstance();
   loadJobsOfProcessInstance();
+  loadUserTasksOfProcessInstance();
   loadIncidentsOfProcessInstance();
   loadMessageSubscriptionsOfProcessInstance();
   loadTimersOfProcessInstance();
@@ -563,6 +564,62 @@ function removeTaskPlayableMarkersOfJobs(jobs) {
   elementIdsOfNotActivatableJobs
       .filter(function (elementId) {
         return !elementIdsOfActivatableJobs.includes(elementId);
+      })
+      .forEach(function (elementId) {
+        removeTaskPlayableMarker(elementId);
+      });
+}
+
+function loadUserTasksOfProcessInstance() {
+
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryUserTasksByProcessInstance(processInstanceKey)
+      .done(function (response) {
+
+        let processInstance = response.data.processInstance;
+        let userTasks = processInstance.userTasks;
+
+        let totalCount = userTasks.totalCount;
+        let nodes = userTasks.nodes;
+
+        // TODO (#67): show user tasks in tab
+
+        nodes.forEach((userTask, index) => {
+
+          const bpmnElement = userTask.elementInstance.element;
+          const elementId = bpmnElement.elementId;
+
+          const isActiveTask = userTask.state === "CREATED";
+          if (isActiveTask) {
+            makeTaskPlayable(elementId, userTask.key);
+          }
+        });
+
+        removeUserTaskMarkers(nodes);
+      });
+}
+
+function removeUserTaskMarkers(userTasks) {
+  let elementIdsOfActiveTasks = userTasks
+      .filter(function (userTask) {
+        return userTask.state === "CREATED";
+      })
+      .map(function (userTask) {
+        return userTask.elementInstance.element.elementId
+      });
+
+  let elementIdsOfNotActiveTasks = userTasks
+      .filter(function (userTask) {
+        return userTask.state !== "CREATED";
+      })
+      .map(function (userTask) {
+        return userTask.elementInstance.element.elementId
+      })
+
+  elementIdsOfNotActiveTasks
+      .filter(function (elementId) {
+        return !elementIdsOfActiveTasks.includes(elementId);
       })
       .forEach(function (elementId) {
         removeTaskPlayableMarker(elementId);
