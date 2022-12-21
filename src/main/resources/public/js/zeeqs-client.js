@@ -285,6 +285,34 @@ const jobsByProcessInstanceQuery = `query JobsOfProcessInstance($key: ID!, $zone
     }
   }`;
 
+const userTasksByProcessInstanceQuery = `query UserTasksOfProcessInstance($key: ID!) {  
+    processInstance(key: $key) {    
+       userTasks(perPage: 100) {
+        totalCount
+        nodes {
+          key
+          state
+          
+          assignee
+          candidateGroups
+          
+          form {
+            resource
+          }
+          
+          elementInstance {
+            key
+            element {
+              elementId
+              elementName
+              bpmnElementType
+            }
+          }
+        }
+      }
+    }
+  }`;
+
 const incidentsByProcessInstanceQuery = `query IncidentsOfProcessInstance($key: ID!, $zoneId: String!) {  
     processInstance(key: $key) {    
       incidents {
@@ -637,6 +665,13 @@ function queryJobsByProcessInstance(processInstanceKey) {
   return fetchData(jobsByProcessInstanceQuery, {
     key: processInstanceKey,
     zoneId: getTimeZone()
+  });
+}
+
+function queryUserTasksByProcessInstance(processInstanceKey) {
+
+  return fetchData(userTasksByProcessInstanceQuery, {
+    key: processInstanceKey
   });
 }
 
