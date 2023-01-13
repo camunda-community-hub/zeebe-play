@@ -75,7 +75,7 @@
       <dependency>
         <groupId>io.camunda</groupId>
         <artifactId>spring-zeebe-starter</artifactId>
-        <version>8.1.13</version>
+        <version>8.1.14</version>
       </dependency>
 
       <dependency>
