@@ -200,7 +200,7 @@ function makeTaskPlayable(elementId, jobKey) {
 
   let primaryAction = `completeJob(${jobKey}, '{}');`;
   if(formKey) {
-    primaryAction = `showTaskModal('${formKey}', ${jobKey})`;
+    primaryAction = `showTaskModal(${jobKey})`;
   }
 
   let fillModalAction = function (type) {

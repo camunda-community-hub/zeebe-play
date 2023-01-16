@@ -543,6 +543,20 @@ const messagesQuery = `query Messages($perPage: Int!, $page: Int!, $zoneId: Stri
   
   }`;
 
+const variablesByUserTaskQuery = `query VariablesOfUserTask($key: ID!) {  
+  userTask(key: $key) {
+    form {
+      resource
+    }
+    elementInstance {
+      variables(localOnly: false) {
+        name
+        value
+      }
+    }
+  }
+}`;
+
 function fetchData(query, variables) {
 
   return $.ajax({
@@ -752,4 +766,8 @@ function queryErrorByProcessInstanceKey(processInstanceKey) {
   return fetchData(errorByProcessInstanceQuery, {
     key: processInstanceKey
   });
+}
+
+function queryVariablesByUserTask(userTask) {
+  return fetchData(variablesByUserTaskQuery, {key: userTask});
 }
