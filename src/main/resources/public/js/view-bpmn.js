@@ -242,7 +242,8 @@ function makeTaskPlayable(elementId, jobKey) {
   });
 
   new bootstrap.Tooltip($(`#completeButton-${jobKey}`), {
-    boundary: document.body
+    boundary: document.body,
+    trigger: 'hover'
   });
 }
 
