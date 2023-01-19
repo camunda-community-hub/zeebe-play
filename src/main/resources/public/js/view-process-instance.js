@@ -592,7 +592,7 @@ function loadUserTasksOfProcessInstance() {
 
           const isActiveTask = userTask.state === "CREATED";
           if (isActiveTask) {
-            makeTaskPlayable(elementId, userTask.key);
+            makeTaskPlayable(elementId, userTask.key, {isUserTask: true, taskForm: userTask.form?.resource});
           }
         });
 

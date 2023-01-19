@@ -37,15 +37,3 @@ function showTaskModal(jobKey) {
 function completeTaskForm() {
   currentForm.submit();
 }
-
-function getFormKeyForElement(elementId) {
-  const element = bpmnViewer
-    .get("elementRegistry")
-    .get(elementId).businessObject;
-  const isUserTask = element.$instanceOf("bpmn:UserTask");
-  if (isUserTask) {
-    return element.extensionElements?.values?.find((extension) =>
-      extension.$instanceOf("zeebe:formDefinition")
-    )?.formKey;
-  }
-}

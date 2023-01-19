@@ -195,8 +195,7 @@ function onBpmnElementClick(callback) {
   });
 }
 
-function makeTaskPlayable(elementId, jobKey) {
-  const formKey = getFormKeyForElement(elementId);
+function makeTaskPlayable(elementId, jobKey, {isUserTask, taskForm} = {}) {
   const fillModalAction = function (type) {
     return 'fillJobModal(\'' + jobKey + '\', \'' + type + '\');';
   }
@@ -205,7 +204,7 @@ function makeTaskPlayable(elementId, jobKey) {
   let icon = '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>';
   let tooltipText = 'Complete Job';
   let dropdownContent;
-  if(formKey) {
+  if (taskForm) {
     primaryAction = `showTaskModal(${jobKey})`;
     icon = '<img width="18" height="18" style="margin-top:-4px;" src="/img/edit-form.svg" />';
     tooltipText = 'Fill form';
@@ -216,16 +215,19 @@ function makeTaskPlayable(elementId, jobKey) {
   </a></li>`;
   } else {
     dropdownContent = '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#complete-job-modal" href="#" onclick="' + fillModalAction('complete') + '">'
-      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#filetype-json"/></svg> Complete with variables</a></li>'
-      + '<li><hr class="dropdown-divider"></li>'
-      + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#fail-job-modal" href="#" onclick="' + fillModalAction('fail') + '">'
-      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>' + ' Fail' + '</a></li>'
-      + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#throw-error-job-modal" href="#" onclick="' + fillModalAction('throw-error') + '">'
-      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>' + ' Throw Error' + '</a></li>'
+      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#filetype-json"/></svg> Complete with variables</a></li>';
+
+      if (!isUserTask) {
+        dropdownContent += '<li><hr class="dropdown-divider"></li>'
+        + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#fail-job-modal" href="#" onclick="' + fillModalAction('fail') + '">'
+        + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>' + ' Fail' + '</a></li>'
+        + '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#throw-error-job-modal" href="#" onclick="' + fillModalAction('throw-error') + '">'
+        + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>' + ' Throw Error' + '</a></li>';
+      }
   }
 
   let content = '<div class="btn-group">'
-      + `<button type="button" id="completeButton-${jobKey}" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${tooltipText}" onclick="${primaryAction}">`
+      + `<button type="button" class="btn btn-sm btn-primary overlay-button completeButton-${jobKey}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${tooltipText}" onclick="${primaryAction}">`
       + icon
       + '</button>'
       + '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
@@ -241,9 +243,12 @@ function makeTaskPlayable(elementId, jobKey) {
     html: content
   });
 
-  new bootstrap.Tooltip($(`#completeButton-${jobKey}`), {
-    boundary: document.body,
-    trigger: 'hover'
+  $(`.completeButton-${jobKey}`).tooltip();
+
+  // We have to remove the tooltip manually when removing the element that triggers it
+  // see https://github.com/twbs/bootstrap/issues/3084#issuecomment-5207780
+  $(`.completeButton-${jobKey}`).on('click', () => {
+    $(`[data-bs-toggle="tooltip"]`).tooltip('hide');
   });
 }
 
