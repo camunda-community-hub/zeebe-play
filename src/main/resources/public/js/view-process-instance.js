@@ -237,7 +237,7 @@ function cancelProcessInstance() {
         const toastId = "cancel-process-instance-" + processInstanceKey;
         showNotificationSuccess(toastId, "Cancelled process instance.");
 
-        loadProcessInstanceView();
+        loadViewDelayed();
       })
       .fail(showFailure(
           "cancel-process-instance-" + processInstanceKey,

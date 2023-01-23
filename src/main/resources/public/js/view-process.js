@@ -130,7 +130,7 @@ function createNewProcessInstanceWith(processKey, variables) {
         const content = 'New process instance <a id="new-instance-toast-link" href="/view/process-instance/' + processInstanceKey + '">' + processInstanceKey + '</a> created.';
         showNotificationSuccess(toastId, content);
 
-        loadView();
+        loadViewDelayed();
       })
       .fail(showFailure(
           "create-instance-failed-" + processKey,
