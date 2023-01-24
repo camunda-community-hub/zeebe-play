@@ -49,7 +49,7 @@ to [GitHub Packages](https://github.com/orgs/camunda-community-hub/packages/cont
 Pull the image using the following command:
 
 ```
-docker pull ghcr.io/camunda-community-hub/zeebe-play:1.1.0
+docker pull ghcr.io/camunda-community-hub/zeebe-play:1.2.0
 ```
 
 Next, have a look at [usage](#-usage) on how to start the docker container, and the different configurations.
@@ -99,7 +99,7 @@ state (i.e. no data on restart).
 Use the following command to start the docker container:
 
 ```
-docker run -p 8080:8080 -p 26500:26500 ghcr.io/camunda-community-hub/zeebe-play:1.1.0
+docker run -p 8080:8080 -p 26500:26500 ghcr.io/camunda-community-hub/zeebe-play:1.2.0
 ```
 
 - expose port `8080` for the web application
@@ -108,7 +108,7 @@ docker run -p 8080:8080 -p 26500:26500 ghcr.io/camunda-community-hub/zeebe-play:
 Or, if you run it on your local machine (Linux only):
 
 ```
-docker run --network="host" ghcr.io/camunda-community-hub/zeebe-play:1.1.0
+docker run --network="host" ghcr.io/camunda-community-hub/zeebe-play:1.2.0
 ```
 
 ### Connecting to a remote Zeebe engine
@@ -154,13 +154,13 @@ docker run --network="host" -e ZEEBE_CLOCK_CONTROLLED=true ghcr.io/camunda-commu
     - `zeebe.client.worker.hazelcast.connection` (application.yaml)
 
 ```
-docker run -p 8080:8080 -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.1.0
+docker run -p 8080:8080 -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.2.0
 ```
 
 Or, if you run it on your local machine (Linux only):
 
 ```
-docker run --network="host" -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.1.0
+docker run --network="host" -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.2.0
 ```
 
 ### Enable persistence
