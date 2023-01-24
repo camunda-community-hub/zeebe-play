@@ -138,6 +138,11 @@ function createNewProcessInstanceWith(processKey, variables) {
   sendCreateInstanceRequest(processKey, variables)
       .done(processInstanceKey => {
 
+        localStorage.setItem('history ' + processInstanceKey, JSON.stringify([{
+          action: 'start',
+          variables
+        }]));
+
         const toastId = "new-instance-" + processInstanceKey;
         const content = 'New process instance <a id="new-instance-toast-link" href="/view/process-instance/'
             + processInstanceKey + '">' + processInstanceKey + '</a> created.';
@@ -219,7 +224,7 @@ function loadTimersOfProcess() {
           const isActiveTimer = timer.state === "CREATED";
 
           const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate
-              + '\');';
+              + '\', \'' + timer.element.elementId + '\');';
 
           let actionButton = "";
           if (isActiveTimer) {
@@ -240,7 +245,7 @@ function loadTimersOfProcess() {
               + '<td>' + actionButton + '</td>'
               + '</tr>');
 
-          const action = 'timeTravel(\'' + timer.dueDate + '\');';
+          const action = 'timeTravel(\'' + timer.dueDate + '\', \'' + timer.element.elementId + '\');';
           addTimeTravelButton(timer.element.elementId, action, fillModalAction);
         });
       });

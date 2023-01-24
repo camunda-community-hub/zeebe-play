@@ -11,6 +11,48 @@
   opacity: 0.9;
 }
 
+.rewind-button {
+  padding: 0.2rem 0.35rem;
+  font-size: 0.6rem;
+}
+
+#rewind-blocker {
+  position: absolute;
+  z-index: 1900;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  line-height: 100vh;
+  font-size: 6vh;
+  text-align: center;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(5px);
+  opacity: 0;
+  transition: opacity 0.8s;
+}
+
+#rewind-blocker svg {
+  width: 10vh;
+  height: 10vh;
+  display: inline-block;
+  margin-top: -1vh;
+  margin-right: 1vw;
+}
+
+.overlay-button svg.bi {
+  fill: white;
+}
+
+.djs-overlay .dropdown-menu .dropdown-item svg.bi {
+  fill: black;
+}
+
+.btn-outline-secondary {
+  background-color: white;
+}
+
 .bpmn-element-info {
   background-color: rgba(0, 125, 255, 0.7);
   opacity: 0.9;
@@ -32,7 +74,7 @@
 }
 
 .bpmn-element-active .djs-visual > :nth-child(1) {
-   stroke: rgba(66, 180, 21, 0.7) !important;
+  stroke: rgba(66, 180, 21, 0.7) !important;
 }
 
 .bpmn-element-incident .djs-visual > :nth-child(1) {

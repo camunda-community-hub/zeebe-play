@@ -430,6 +430,8 @@ function showInfoOfBpmnElement(element) {
 // ----------------------------------------------------------
 
 function publishMessage(messageName, messageCorrelationKey) {
+  history.push({action: 'publishMessage', messageName, messageCorrelationKey});
+  refreshHistory();
 
   sendPublishMessageRequest(messageName, messageCorrelationKey)
       .done(messageKey => {
@@ -472,7 +474,9 @@ function publishMessageModal() {
       );
 }
 
-function timeTravel(timeDefinition) {
+function timeTravel(timeDefinition, elementId) {
+  history.push({action: 'timeTravel', elementId});
+  refreshHistory();
 
   const index = timeDefinition.indexOf("P");
 
@@ -502,7 +506,9 @@ function timeTravel(timeDefinition) {
       );
 }
 
-function fillTimeTravelModal(timeDefinition) {
+let timeTravelModalElementId;
+function fillTimeTravelModal(timeDefinition, elementId) {
+  timeTravelModalElementId = elementId;
   const index = timeDefinition.indexOf("P");
 
   const timeDuration = $("#timeDuration");
@@ -525,14 +531,22 @@ function timeTravelModal() {
   const timeDate = $("#timeDate").val();
 
   if (timeDuration && timeDuration.length > 0) {
-    timeTravel(timeDuration);
+    timeTravel(timeDuration, timeTravelModalElementId);
   } else if (timeDate && timeDate.length > 0) {
-    timeTravel(timeDate);
+    timeTravel(timeDate, timeTravelModalElementId);
   }
 }
 
 function completeJob(jobKey, variables) {
   const toastId = "job-complete-" + jobKey;
+
+  const task = jobKeyToElementIdMapping[jobKey];
+  if(task) {
+    localStorage.setItem('jobCompletion ' + getProcessKey() + ' ' + task, variables);
+  }
+
+  history.push({action: 'completeJob', task, variables});
+  refreshHistory();
 
   sendCompleteJobRequest(jobKey, variables)
       .done(key => {
@@ -547,6 +561,10 @@ function completeJob(jobKey, variables) {
 function failJob(jobKey, retries, errorMessage) {
   const toastId = "job-fail-" + jobKey;
 
+  const task = jobKeyToElementIdMapping[jobKey];
+  history.push({action: 'failJob', task, retries, errorMessage});
+  refreshHistory();
+
   sendFailJobRequest(jobKey, retries, errorMessage)
       .done(key => {
         showNotificationSuccess(toastId,
@@ -559,6 +577,10 @@ function failJob(jobKey, retries, errorMessage) {
 
 function throwErrorJob(jobKey, errorCode, errorMessage) {
   const toastId = "job-throw-error-" + jobKey;
+
+  const task = jobKeyToElementIdMapping[jobKey];
+  history.push({action: 'throwJob', task, errorCode, errorMessage});
+  refreshHistory();
 
   sendThrowErrorJobRequest(jobKey, errorCode, errorMessage)
       .done(key => {

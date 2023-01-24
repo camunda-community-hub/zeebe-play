@@ -3,8 +3,28 @@ var markedBpmnElement;
 
 var isElementCountersViewEnabled = false;
 
+const jobKeyToElementIdMapping = {};
+
 function getProcessInstanceKey() {
   return $("#process-instance-page-key").text();
+}
+
+let processId;
+const history = JSON.parse(localStorage.getItem('history ' + window.getProcessInstanceKey?.()) || "[]");
+function refreshHistory() {
+  const key = getProcessInstanceKey();
+
+  const historyEntries = JSON.parse(localStorage.getItem('historyEntries') || '[]');
+  if(!historyEntries.includes(key)) {
+    historyEntries.push(key);
+  }
+  while(historyEntries.length > 20) {
+    const keyToDelete = historyEntries.shift();
+    localStorage.removeItem('history ' + keyToDelete);
+  }
+  
+  localStorage.setItem('historyEntries', JSON.stringify(historyEntries));
+  localStorage.setItem('history ' + key, JSON.stringify(history));
 }
 
 function isProcessInstanceActive(processInstance) {
@@ -23,6 +43,8 @@ function loadProcessInstanceView() {
       .done(function (response) {
         let processInstance = response.data.processInstance;
         let process = processInstance.process;
+
+        processId = process.key;
 
         $("#process-instance-key").text(processInstance.key);
         $("#process-instance-start-time").text(processInstance.startTime);
@@ -81,6 +103,144 @@ function loadProcessInstanceDetailsViews() {
   loadMessageSubscriptionsOfProcessInstance();
   loadTimersOfProcessInstance();
   loadChildInstancesOfProcessInstance();
+
+  makeTasksReplayable();
+}
+
+function makeTasksReplayable() {
+  const tasks = new Set(history.filter(({action}) => action === 'completeJob').map(({task}) => task));
+
+  tasks.forEach(task => {
+    overlays.add(task, 'rewind-marker', {
+      position: {
+        top: -15,
+        left: -15
+      },
+      html: '<button type="button" class="btn btn-sm btn-outline-secondary overlay-button rewind-button" title="Rewind to this element" onclick=\'rewind("'+task+'")\'>'
+      + '<svg class="bi" width="14" height="14" style="fill: black;"><use xlink:href="/img/bootstrap-icons.svg#caret-left"/></svg>'
+      + '</button>'
+    });
+  });
+}
+
+async function rewind(task) {
+  let startVariables = {};
+  if (history[0]?.action === 'start') {
+    startVariables = history[0].variables;
+  } else if (getProcessKey() === 'solos-transport-process') {
+    startVariables = {
+      "captain": "Han Solo",
+      "ship": "Millennium Falcon"
+    };
+  }
+
+  const blocker = document.createElement('div');
+  blocker.setAttribute('id', 'rewind-blocker');
+  blocker.innerHTML = '<svg class="bi" style="fill: black;"><use xlink:href="/img/bootstrap-icons.svg#rewind-fill"/></svg> Rewinding…';
+  document.body.appendChild(blocker);
+  document.body.style.overflow = 'hidden';
+  scrollTo({
+    top: 0,
+    left: 0,
+    behavior: 'instant'
+  });
+  setTimeout(() => blocker.style.opacity = 1);
+
+  const newId = await sendCreateInstanceRequest(processId, startVariables);
+  const newHistory = [];
+
+  try {
+    for(let i = 0; i < history.length; i++) {
+      const step = history[i];
+
+      if(step.task === task) {
+        break;
+      }
+
+      switch(step.action) {
+        case 'start': break; // start action is already handled when new instance was created
+        case 'publishMessage': 
+          await sendPublishMessageRequest(step.messageName, step.messageCorrelationKey); 
+          break;
+        case 'timeTravel': 
+          const timer = await fetchTimerForElement(newId, step.elementId);
+          await sendTimeTravelRequestWithDateTime(timer.dueDate);
+          break;
+        case 'completeJob': {
+          const jobKey = await fetchJobKeyForTask(newId, step.task);
+          await sendCompleteJobRequest(jobKey, step.variables);
+          break;
+        }
+        case 'failJob': {
+          const jobKey = await fetchJobKeyForTask(newId, step.task);
+          await sendFailJobRequest(jobKey, step.retries, step.errorMessage);
+          break;
+        }
+        case 'throwJob': {
+          const jobKey = await fetchJobKeyForTask(newId, step.task);
+          await sendThrowErrorJobRequest(jobKey, step.errorCode, step.errorMessage);
+          break;
+        }
+        default: console.error('Unknown rewind action: ' + step.action);
+      }
+      newHistory.push(step);
+    }
+  } catch(e) {
+    // could not finish the rewinding. This could be due to missing history or failed requests
+    // in this case, we still want to send the user to the newly created instance
+  }
+
+  localStorage.setItem('history ' + newId, JSON.stringify(newHistory));
+  window.location.href = '/view/process-instance/' + newId;
+}
+
+function fetchTimerForElement(id, elementId) {
+  return new Promise((resolve, reject) => {
+    let remainingTries = 6;
+    let interval = setInterval(() => {
+      queryTimersByProcessInstance(id).done(response => {
+        remainingTries--;
+        const timer = response.data.processInstance.timers.find(timer => timer.element.elementId === elementId);
+        if(timer) {
+          clearInterval(interval);
+          return resolve(timer);
+        }
+        if(remainingTries === 0) {
+          clearInterval(interval);
+          return reject();
+        }
+      });
+    }, 250);
+  });
+}
+
+function fetchJobKeyForTask(id, task) {
+  return new Promise((resolve, reject) => {
+    let remainingTries = 6;
+    let interval = setInterval(() => {
+      remainingTries--;
+      if(remainingTries === 0) {
+        clearInterval(interval);
+        return reject();
+      }
+      queryUserTasksByProcessInstance(id).done(response => {
+        response.data.processInstance.userTasks.nodes.forEach(userTask => {
+          if(userTask.elementInstance.element.elementId === task && userTask.state !== 'COMPLETED') {
+            clearInterval(interval);
+            resolve(userTask.key);
+          }
+        })
+      });
+      queryJobsByProcessInstance(id).done(response => {
+        response.data.processInstance.jobs.forEach(job => {
+          if(job.elementInstance.element.elementId === task && job.state !== 'COMPLETED') {
+            clearInterval(interval);
+            resolve(job.key);
+          }
+        })
+      });
+    },250);
+  });
 }
 
 function disableProcessInstanceActionButtons() {
@@ -501,6 +661,8 @@ function loadJobsOfProcessInstance() {
 
           const elementId = bpmnElement.elementId;
 
+          jobKeyToElementIdMapping[job.key] = elementId;
+
           let state = formatJobState(job.state);
           const isActiveJob = job.state === "ACTIVATABLE";
 
@@ -590,10 +752,12 @@ function loadUserTasksOfProcessInstance() {
 
         // TODO (#67): show user tasks in tab
 
-        nodes.forEach((userTask, index) => {
+        nodes.forEach((userTask) => {
 
           const bpmnElement = userTask.elementInstance.element;
           const elementId = bpmnElement.elementId;
+
+          jobKeyToElementIdMapping[userTask.key] = elementId;
 
           const isActiveTask = userTask.state === "CREATED";
           if (isActiveTask) {
@@ -860,9 +1024,9 @@ function loadTimersOfProcessInstance() {
           let state = formatTimerState(timer.state);
           const isActiveTimer = timer.state === "CREATED";
 
-          const action = 'timeTravel(\'' + timer.dueDate + '\');';
+          const action = 'timeTravel(\'' + timer.dueDate + '\', \'' + bpmnElement.elementId + '\');';
           const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate
-              + '\');';
+              + '\', \'' + bpmnElement.elementId + '\');';
 
           let actionButton = '';
           if (isActiveTimer) {
