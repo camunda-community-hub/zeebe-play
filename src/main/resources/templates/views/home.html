@@ -5,8 +5,8 @@
 
 <div th:replace="fragments/navbar :: navbar"></div>
 
-<div class="container-fluid">
-  <div class="row justify-content-center row-cols-1 row-cols-md-4 g-4">
+<div class="container-fluid w-75">
+  <div class="row row-cols-1 row-cols-md-3 g-4">
 
     <div class="col">
       <div class="card h-100">
@@ -29,7 +29,7 @@
           </p>
           <p class="card-text">
             Select the deployed process, look for the start event <span
-              class="bpmn-icon-start-event-none"></span> and
+              class="bpmn-icon-start-event-none fs-3"></span> and
             click on
             <button type="button" class="btn btn-sm btn-primary">
               <svg class="bi" width="18" height="18" fill="white">
@@ -50,7 +50,7 @@
         </h5>
         <div class="card-body">
           <p class="card-text">
-            Select a task <span class="bpmn-icon-service-task"></span> and click on
+            Select a task <span class="bpmn-icon-service-task fs-3"></span> and click on
             <button type="button" class="btn btn-sm btn-primary">
               <svg class="bi" width="18" height="18" fill="white">
                 <use xlink:href="/img/bootstrap-icons.svg#play"/>
@@ -60,8 +60,8 @@
           </p>
           <p class="card-text">
             Or, select a start event <span
-              class="bpmn-icon-start-event-message"></span>
-            or a catch event <span class="bpmn-icon-intermediate-event-catch-timer"></span>
+              class="bpmn-icon-start-event-message fs-3"></span>
+            or a catch event <span class="bpmn-icon-intermediate-event-catch-timer fs-3"></span>
             and publish a message
             <button type="button" class="btn btn-sm btn-primary">
               <svg class="bi" width="18" height="18" fill="white">
@@ -107,6 +107,26 @@
             Then, create a new process instance
           </li>
         </ul>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100">
+        <h5 class="card-header">
+          <svg class="bi" width="32" height="32"><use xlink:href="/img/bootstrap-icons.svg#person"/></svg>
+           User forms
+          <span class="badge bg-success">New</span>
+        </h5>
+        <div class="card-body">
+          <p class="card-text">
+            If a user task <span class="bpmn-icon-user-task fs-3"></span> defines a Camunda form,
+            you can click on
+            <button type="button" class="btn btn-sm btn-primary">
+              <img width="18" height="18" style="margin-top:-4px;" src="/img/edit-form.svg" />
+            </button>
+            to see the form and fill it out. The user task gets completed with the form data.
+          </p>
+        </div>
       </div>
     </div>
 

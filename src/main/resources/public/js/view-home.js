@@ -22,17 +22,7 @@ function enableButtonToCreateInstanceOfDemoProcess(processKey) {
   createInstanceButton.click(function () {
     createNewProcessInstanceWith(processKey, {
       "captain": "Han Solo",
-      "ship": "Millennium Falcon",
-      "cargo": [
-        {
-          "item": "mining tools",
-          "is_legal": true,
-        },
-        {
-          "item": "spice",
-          "is_legal": false
-        }
-      ]
+      "ship": "Millennium Falcon"
     });
   });
 }
