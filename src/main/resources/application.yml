@@ -34,3 +34,11 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create
+
+  graphql:
+    websocket:
+      path: /graphql
+
+    # enable GraphiQL inspection tool by default
+    graphiql:
+      enabled: true

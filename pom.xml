@@ -21,12 +21,12 @@
 
     <maven.version>3.0</maven.version>
     <zeebe.version>8.1.4</zeebe.version>
-    <zeeqs.version>2.6.0</zeeqs.version>
+    <zeeqs.version>2.7.0</zeeqs.version>
     <eze.version>1.1.0</eze.version>
     <hazelcast.version>1.2.1</hazelcast.version>
 
     <kotlin.version>1.8.0</kotlin.version>
-    <spring.boot.version>2.7.5</spring.boot.version>
+    <spring.boot.version>2.7.8</spring.boot.version>
 
     <!-- release parent settings -->
     <version.java>17</version.java>
@@ -51,13 +51,6 @@
         <groupId>io.zeebe.zeeqs</groupId>
         <artifactId>graphql-api</artifactId>
         <version>${zeeqs.version}</version>
-      </dependency>
-
-      <!-- this graphql-java version is used by ZeeQS -->
-      <dependency>
-        <groupId>com.graphql-java</groupId>
-        <artifactId>graphql-java</artifactId>
-        <version>15.0</version>
       </dependency>
 
       <dependency>
@@ -115,11 +108,10 @@
         <version>42.5.1</version>
       </dependency>
 
-      <!-- need to use the same H2 version as ZeeQS (https://github.com/camunda-community-hub/zeeqs/pull/263#issuecomment-1202464491)-->
       <dependency>
-        <groupId>com.h2database</groupId>
-        <artifactId>h2</artifactId>
-        <version>1.4.200</version>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>8.0.32</version>
       </dependency>
 
       <dependency>
@@ -225,6 +217,18 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.graphql</groupId>
+      <artifactId>spring-graphql-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux</artifactId>
       <scope>test</scope>
     </dependency>
 
