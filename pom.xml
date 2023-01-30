@@ -53,13 +53,6 @@
         <version>${zeeqs.version}</version>
       </dependency>
 
-      <!-- this graphql-java version is used by ZeeQS -->
-      <dependency>
-        <groupId>com.graphql-java</groupId>
-        <artifactId>graphql-java</artifactId>
-        <version>15.0</version>
-      </dependency>
-
       <dependency>
         <groupId>io.zeebe.zeeqs</groupId>
         <artifactId>hazelcast-importer</artifactId>
@@ -113,13 +106,6 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.5.1</version>
-      </dependency>
-
-      <!-- need to use the same H2 version as ZeeQS (https://github.com/camunda-community-hub/zeeqs/pull/263#issuecomment-1202464491)-->
-      <dependency>
-        <groupId>com.h2database</groupId>
-        <artifactId>h2</artifactId>
-        <version>1.4.200</version>
       </dependency>
 
       <dependency>
