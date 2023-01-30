@@ -1,0 +1,44 @@
+{
+  "components": [
+    {
+      "label": "Cargo",
+      "type": "textfield",
+      "id": "Field_0ui6qvs",
+      "key": "item",
+      "validate": {
+        "required": true
+      },
+      "description": "For example: mining tools, spice, etc."
+    },
+    {
+      "values": [
+        {
+          "label": "Yes",
+          "value": "true"
+        },
+        {
+          "label": "No",
+          "value": "false"
+        }
+      ],
+      "label": "Is legal?",
+      "type": "radio",
+      "id": "Field_04f37dj",
+      "key": "is_legal",
+      "defaultValue": "true",
+      "validate": {
+        "required": true
+      },
+      "description": "Not all cargo is legal, like spice."
+    }
+  ],
+  "type": "default",
+  "id": "load-cargo",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.1.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.5.1"
+  },
+  "schemaVersion": 5
+}
