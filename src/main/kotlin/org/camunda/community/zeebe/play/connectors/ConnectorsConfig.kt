@@ -25,7 +25,11 @@ class ConnectorsConfig(
     private val logger = LoggerFactory.getLogger(ConnectorsConfig::class.java)
 
     @PostConstruct
-    fun `start connectors`() {
+    fun startConnectors() {
+        if (!connectorProperties.enabled) {
+            logger.info("Zeebe connectors are disabled in the configuration.")
+            return
+        }
 
         OutboundConnectorRegistrationHelper
             .parseFromSPI()
@@ -43,7 +47,7 @@ class ConnectorsConfig(
     }
 
     @PostConstruct
-    fun `store connector secrets`() {
+    fun storeConnectorSecrets() {
         connectorProperties.secrets.forEach {
             val secret = ConnectorSecret(
                 name = it.name,

@@ -23,6 +23,13 @@ zeebe:
   clock:
     endpoint: 127.0.0.1:9600/actuator/clock
 
+  connectors:
+    # start Camunda connectors by default
+    enabled: true
+    secrets:
+    #  - name: SLACK_OAUTH_TOKEN
+    #    value: my-slack-oauth-token
+
 spring:
   datasource:
     url: jdbc:h2:mem:zeeqs;DB_CLOSE_DELAY=-1
