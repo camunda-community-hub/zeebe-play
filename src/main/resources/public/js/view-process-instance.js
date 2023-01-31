@@ -49,6 +49,8 @@ function loadProcessInstanceView() {
         }
 
         if (!bpmnViewIsLoaded) {
+          subscribeToUpdates('processInstanceKey', processInstance.key, () => loadViewDebounced());
+
           const bpmnXML = process.bpmnXML;
           showBpmn(bpmnXML).then(function (r) {
             // wait until BPMN is loaded
@@ -236,8 +238,6 @@ function cancelProcessInstance() {
       .done(key => {
         const toastId = "cancel-process-instance-" + processInstanceKey;
         showNotificationSuccess(toastId, "Cancelled process instance.");
-
-        loadViewDelayed();
       })
       .fail(showFailure(
           "cancel-process-instance-" + processInstanceKey,

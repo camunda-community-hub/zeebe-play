@@ -771,3 +771,36 @@ function queryErrorByProcessInstanceKey(processInstanceKey) {
 function queryVariablesByUserTask(userTask) {
   return fetchData(variablesByUserTaskQuery, {key: userTask});
 }
+
+function subscribeToUpdates(type, key, handler) {
+  const socket = new WebSocket("ws://" + window.location.host + "/graphql");
+
+  socket.addEventListener("open", () => {
+    socket.send(JSON.stringify({ type: "connection_init", payload: {} }));
+    socket.send(
+      JSON.stringify({
+        // since we only have one subscription on the socket,
+        // the id is irrelevant and can be a single character to reduce traffic
+        id: "1",
+        type: "subscribe",
+        payload: {
+          variables: {},
+          extensions: {},
+          operationName: null,
+          query: `subscription {
+      processInstanceUpdates(filter: {${type}: ${key}}) {
+        updateType
+      }
+    }`,
+        },
+      })
+    );
+  });
+
+  socket.addEventListener("message", (event) => {
+    const response = JSON.parse(event.data);
+    if (response.type === "next") {
+      handler(response);
+    }
+  });
+}
