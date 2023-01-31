@@ -24,6 +24,9 @@
     <zeeqs.version>2.7.0</zeeqs.version>
     <eze.version>1.1.0</eze.version>
     <hazelcast.version>1.2.1</hazelcast.version>
+    <spring-zeebe.version>8.1.15</spring-zeebe.version>
+    <camunda-connector-bundle.version>0.15.0</camunda-connector-bundle.version>
+    <camunda-connector-sdk.version>0.5.0</camunda-connector-sdk.version>
 
     <kotlin.version>1.8.0</kotlin.version>
     <spring.boot.version>2.7.8</spring.boot.version>
@@ -68,7 +71,7 @@
       <dependency>
         <groupId>io.camunda</groupId>
         <artifactId>spring-zeebe-starter</artifactId>
-        <version>8.1.15</version>
+        <version>${spring-zeebe.version}</version>
       </dependency>
 
       <dependency>
@@ -81,6 +84,24 @@
         <groupId>io.zeebe.hazelcast</groupId>
         <artifactId>zeebe-hazelcast-exporter</artifactId>
         <version>${hazelcast.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.camunda.connector</groupId>
+        <artifactId>connector-runtime-bundle</artifactId>
+        <version>${camunda-connector-bundle.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.camunda.connector</groupId>
+        <artifactId>connector-runtime-util</artifactId>
+        <version>${camunda-connector-sdk.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.camunda.connector</groupId>
+        <artifactId>connector-validation</artifactId>
+        <version>${camunda-connector-sdk.version}</version>
       </dependency>
 
       <dependency>
@@ -195,6 +216,28 @@
       <artifactId>zeebe-hazelcast-exporter</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>io.camunda.connector</groupId>
+      <artifactId>connector-runtime-bundle</artifactId>
+      <exclusions>
+        <!-- The runtime causes errors in Spring. We don't need it. -->
+        <exclusion>
+          <groupId>io.camunda</groupId>
+          <artifactId>spring-zeebe-connector-runtime</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>io.camunda.connector</groupId>
+      <artifactId>connector-runtime-util</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.camunda.connector</groupId>
+      <artifactId>connector-validation</artifactId>
+    </dependency>
+
     <!-- Database drivers -->
 
     <dependency>
@@ -282,6 +325,7 @@
           </args>
           <compilerPlugins>
             <plugin>spring</plugin>
+            <plugin>jpa</plugin>
           </compilerPlugins>
           <jvmTarget>${version.java}</jvmTarget>
         </configuration>
