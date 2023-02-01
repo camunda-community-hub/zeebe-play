@@ -773,7 +773,10 @@ function queryVariablesByUserTask(userTask) {
 }
 
 function subscribeToUpdates(type, key, handler) {
-  const socket = new WebSocket("ws://" + window.location.host + "/graphql");
+  const socketProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const socket = new WebSocket(
+    socketProtocol + "://" + window.location.host + "/graphql"
+  );
 
   socket.addEventListener("open", () => {
     socket.send(JSON.stringify({ type: "connection_init", payload: {} }));
