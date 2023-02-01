@@ -145,8 +145,10 @@ function loadView() {
   }
 }
 
-function loadViewDelayed(delay = 150) {
-  setTimeout(loadView, delay);
+let timer;
+function loadViewDebounced(delay = 150) {
+  clearTimeout(timer);
+  timer = setTimeout(loadView, delay);
 }
 
 // ----------------------------------------
@@ -406,8 +408,6 @@ function publishMessage(messageName, messageCorrelationKey) {
         const toastId = "message-published-" + messageKey;
         const content = 'New message <code>' + messageKey + '</code> published.';
         showNotificationSuccess(toastId, content);
-
-        loadViewDelayed();
       })
       .fail(showFailure(
           "publish-message-failed-" + messageName,
@@ -435,8 +435,6 @@ function publishMessageModal() {
         const toastId = "message-published-" + messageKey;
         const content = 'New message <code>' + messageKey + '</code> published.';
         showNotificationSuccess(toastId, content);
-
-        loadViewDelayed();
       })
       .fail(showFailure(
           "publish-message-failed",
@@ -467,7 +465,6 @@ function timeTravel(timeDefinition) {
       .done(newTime => {
         const toastId = "time-travel-" + newTime;
         showNotificationSuccess(toastId, successMessage);
-        loadViewDelayed();
       })
       .fail(showFailure(
           "time-travel-failed",
@@ -510,8 +507,6 @@ function completeJob(jobKey, variables) {
   sendCompleteJobRequest(jobKey, variables)
       .done(key => {
         showNotificationSuccess(toastId, "Job <code>" + jobKey + "</code> completed.");
-
-        loadViewDelayed();
       })
       .fail(showFailure(toastId,
           "Failed to complete job <code>" + jobKey + "</code>.")
@@ -524,8 +519,6 @@ function failJob(jobKey, retries, errorMessage) {
   sendFailJobRequest(jobKey, retries, errorMessage)
       .done(key => {
         showNotificationSuccess(toastId, "Job <code>" + jobKey + "</code> failed.");
-
-        loadViewDelayed();
       })
       .fail(showFailure(toastId,
           "Failed to fail job <code>" + jobKey + "</code>.")
@@ -538,8 +531,6 @@ function throwErrorJob(jobKey, errorCode, errorMessage) {
   sendThrowErrorJobRequest(jobKey, errorCode, errorMessage)
       .done(key => {
         showNotificationSuccess(toastId, "An error <code>" + errorCode + "</code> was thrown for the job <code>" + jobKey + "</code>.");
-
-        loadViewDelayed();
       })
       .fail(showFailure(toastId,
           "Failed to throw error for the job <code>" + jobKey + "</code>.")
@@ -597,8 +588,6 @@ function resolveIncidentByKey(incidentKey) {
   sendResolveIncidentRequest(incidentKey)
       .done(key => {
         showNotificationSuccess(toastId, "Incident <code>" + incidentKey + "</code> resolved.");
-
-        loadViewDelayed();
       })
       .fail(showFailure(toastId,
           "Failed to resolve incident <code>" + incidentKey + "</code>.")

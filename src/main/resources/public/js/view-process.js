@@ -21,6 +21,8 @@ function loadProcessView() {
         $("#process-deployment-time").text(process.deployTime);
 
         if (!bpmnViewIsLoaded) {
+          subscribeToUpdates('processKey', processKey, () => loadViewDebounced());
+
           const bpmnXML = process.bpmnXML;
           showBpmn(bpmnXML).then(ok => {
             makeStartEventsPlayable();
@@ -129,8 +131,6 @@ function createNewProcessInstanceWith(processKey, variables) {
         const toastId = "new-instance-" + processInstanceKey;
         const content = 'New process instance <a id="new-instance-toast-link" href="/view/process-instance/' + processInstanceKey + '">' + processInstanceKey + '</a> created.';
         showNotificationSuccess(toastId, content);
-
-        loadViewDelayed();
       })
       .fail(showFailure(
           "create-instance-failed-" + processKey,
