@@ -117,7 +117,7 @@ function makeTasksReplayable() {
         left: -15
       },
       html: '<button type="button" class="btn btn-sm btn-outline-secondary overlay-button rewind-button" title="Rewind to this element" onclick=\'rewind("'+task+'")\'>'
-      + '<svg class="bi" width="14" height="14" style="fill: black;"><use xlink:href="/img/bootstrap-icons.svg#caret-left"/></svg>'
+      + '<svg class="bi" width="14" height="14" style="fill: black;"><use xlink:href="/img/bootstrap-icons.svg#rewind"/></svg>'
       + '</button>'
     });
   });
