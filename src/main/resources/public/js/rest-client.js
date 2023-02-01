@@ -1,4 +1,3 @@
-
 function sendRequest(path, type, data) {
 
   return $.ajax({
@@ -23,10 +22,11 @@ function sendDeleteRequest(path, data) {
 }
 
 function sendCreateInstanceRequest(processKey, variables) {
-  return sendPostRequest("processes/" + processKey,  variables);
+  return sendPostRequest("processes/" + processKey, variables);
 }
 
-function sendPublishMessageRequest(messageName, correlationKey, variables, timeToLive, messageId) {
+function sendPublishMessageRequest(messageName, correlationKey, variables,
+    timeToLive, messageId) {
   return sendPostRequest("messages", {
     messageName: messageName,
     correlationKey: correlationKey,
@@ -62,14 +62,15 @@ function deployResources(resources) {
 }
 
 function sendCancelProcessInstanceRequest(processInstanceKey) {
-  return sendDeleteRequest("process-instances/" + processInstanceKey, { });
+  return sendDeleteRequest("process-instances/" + processInstanceKey, {});
 }
 
 function sendSetVariablesRequest(processInstanceKey, scopeKey, variables) {
-  return sendPostRequest("process-instances/" + processInstanceKey + "/variables", {
-    scopeKey: scopeKey,
-    variables: variables
-  });
+  return sendPostRequest(
+      "process-instances/" + processInstanceKey + "/variables", {
+        scopeKey: scopeKey,
+        variables: variables
+      });
 }
 
 function sendCompleteJobRequest(jobKey, variables) {
@@ -100,4 +101,14 @@ function sendUpdateRetriesJobRequest(jobKey, retries) {
 
 function sendResolveIncidentRequest(incidentKey) {
   return sendPostRequest("incidents/" + incidentKey + "/resolve", {});
+}
+
+function sendGetConnectorSecretsRequest() {
+  return sendRequest("connector-secrets/", "GET");
+}
+
+function sendUpdateConnectorSecretsRequest(secrets) {
+  return sendPostRequest("connector-secrets/", {
+    secrets: secrets
+  });
 }

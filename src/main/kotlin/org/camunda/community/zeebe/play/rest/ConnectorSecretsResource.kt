@@ -30,6 +30,9 @@ class ConnectorSecretsResource(
 
     @RequestMapping(path = ["/"], method = [RequestMethod.POST])
     fun setSecrets(@RequestBody dto: ConnectorSecretsDto) {
+        // place all secrets with the request data
+        repository.deleteAll()
+
         dto.secrets
             .map {
                 ConnectorSecret(
