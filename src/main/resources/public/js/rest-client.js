@@ -104,11 +104,11 @@ function sendResolveIncidentRequest(incidentKey) {
 }
 
 function sendGetConnectorSecretsRequest() {
-  return sendRequest("connector-secrets/", "GET");
+  return sendRequest("connector-secrets", "GET");
 }
 
 function sendUpdateConnectorSecretsRequest(secrets) {
-  return sendPostRequest("connector-secrets/", {
+  return sendPostRequest("connector-secrets", {
     secrets: secrets
   });
 }

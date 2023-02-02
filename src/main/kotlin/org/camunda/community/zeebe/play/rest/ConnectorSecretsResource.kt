@@ -13,7 +13,7 @@ class ConnectorSecretsResource(
     private val repository: ConnectorSecretRepository
 ) {
 
-    @RequestMapping(path = ["/"], method = [RequestMethod.GET])
+    @RequestMapping(method = [RequestMethod.GET])
     fun getSecrets(): ConnectorSecretsDto {
         return repository.findAll()
             .map {
@@ -28,7 +28,7 @@ class ConnectorSecretsResource(
             }
     }
 
-    @RequestMapping(path = ["/"], method = [RequestMethod.POST])
+    @RequestMapping(method = [RequestMethod.POST])
     fun setSecrets(@RequestBody dto: ConnectorSecretsDto) {
         // place all secrets with the request data
         repository.deleteAll()
