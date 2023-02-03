@@ -1,4 +1,3 @@
-
 function updatePagination(prefix, perPage, currentPage, totalCount) {
 
   let previousButton = $("#" + prefix + "-pagination-previous-button");
@@ -68,7 +67,8 @@ function showNotificationSuccess(id, content) {
 
   const toastId = "new-toast-" + id;
 
-  const newNotificationToast = '<div id="' + toastId + '" class="toast" role="status" aria-live="polite" aria-atomic="true">'
+  const newNotificationToast = '<div id="' + toastId
+      + '" class="toast" role="status" aria-live="polite" aria-atomic="true">'
       + '<div class="toast-header bg-success text-white">'
       + '<strong class="me-auto">Success</strong>'
       + '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>'
@@ -91,7 +91,8 @@ function showNotificationFailure(id, content) {
 
   const toastId = "new-toast-" + id;
 
-  const newNotificationToast = '<div id="' + toastId + '" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">'
+  const newNotificationToast = '<div id="' + toastId
+      + '" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">'
       + '<div class="toast-header bg-danger text-white">'
       + '<strong class="me-auto">Failure</strong>'
       + '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>'
@@ -100,6 +101,30 @@ function showNotificationFailure(id, content) {
       + content
       + '</div>'
       + '</div>';
+
+  let notificationToastContainer = $("#notifications-toast-container");
+
+  notificationToastContainer.append(newNotificationToast);
+
+  let newInstanceToast = $("#" + toastId);
+  let toast = new bootstrap.Toast(newInstanceToast);
+  toast.show();
+}
+
+function showNotificationWarning(id, content) {
+
+  const toastId = "new-toast-" + id;
+
+  const newNotificationToast = `
+    <div id="${toastId}" class="toast" role="warning" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+      <div class="toast-header bg-warning text-white">
+        <strong class="me-auto">Warning</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        ${content}
+      </div>
+    </div>`;
 
   let notificationToastContainer = $("#notifications-toast-container");
 
@@ -146,6 +171,7 @@ function loadView() {
 }
 
 let timer;
+
 function loadViewDebounced(delay = 150) {
   clearTimeout(timer);
   timer = setTimeout(loadView, delay);
@@ -176,7 +202,8 @@ function formatProcessInstanceState(processInstance) {
 
   const error = processInstance.error;
   if (error) {
-    const fillErrorModalAction = 'fillErrorDetailsModal(\'' + processInstance.key + '\');';
+    const fillErrorModalAction = 'fillErrorDetailsModal(\''
+        + processInstance.key + '\');';
     state += ' <span class="badge bg-warning">error</span>'
         + ' <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#error-detail-modal" title="Show error details" onclick="'
         + fillErrorModalAction
@@ -303,7 +330,8 @@ function formatBpmnElementInstance(element) {
   const bpmnElement = formatBpmnElement(element.bpmnElementType);
   const action = 'highlightElement(\'' + element.elementId + '\');';
 
-  const highlightButton = '<button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element"  onclick="' + action + '">'
+  const highlightButton = '<button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element"  onclick="'
+      + action + '">'
       + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
       + '</button> ';
 
@@ -406,7 +434,8 @@ function publishMessage(messageName, messageCorrelationKey) {
   sendPublishMessageRequest(messageName, messageCorrelationKey)
       .done(messageKey => {
         const toastId = "message-published-" + messageKey;
-        const content = 'New message <code>' + messageKey + '</code> published.';
+        const content = 'New message <code>' + messageKey
+            + '</code> published.';
         showNotificationSuccess(toastId, content);
       })
       .fail(showFailure(
@@ -433,7 +462,8 @@ function publishMessageModal() {
   )
       .done(messageKey => {
         const toastId = "message-published-" + messageKey;
-        const content = 'New message <code>' + messageKey + '</code> published.';
+        const content = 'New message <code>' + messageKey
+            + '</code> published.';
         showNotificationSuccess(toastId, content);
       })
       .fail(showFailure(
@@ -506,7 +536,8 @@ function completeJob(jobKey, variables) {
 
   sendCompleteJobRequest(jobKey, variables)
       .done(key => {
-        showNotificationSuccess(toastId, "Job <code>" + jobKey + "</code> completed.");
+        showNotificationSuccess(toastId,
+            "Job <code>" + jobKey + "</code> completed.");
       })
       .fail(showFailure(toastId,
           "Failed to complete job <code>" + jobKey + "</code>.")
@@ -518,7 +549,8 @@ function failJob(jobKey, retries, errorMessage) {
 
   sendFailJobRequest(jobKey, retries, errorMessage)
       .done(key => {
-        showNotificationSuccess(toastId, "Job <code>" + jobKey + "</code> failed.");
+        showNotificationSuccess(toastId,
+            "Job <code>" + jobKey + "</code> failed.");
       })
       .fail(showFailure(toastId,
           "Failed to fail job <code>" + jobKey + "</code>.")
@@ -530,7 +562,8 @@ function throwErrorJob(jobKey, errorCode, errorMessage) {
 
   sendThrowErrorJobRequest(jobKey, errorCode, errorMessage)
       .done(key => {
-        showNotificationSuccess(toastId, "An error <code>" + errorCode + "</code> was thrown for the job <code>" + jobKey + "</code>.");
+        showNotificationSuccess(toastId, "An error <code>" + errorCode
+            + "</code> was thrown for the job <code>" + jobKey + "</code>.");
       })
       .fail(showFailure(toastId,
           "Failed to throw error for the job <code>" + jobKey + "</code>.")
@@ -570,7 +603,8 @@ function resolveIncident(incidentKey, jobKey) {
   if (jobKey) {
     sendUpdateRetriesJobRequest(jobKey, 1)
         .done(key => {
-          showNotificationSuccess(toastId, "Retries of job <code>" + jobKey + "</code> increase.");
+          showNotificationSuccess(toastId,
+              "Retries of job <code>" + jobKey + "</code> increase.");
 
           resolveIncidentByKey(incidentKey);
         })
@@ -587,7 +621,8 @@ function resolveIncidentByKey(incidentKey) {
   const toastId = "incident-resolve-" + incidentKey;
   sendResolveIncidentRequest(incidentKey)
       .done(key => {
-        showNotificationSuccess(toastId, "Incident <code>" + incidentKey + "</code> resolved.");
+        showNotificationSuccess(toastId,
+            "Incident <code>" + incidentKey + "</code> resolved.");
       })
       .fail(showFailure(toastId,
           "Failed to resolve incident <code>" + incidentKey + "</code>.")
@@ -629,3 +664,36 @@ function fillErrorDetailsModal(processInstanceKey) {
   });
 }
 
+function checkForMissingConnectorSecrets(processKey) {
+  sendGetMissingConnectSecretsRequest(processKey)
+      .done(response => {
+        let connectorSecretNames = response.connectorSecretNames;
+        if (connectorSecretNames.length > 0) {
+
+          let buttonId = "add-missing-connector-secrets";
+
+          showNotificationWarning(
+              "connector-secrets-missing",
+              `Connector secrets are missing. The process references secrets that are not set yet.
+                <div class="mt-2 pt-2 border-top">
+                  <button id="${buttonId}" type="button" class="btn btn-outline-primary btn-sm">Add missing secrets</button>
+                </div>`
+          );
+
+          $("#" + buttonId).click(function () {
+
+            let newSecrets = connectorSecretNames.map(function (name) {
+              return {
+                "name": name,
+                "value": "ENTER_YOUR_SECRET"
+              };
+            });
+
+            sendAddConnectorSecretsRequest(newSecrets).done(response => {
+              // switch to connector secrets page
+              window.location.href = "/view/connectors";
+            });
+          });
+        }
+      });
+}

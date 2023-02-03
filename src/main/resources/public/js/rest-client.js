@@ -118,3 +118,8 @@ function sendAddConnectorSecretsRequest(secrets) {
     secrets: secrets
   });
 }
+
+function sendGetMissingConnectSecretsRequest(processKey) {
+  return sendRequest(`processes/${processKey}/missing-connector-secrets`,
+      "GET");
+}
