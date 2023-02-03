@@ -28,11 +28,16 @@ class ConnectorSecretsResource(
             }
     }
 
-    @RequestMapping(method = [RequestMethod.POST])
+    @RequestMapping(method = [RequestMethod.PUT])
     fun setSecrets(@RequestBody dto: ConnectorSecretsDto) {
         // place all secrets with the request data
         repository.deleteAll()
 
+        addSecrets(dto)
+    }
+
+    @RequestMapping(method = [RequestMethod.POST])
+    fun addSecrets(@RequestBody dto: ConnectorSecretsDto) {
         dto.secrets
             .map {
                 ConnectorSecret(

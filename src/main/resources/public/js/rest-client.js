@@ -108,7 +108,13 @@ function sendGetConnectorSecretsRequest() {
 }
 
 function sendUpdateConnectorSecretsRequest(secrets) {
-  return sendPostRequest("connector-secrets", {
+  return sendRequest("connector-secrets", "PUT", {
+    secrets: secrets
+  });
+}
+
+function sendAddConnectorSecretsRequest(secrets) {
+  return sendRequest("connector-secrets", "POST", {
     secrets: secrets
   });
 }
