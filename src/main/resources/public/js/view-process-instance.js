@@ -49,7 +49,10 @@ function loadProcessInstanceView() {
         }
 
         if (!bpmnViewIsLoaded) {
-          subscribeToUpdates('processInstanceKey', processInstance.key, () => loadViewDebounced());
+          subscribeToUpdates('processInstanceKey', processInstance.key,
+              () => loadViewDebounced());
+
+          checkForMissingConnectorSecrets(process.key);
 
           const bpmnXML = process.bpmnXML;
           showBpmn(bpmnXML).then(function (r) {
@@ -426,8 +429,10 @@ function addElementCounters(processInstance) {
     }
   });
 
-  const showElementCountersButton = $("#process-instance-show-element-counters");
-  const hideElementCountersButton = $("#process-instance-hide-element-counters");
+  const showElementCountersButton = $(
+      "#process-instance-show-element-counters");
+  const hideElementCountersButton = $(
+      "#process-instance-hide-element-counters");
 
   showElementCountersButton.click(function () {
     isElementCountersViewEnabled = true;
@@ -592,7 +597,8 @@ function loadUserTasksOfProcessInstance() {
 
           const isActiveTask = userTask.state === "CREATED";
           if (isActiveTask) {
-            makeTaskPlayable(elementId, userTask.key, {isUserTask: true, taskForm: userTask.form?.resource});
+            makeTaskPlayable(elementId, userTask.key,
+                {isUserTask: true, taskForm: userTask.form?.resource});
           }
         });
 
@@ -698,7 +704,7 @@ function formatCorrelatedMessages(messageSubscription) {
 
   let correlatedMessagesFormatted = '<div class="row row-cols-1">'
       + '<div class="col">'
-      + '<span class="badge bg-secondary">' + correlatedMessageCount+ '</span>'
+      + '<span class="badge bg-secondary">' + correlatedMessageCount + '</span>'
       + ' <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" href="#'
       + messageSubscriptionCollapseId
       + '" aria-expanded="false" title="Show correlated messages">'

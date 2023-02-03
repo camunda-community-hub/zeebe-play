@@ -21,7 +21,10 @@ function loadProcessView() {
         $("#process-deployment-time").text(process.deployTime);
 
         if (!bpmnViewIsLoaded) {
-          subscribeToUpdates('processKey', processKey, () => loadViewDebounced());
+          subscribeToUpdates('processKey', processKey,
+              () => loadViewDebounced());
+
+          checkForMissingConnectorSecrets(processKey);
 
           const bpmnXML = process.bpmnXML;
           showBpmn(bpmnXML).then(ok => {
@@ -48,13 +51,16 @@ function loadInstancesOfProcess(currentPage) {
   const processKey = getProcessKey();
   instancesOfProcessCurrentPage = currentPage;
 
-  queryInstancesByProcess(processKey, instancesOfProcessPerPage, instancesOfProcessCurrentPage)
+  queryInstancesByProcess(processKey, instancesOfProcessPerPage,
+      instancesOfProcessCurrentPage)
       .done(function (response) {
 
         let process = response.data.process;
         $("#process-instances-active").text(process.activeInstances.totalCount);
-        $("#process-instances-completed").text(process.completedInstances.totalCount);
-        $("#process-instances-terminated").text(process.terminatedInstances.totalCount);
+        $("#process-instances-completed").text(
+            process.completedInstances.totalCount);
+        $("#process-instances-terminated").text(
+            process.terminatedInstances.totalCount);
 
         let processInstances = process.processInstances;
         let totalCount = processInstances.totalCount;
@@ -63,7 +69,8 @@ function loadInstancesOfProcess(currentPage) {
 
         $("#instances-of-process-table tbody").empty();
 
-        const indexOffset = instancesOfProcessCurrentPage * instancesOfProcessPerPage + 1;
+        const indexOffset = instancesOfProcessCurrentPage
+            * instancesOfProcessPerPage + 1;
 
         processInstances.nodes.forEach((processInstance, index) => {
 
@@ -75,13 +82,14 @@ function loadInstancesOfProcess(currentPage) {
           }
 
           $("#instances-of-process-table tbody:last-child").append('<tr>'
-              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + (indexOffset + index) + '</td>'
               + '<td>'
-              + '<a href="/view/process-instance/' + processInstance.key + '">' + processInstance.key + '</a>'
+              + '<a href="/view/process-instance/' + processInstance.key + '">'
+              + processInstance.key + '</a>'
               + '</td>'
-              + '<td>' + processInstance.startTime +'</td>'
-              + '<td>' + endTime +'</td>'
-              + '<td>' + state +'</td>'
+              + '<td>' + processInstance.startTime + '</td>'
+              + '<td>' + endTime + '</td>'
+              + '<td>' + state + '</td>'
               + '</tr>');
         });
 
@@ -90,7 +98,8 @@ function loadInstancesOfProcess(currentPage) {
 }
 
 function updateInstancesOfProcessPagination(totalCount) {
-  updatePagination("instances-of-process", instancesOfProcessPerPage, instancesOfProcessCurrentPage, totalCount);
+  updatePagination("instances-of-process", instancesOfProcessPerPage,
+      instancesOfProcessCurrentPage, totalCount);
 }
 
 function loadInstancesOfProcessFirst() {
@@ -104,6 +113,7 @@ function loadInstancesOfProcessPrevious() {
 function loadInstancesOfProcessNext() {
   loadInstancesOfProcess(instancesOfProcessCurrentPage + 1);
 }
+
 function loadInstancesOfProcessLast() {
   let last = $("#instances-of-process-pagination-last").text() - 1;
   loadInstancesOfProcess(last);
@@ -129,7 +139,8 @@ function createNewProcessInstanceWith(processKey, variables) {
       .done(processInstanceKey => {
 
         const toastId = "new-instance-" + processInstanceKey;
-        const content = 'New process instance <a id="new-instance-toast-link" href="/view/process-instance/' + processInstanceKey + '">' + processInstanceKey + '</a> created.';
+        const content = 'New process instance <a id="new-instance-toast-link" href="/view/process-instance/'
+            + processInstanceKey + '">' + processInstanceKey + '</a> created.';
         showNotificationSuccess(toastId, content);
       })
       .fail(showFailure(
@@ -158,23 +169,29 @@ function loadMessageSubscriptionsOfProcess() {
 
         messageSubscriptions.forEach((messageSubscription, index) => {
 
-          const fillModalAction = 'fillPublishMessageModal(\'' + messageSubscription.messageName  + '\');';
-          let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#publish-message-modal" title="Publish message" onclick="'+ fillModalAction + '">'
+          const fillModalAction = 'fillPublishMessageModal(\''
+              + messageSubscription.messageName + '\');';
+          let actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#publish-message-modal" title="Publish message" onclick="'
+              + fillModalAction + '">'
               + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>'
               + ' Publish Message'
               + '</button>';
 
-          $("#message-subscriptions-of-process-table > tbody:last-child").append('<tr>'
-              + '<td>' + (indexOffset + index) +'</td>'
+          $("#message-subscriptions-of-process-table > tbody:last-child").append(
+              '<tr>'
+              + '<td>' + (indexOffset + index) + '</td>'
               + '<td>' + messageSubscription.key + '</td>'
-              + '<td>' + messageSubscription.messageName +'</td>'
-              + '<td>' + formatBpmnElementInstance(messageSubscription.element) +'</td>'
+              + '<td>' + messageSubscription.messageName + '</td>'
+              + '<td>' + formatBpmnElementInstance(messageSubscription.element)
+              + '</td>'
               + '<td>' + formatCorrelatedMessages(messageSubscription) + '</td>'
-              + '<td>' + actionButton +'</td>'
+              + '<td>' + actionButton + '</td>'
               + '</tr>');
 
-          const clickAction = 'publishMessage(\'' + messageSubscription.messageName + '\');';
-          addPublishMessageButton(messageSubscription.element.elementId, clickAction, fillModalAction);
+          const clickAction = 'publishMessage(\''
+              + messageSubscription.messageName + '\');';
+          addPublishMessageButton(messageSubscription.element.elementId,
+              clickAction, fillModalAction);
         });
       });
 }
@@ -201,23 +218,25 @@ function loadTimersOfProcess() {
           const state = formatTimerState(timer.state);
           const isActiveTimer = timer.state === "CREATED";
 
-          const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate  + '\');';
+          const fillModalAction = 'fillTimeTravelModal(\'' + timer.dueDate
+              + '\');';
 
           let actionButton = "";
           if (isActiveTimer) {
-            actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#time-travel-modal" title="Time travel" onclick="'+ fillModalAction + '">'
+            actionButton = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#time-travel-modal" title="Time travel" onclick="'
+                + fillModalAction + '">'
                 + '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#clock"/></svg>'
                 + ' Time Travel'
                 + '</button>';
           }
 
           $("#timers-of-process-table tbody:last-child").append('<tr>'
-              + '<td>' + (indexOffset + index) +'</td>'
+              + '<td>' + (indexOffset + index) + '</td>'
               + '<td>' + timer.key + '</td>'
-              + '<td>' + formatTimerRepetitions(timer) +'</td>'
-              + '<td>' + timer.dueDate  + '</td>'
-              + '<td>' + formatBpmnElementInstance(timer.element)  + '</td>'
-              + '<td>' + state +'</td>'
+              + '<td>' + formatTimerRepetitions(timer) + '</td>'
+              + '<td>' + timer.dueDate + '</td>'
+              + '<td>' + formatBpmnElementInstance(timer.element) + '</td>'
+              + '<td>' + state + '</td>'
               + '<td>' + actionButton + '</td>'
               + '</tr>');
 
@@ -243,7 +262,8 @@ function loadProcessElementOverview() {
           const completedElementInstancesCount = element.completedElementInstances.totalCount;
           const terminatedElementInstancesCount = element.terminatedElementInstances.totalCount;
 
-          if (activeElementInstancesCount + completedElementInstancesCount + terminatedElementInstancesCount > 0) {
+          if (activeElementInstancesCount + completedElementInstancesCount
+              + terminatedElementInstancesCount > 0) {
             elementCounters[elementId] = {
               active: activeElementInstancesCount,
               completed: completedElementInstancesCount,
@@ -255,7 +275,8 @@ function loadProcessElementOverview() {
         onBpmnElementHover(function (elementId) {
           const counter = elementCounters[elementId];
           if (counter) {
-            showElementCounters(elementId, counter.active, counter.completed, counter.terminated);
+            showElementCounters(elementId, counter.active, counter.completed,
+                counter.terminated);
           }
         });
 
