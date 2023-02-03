@@ -4,6 +4,7 @@ import io.camunda.zeebe.model.bpmn.Bpmn
 import io.camunda.zeebe.model.bpmn.BpmnModelInstance
 import io.camunda.zeebe.model.bpmn.instance.zeebe.ZeebeInput
 import io.zeebe.zeeqs.data.repository.ProcessRepository
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Controller
 
@@ -27,6 +28,7 @@ class ConnectorService(
         return referencedSecrets.filterNot { existingSecrets.contains(it) }
     }
 
+    @Cacheable(cacheNames = ["processConnectorSecrets"])
     fun getReferencedConnectorSecrets(processDefinitionKey: Long): List<String> {
         return getBpmnModel(processDefinitionKey)
             ?.getModelElementsByType(ZeebeInput::class.java)
