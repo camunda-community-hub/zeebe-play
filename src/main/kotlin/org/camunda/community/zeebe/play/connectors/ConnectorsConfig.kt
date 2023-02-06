@@ -2,7 +2,6 @@ package org.camunda.community.zeebe.play.connectors
 
 import io.camunda.connector.api.secret.SecretProvider
 import io.camunda.connector.runtime.util.outbound.ConnectorJobHandler
-import io.camunda.connector.runtime.util.outbound.OutboundConnectorRegistrationHelper
 import io.camunda.zeebe.client.ZeebeClient
 import io.camunda.zeebe.spring.client.lifecycle.ZeebeClientLifecycle
 import org.slf4j.LoggerFactory
@@ -20,7 +19,8 @@ class ConnectorsConfig(
     private val zeebeClient: ZeebeClient,
     private val secretProvider: SecretProvider,
     private val connectorProperties: ConnectorProperties,
-    private val connectorSecretRepository: ConnectorSecretRepository
+    private val connectorSecretRepository: ConnectorSecretRepository,
+    private val connectorService: ConnectorService
 ) {
 
     private val logger = LoggerFactory.getLogger(ConnectorsConfig::class.java)
@@ -39,8 +39,8 @@ class ConnectorsConfig(
             return
         }
 
-        OutboundConnectorRegistrationHelper
-            .parseFromSPI()
+        connectorService
+            .findAvailableConnectors()
             .forEach { connectorConfig ->
                 zeebeClient
                     .newWorker()
