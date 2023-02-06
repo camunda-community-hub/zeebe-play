@@ -1,5 +1,7 @@
 package org.camunda.community.zeebe.play.connectors
 
+import io.camunda.connector.impl.outbound.OutboundConnectorConfiguration
+import io.camunda.connector.runtime.util.outbound.OutboundConnectorRegistrationHelper
 import io.camunda.zeebe.model.bpmn.Bpmn
 import io.camunda.zeebe.model.bpmn.BpmnModelInstance
 import io.camunda.zeebe.model.bpmn.instance.zeebe.ZeebeInput
@@ -49,6 +51,12 @@ class ConnectorService(
         return secretRegex
             .findAll(text)
             .map { it.groupValues[1] }
+            .toList()
+    }
+
+    fun findAvailableConnectors(): List<OutboundConnectorConfiguration> {
+        return OutboundConnectorRegistrationHelper
+            .parseFromSPI()
             .toList()
     }
 

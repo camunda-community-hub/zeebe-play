@@ -21,6 +21,10 @@ function sendDeleteRequest(path, data) {
   return sendRequest(path, 'DELETE', data);
 }
 
+function sendGetRequest(path, data) {
+  return sendRequest(path, 'GET', data);
+}
+
 function sendCreateInstanceRequest(processKey, variables) {
   return sendPostRequest("processes/" + processKey, variables);
 }
@@ -104,7 +108,7 @@ function sendResolveIncidentRequest(incidentKey) {
 }
 
 function sendGetConnectorSecretsRequest() {
-  return sendRequest("connector-secrets", "GET");
+  return sendGetRequest("connector-secrets");
 }
 
 function sendUpdateConnectorSecretsRequest(secrets) {
@@ -120,6 +124,9 @@ function sendAddConnectorSecretsRequest(secrets) {
 }
 
 function sendGetMissingConnectSecretsRequest(processKey) {
-  return sendRequest(`processes/${processKey}/missing-connector-secrets`,
-      "GET");
+  return sendGetRequest(`processes/${processKey}/missing-connector-secrets`);
+}
+
+function sendGetAvailableConnectorsRequest() {
+  return sendGetRequest(`connectors`)
 }
