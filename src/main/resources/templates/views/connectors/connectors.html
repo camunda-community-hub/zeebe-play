@@ -14,13 +14,21 @@
   <div class="row">
     <div class="col">
 
-      <ul class="nav nav-tabs" id="deployment-tabs" role="tablist">
+      <ul class="nav nav-tabs" id="connector-secrets-tabs" role="tablist">
         <li class="nav-item" role="presentation">
           <button class="nav-link active" id="connector-secrets-tab" data-bs-toggle="tab"
                   data-bs-target="#connector-secrets" type="button" role="tab"
                   aria-controls="connector-secrets" aria-selected="true">
             Connector Secrets
             <span class="badge bg-light text-dark" id="connector-secrets-totalCount">0</span>
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="available-connectors-tab" data-bs-toggle="tab"
+                  data-bs-target="#available-connectors" type="button" role="tab"
+                  aria-controls="available-connectors" aria-selected="false">
+            Available Connectors
+            <span class="badge bg-light text-dark" id="available-connectors-totalCount">0</span>
           </button>
         </li>
       </ul>
@@ -30,10 +38,15 @@
 
   <div class="container-fluid">
 
-    <div class="tab-content" id="connector-secrets-content">
+    <div class="tab-content" id="connector-content">
       <div class="tab-pane fade show active" id="connector-secrets" role="tabpanel"
            aria-labelledby="connector-secrets-tab">
         <div th:replace="views/connectors/connector-secrets.html :: connector-secrets"></div>
+      </div>
+
+      <div class="tab-pane fade" id="available-connectors" role="tabpanel"
+           aria-labelledby="available-connectors-tab">
+        <div th:replace="views/connectors/available-connectors.html :: available-connectors"></div>
       </div>
     </div>
 

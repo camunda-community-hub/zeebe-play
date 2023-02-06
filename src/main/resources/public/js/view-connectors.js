@@ -3,6 +3,7 @@ let connectorSecrets = {}
 
 function loadConnectorsView() {
   loadConnectorSecrets();
+  loadAvailableConnectors();
 }
 
 function loadConnectorSecrets() {
@@ -92,5 +93,29 @@ function updateConnectSecrets() {
   sendUpdateConnectorSecretsRequest(connectorSecrets).done(response => {
     // reload page
     loadConnectorSecrets();
+  });
+}
+
+function loadAvailableConnectors() {
+
+  sendGetAvailableConnectorsRequest().done(response => {
+    let connectors = response.connectors;
+
+    $("#available-connectors-totalCount").text(connectors.length);
+    $("#available-connectors-table tbody").empty();
+
+    connectors.forEach((connector, index) => {
+
+      let row = `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${connector.name}</td>
+          <td>
+            <code>${connector.type}</code>
+          </td>         
+        </tr>`;
+
+      $("#available-connectors-table tbody:last-child").append(row);
+    })
   });
 }
