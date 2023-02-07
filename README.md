@@ -35,10 +35,10 @@ Zeebe-Play is build on top of other great community projects, for example:
 
 ### 🔥 Disclaimer
 
-This project is a **community-driven** extension and not officially supported by Camunda. It is 
+This project is a **community-driven** extension and not officially supported by Camunda. It is
 **not recommended** to be used in a production environment.
 
-## :fuelpump: Install 
+## :fuelpump: Install
 
 ### Docker
 
@@ -49,10 +49,11 @@ to [GitHub Packages](https://github.com/orgs/camunda-community-hub/packages/cont
 Pull the image using the following command:
 
 ```
-docker pull ghcr.io/camunda-community-hub/zeebe-play:1.2.0
+docker pull ghcr.io/camunda-community-hub/zeebe-play:1.3.0
 ```
 
-Next, have a look at [usage](#-usage) on how to start the docker container, and the different configurations.
+Next, have a look at [usage](#-usage) on how to start the docker container, and the different
+configurations.
 
 ### Docker Compose
 
@@ -99,7 +100,7 @@ state (i.e. no data on restart).
 Use the following command to start the docker container:
 
 ```
-docker run -p 8080:8080 -p 26500:26500 ghcr.io/camunda-community-hub/zeebe-play:1.2.0
+docker run -p 8080:8080 -p 26500:26500 ghcr.io/camunda-community-hub/zeebe-play:1.3.0
 ```
 
 - expose port `8080` for the web application
@@ -108,7 +109,7 @@ docker run -p 8080:8080 -p 26500:26500 ghcr.io/camunda-community-hub/zeebe-play:
 Or, if you run it on your local machine (Linux only):
 
 ```
-docker run --network="host" ghcr.io/camunda-community-hub/zeebe-play:1.2.0
+docker run --network="host" ghcr.io/camunda-community-hub/zeebe-play:1.3.0
 ```
 
 ### Connecting to a remote Zeebe engine
@@ -132,7 +133,7 @@ For example, using the pre-built community Zeebe image with Hazelcast exporter:
 docker run -p 26500:26500 -p 5701:5701 -e ZEEBE_CLOCK_CONTROLLED=true ghcr.io/camunda-community-hub/zeebe-with-hazelcast-exporter:8.0.5
 ```
 
-Or, if you run it on your local machine (Linux only): 
+Or, if you run it on your local machine (Linux only):
 
 ```
 docker run --network="host" -e ZEEBE_CLOCK_CONTROLLED=true ghcr.io/camunda-community-hub/zeebe-with-hazelcast-exporter:8.0.5
@@ -154,13 +155,13 @@ docker run --network="host" -e ZEEBE_CLOCK_CONTROLLED=true ghcr.io/camunda-commu
     - `zeebe.client.worker.hazelcast.connection` (application.yaml)
 
 ```
-docker run -p 8080:8080 -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.2.0
+docker run -p 8080:8080 -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.3.0
 ```
 
 Or, if you run it on your local machine (Linux only):
 
 ```
-docker run --network="host" -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.2.0
+docker run --network="host" -e ZEEBE_ENGINE=remote ghcr.io/camunda-community-hub/zeebe-play:1.3.0
 ```
 
 ### Enable persistence
@@ -220,9 +221,9 @@ to Zeebe-Play but it focuses more on monitoring process instances.
 The goal of Zeebe-Play is to walk through a single process instance in an intuative way to
 understand how it is executed.
 
-Additionally, Zeebe-Play has a different 
+Additionally, Zeebe-Play has a different
 [architecture](https://github.com/camunda-community-hub/zeebe-play/blob/main/CONTRIBUTING.md#architecture)
-to benefit from other community projects and to build a more responsive frontend. 
+to benefit from other community projects and to build a more responsive frontend.
 
 ### Can I use it in production?
 
