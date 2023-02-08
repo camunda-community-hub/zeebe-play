@@ -29,29 +29,27 @@ class ConnectorsConfig(
     fun startConnectors() {
         if (zeebeClient is ZeebeClientLifecycle) {
             // The connectors are managed by the Spring Zeebe client itself.
+            // Currently, it is not possible to disable the connectors. See
+            // https://github.com/camunda-community-hub/spring-zeebe/issues/325.
             return
         }
 
-        if (!connectorProperties.enabled) {
-            logger.info("Zeebe connectors are disabled in the configuration.")
-            // Disabling doesn't work if the connectors are managed by Spring Zeebe.
-            // See https://github.com/camunda-community-hub/spring-zeebe/issues/325.
-            return
+        if (connectorProperties.mode == ConnectorProperties.ConnectorsMode.ACTIVE) {
+            // start all connectors
+            connectorService
+                .findAvailableConnectors()
+                .forEach { connectorConfig ->
+                    zeebeClient
+                        .newWorker()
+                        .jobType(connectorConfig.type)
+                        .handler(ConnectorJobHandler(connectorConfig.function, secretProvider))
+                        .name(connectorConfig.name)
+                        .fetchVariables(connectorConfig.inputVariables.toList())
+                        .open()
+
+                    logger.info("Start Zeebe connector. [name: '${connectorConfig.name}', type: '${connectorConfig.type}']")
+                }
         }
-
-        connectorService
-            .findAvailableConnectors()
-            .forEach { connectorConfig ->
-                zeebeClient
-                    .newWorker()
-                    .jobType(connectorConfig.type)
-                    .handler(ConnectorJobHandler(connectorConfig.function, secretProvider))
-                    .name(connectorConfig.name)
-                    .fetchVariables(connectorConfig.inputVariables.toList())
-                    .open()
-
-                logger.info("Start Zeebe connector. [name: '${connectorConfig.name}', type: '${connectorConfig.type}']")
-            }
     }
 
     @PostConstruct
