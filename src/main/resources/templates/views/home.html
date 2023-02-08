@@ -149,10 +149,15 @@
         </h5>
         <div class="card-body">
           <p class="card-text">
-            A task <span class="bpmn-icon-service-task fs-3"></span> can be defined as a <a
+            Select a task <span class="bpmn-icon-service-task fs-3"></span> of an available <a
               href="https://docs.camunda.io/docs/components/connectors/use-connectors/"
-              target="_blank">connector</a>. If the connector is available, the task gets completed
-            automatically.
+              target="_blank">connector</a> and click on
+            <button type="button" class="btn btn-sm btn-primary">
+              <svg class="bi" width="18" height="18" fill="white">
+                <use xlink:href="/img/bootstrap-icons.svg#plugin"/>
+              </svg>
+            </button>
+            to invoke the connector and complete the task.
           </p>
           <p class="card-text">
             Go to <a href="/view/connectors">connectors</a> and see the available connectors.
