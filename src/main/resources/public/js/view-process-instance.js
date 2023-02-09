@@ -9,7 +9,11 @@ function getProcessInstanceKey() {
   return $("#process-instance-page-key").text();
 }
 
-let processId;
+function getBpmnProcessId() {
+  return $("#bpmn-process-id").text();
+}
+
+let currentProcessKey;
 const history = JSON.parse(localStorage.getItem('history ' + window.getProcessInstanceKey?.()) || "[]");
 function refreshHistory() {
   const key = getProcessInstanceKey();
@@ -44,7 +48,7 @@ function loadProcessInstanceView() {
         let processInstance = response.data.processInstance;
         let process = processInstance.process;
 
-        processId = process.key;
+        currentProcessKey = process.key;
 
         $("#process-instance-key").text(processInstance.key);
         $("#process-instance-start-time").text(processInstance.startTime);
@@ -60,7 +64,7 @@ function loadProcessInstanceView() {
 
         $("#process-instance-state").html(state);
 
-        $("#process-page-key").html(
+        $("#bpmn-process-id").html(
             '<a href="/view/process/' + process.key + '">'
             + process.bpmnProcessId
             + '</a>'
@@ -127,7 +131,7 @@ async function rewind(task) {
   let startVariables = {};
   if (history[0]?.action === 'start') {
     startVariables = history[0].variables;
-  } else if (getProcessKey() === 'solos-transport-process') {
+  } else if (getBpmnProcessId() === 'solos-transport-process') {
     startVariables = {
       "captain": "Han Solo",
       "ship": "Millennium Falcon"
@@ -146,7 +150,7 @@ async function rewind(task) {
   });
   setTimeout(() => blocker.style.opacity = 1);
 
-  const newId = await sendCreateInstanceRequest(processId, startVariables);
+  const newId = await sendCreateInstanceRequest(currentProcessKey, startVariables);
   const newHistory = [];
 
   try {
@@ -160,7 +164,8 @@ async function rewind(task) {
       switch(step.action) {
         case 'start': break; // start action is already handled when new instance was created
         case 'publishMessage': 
-          await sendPublishMessageRequest(step.messageName, step.messageCorrelationKey); 
+          await waitForMessageSubscription(newId, step.messageName, step.messageCorrelationKey)
+          await sendPublishMessageRequest(step.messageName, step.messageCorrelationKey, step.variables, step.timeToLive, step.messageId); 
           break;
         case 'timeTravel': 
           const timer = await fetchTimerForElement(newId, step.elementId);
@@ -192,6 +197,29 @@ async function rewind(task) {
 
   localStorage.setItem('history ' + newId, JSON.stringify(newHistory));
   window.location.href = '/view/process-instance/' + newId;
+}
+
+function waitForMessageSubscription(id, messageName, correlationKey) {
+  return new Promise((resolve, reject) => {
+    let remainingTries = 6;
+    let interval = setInterval(() => {
+      queryMessageSubscriptionsByProcessInstance(id).done(response => {
+        remainingTries--;
+        const subscription = response.data.processInstance.messageSubscriptions.some(subscription => 
+          subscription.messageName === messageName &&
+          subscription.messageCorrelationKey === correlationKey
+        );
+        if(subscription) {
+          clearInterval(interval);
+          return resolve();
+        }
+        if(remainingTries === 0) {
+          clearInterval(interval);
+          return reject();
+        }
+      });
+    }, 250);
+  });
 }
 
 function fetchTimerForElement(id, elementId) {

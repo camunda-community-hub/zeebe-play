@@ -455,12 +455,21 @@ function fillPublishMessageModal(messageName, correlationKey) {
 }
 
 function publishMessageModal() {
+  const messageName = $("#publishMessageName").val();
+  const messageCorrelationKey = $("#publishMessageCorrelationKey").val();
+  const variables = $("#publishMessageVariables").val();
+  const timeToLive = $("#publishMessageTimeToLive").val();
+  const messageId = $("#publishMessageId").val();
+
+  history.push({action: 'publishMessage', messageName, messageCorrelationKey, variables, timeToLive, messageId});
+  refreshHistory();
+
   sendPublishMessageRequest(
-      $("#publishMessageName").val(),
-      $("#publishMessageCorrelationKey").val(),
-      $("#publishMessageVariables").val(),
-      $("#publishMessageTimeToLive").val(),
-      $("#publishMessageId").val()
+      messageName,
+      messageCorrelationKey,
+      variables,
+      timeToLive,
+      messageId
   )
       .done(messageKey => {
         const toastId = "message-published-" + messageKey;
@@ -542,7 +551,7 @@ function completeJob(jobKey, variables) {
 
   const task = jobKeyToElementIdMapping[jobKey];
   if(task) {
-    localStorage.setItem('jobCompletion ' + getProcessKey() + ' ' + task, variables);
+    localStorage.setItem('jobCompletion ' + getBpmnProcessId() + ' ' + task, variables);
   }
 
   history.push({action: 'completeJob', task, variables});

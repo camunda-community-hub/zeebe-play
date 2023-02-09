@@ -222,7 +222,7 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
     });
   }
 
-  const cachedResponse = localStorage.getItem('jobCompletion ' + getProcessKey() + ' ' + elementId);
+  const cachedResponse = localStorage.getItem('jobCompletion ' + getBpmnProcessId() + ' ' + elementId);
   if(!taskForm && cachedResponse && Object.keys(JSON.parse(cachedResponse)).length > 0) {
     actions.push({
       icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#robot"/></svg>',

@@ -14,7 +14,7 @@ function showTaskModal(jobKey, elementId) {
     const form = JSON.parse(response.data.userTask.form.resource);
 
     const cachedData = localStorage.getItem(
-      "jobCompletion " + getProcessKey() + " " + elementId
+      "jobCompletion " + getBpmnProcessId() + " " + elementId
     );
     const cachedVariables = JSON.parse(cachedData || "{}");
 
