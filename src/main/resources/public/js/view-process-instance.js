@@ -128,16 +128,6 @@ function makeTasksReplayable() {
 }
 
 async function rewind(task) {
-  let startVariables = {};
-  if (history[0]?.action === 'start') {
-    startVariables = history[0].variables;
-  } else if (getBpmnProcessId() === 'solos-transport-process') {
-    startVariables = {
-      "captain": "Han Solo",
-      "ship": "Millennium Falcon"
-    };
-  }
-
   const blocker = document.createElement('div');
   blocker.setAttribute('id', 'rewind-blocker');
   blocker.innerHTML = '<svg class="bi" style="fill: black;"><use xlink:href="/img/bootstrap-icons.svg#rewind-fill"/></svg> Rewinding…';
@@ -150,10 +140,32 @@ async function rewind(task) {
   });
   setTimeout(() => blocker.style.opacity = 1);
 
-  const newId = await sendCreateInstanceRequest(currentProcessKey, startVariables);
-  const newHistory = [];
-
+  let newId, newHistory;
   try {
+    const startEvent = await getStartEvent(getProcessInstanceKey());
+
+    if (!startEvent.eventDefinitions) {
+      // none start event, could be started with variables
+      let startVariables = {};
+      if (history[0]?.action === 'start') {
+        startVariables = history[0].variables;
+      } else if (getBpmnProcessId() === 'solos-transport-process') {
+        startVariables = {
+          "captain": "Han Solo",
+          "ship": "Millennium Falcon"
+        };
+      }
+      newId = await sendCreateInstanceRequest(currentProcessKey, startVariables);
+    } else if (startEvent.eventDefinitions[0].$type === 'bpmn:MessageEventDefinition') {
+      // message start event
+      newId = await createNewInstanceFromMessageStartEvent(startEvent);
+    } else if (startEvent.eventDefinitions[0].$type === 'bpmn:TimerEventDefinition') {
+      // timer start event
+      newId = await createNewInstanceFromTimerStartEvent(startEvent);
+    }
+
+    newHistory = [];
+
     for(let i = 0; i < history.length; i++) {
       const step = history[i];
 
@@ -193,10 +205,82 @@ async function rewind(task) {
   } catch(e) {
     // could not finish the rewinding. This could be due to missing history or failed requests
     // in this case, we still want to send the user to the newly created instance
+
+    if(!newId) {
+      // if it failed while creating the new instance, we should remove the blocker again and inform the user
+      document.body.removeChild(blocker);
+      showNotificationFailure('rewind-failure', 
+        "Could not rewind this process instance." +
+        "<br /><br />" +
+        "<a href=\"https://github.com/camunda-community-hub/zeebe-play/issues/new?assignees=&labels=bug&template=bug_report.md&title=\">" +
+        "Please file a bug report!"+
+        "</a>");
+    }
   }
 
-  localStorage.setItem('history ' + newId, JSON.stringify(newHistory));
-  window.location.href = '/view/process-instance/' + newId;
+  if(newId && newHistory) {
+    localStorage.setItem('history ' + newId, JSON.stringify(newHistory));
+    window.location.href = '/view/process-instance/' + newId;
+  }
+
+}
+
+async function getStartEvent(processInstanceKey) {
+  const response = await queryElementInstancesByProcessInstance(processInstanceKey);
+
+  const elementId = response.data.processInstance?.completedElementInstances.find(({element}) => 
+    element.bpmnElementType === 'START_EVENT')?.element.elementId;
+
+  return elementRegistry.get(elementId)?.businessObject;
+}
+
+async function createNewInstanceFromTimerStartEvent(startEvent) {
+  const timers = await queryTimersByProcess(currentProcessKey);
+
+  const correctTimer = timers.data.process.timers.find(timer => 
+    timer.state === 'CREATED' && timer.element.elementId === startEvent.id);
+  
+  const numberOfCurrentInstances = await getNumberOfCurrentInstancesFor(currentProcessKey);
+  await sendTimeTravelRequestWithDateTime(correctTimer.dueDate);
+
+  return await waitForNewInstanceFor(currentProcessKey, numberOfCurrentInstances);
+}
+
+async function createNewInstanceFromMessageStartEvent(startEvent) {
+  const messageName = startEvent.eventDefinitions[0].messageRef.name;
+
+  const numberOfCurrentInstances = await getNumberOfCurrentInstancesFor(currentProcessKey);
+  await sendPublishMessageRequest(messageName);
+
+  return await waitForNewInstanceFor(currentProcessKey, numberOfCurrentInstances);
+}
+
+async function getNumberOfCurrentInstancesFor(processKey) {
+  const response = await queryInstancesByProcess(processKey, 1, 0);
+
+  return response.data.process.processInstances.totalCount;
+}
+
+function waitForNewInstanceFor(processKey, numberOfExistingInstances) {
+  return new Promise((resolve, reject) => {
+    let remainingTries = 6;
+    let interval = setInterval(() => {
+      queryInstancesByProcess(processKey, 1, numberOfExistingInstances).done(response => {
+        remainingTries--;
+
+        const newInstance = response.data.process.processInstances.nodes[0];
+
+        if(newInstance) {
+          clearInterval(interval);
+          return resolve(newInstance.key);
+        }
+        if(remainingTries === 0) {
+          clearInterval(interval);
+          return reject();
+        }
+      });
+    }, 250);
+  });
 }
 
 function waitForMessageSubscription(id, messageName, correlationKey) {
