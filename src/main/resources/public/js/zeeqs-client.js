@@ -750,7 +750,7 @@ function queryVariablesByUserTask(userTask) {
   return fetchData(variablesByUserTaskQuery, { key: userTask });
 }
 
-function subscribeToUpdates(type, key, handler) {
+function subscribeToProcessInstanceUpdates(type, key, handler) {
   const socketProtocol = window.location.protocol === "https:" ? "wss" : "ws";
   const socket = new WebSocket(
     socketProtocol + "://" + window.location.host + "/graphql"
