@@ -1,43 +1,67 @@
 <div th:fragment="process-details-message-subscriptions">
   <div class="row">
     <div class="col">
-
-      <table class="table table-striped table-hover caption-top" id="message-subscriptions-of-process-table">
+      <table
+        class="table table-striped table-hover caption-top"
+        id="message-subscriptions-of-process-table"
+      >
         <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Message Subscription Key</th>
-          <th scope="col">Message Name</th>
-          <th scope="col">Element</th>
-          <th scope="col"># Correlated Messages</th>
-          <th scope="col"></th>
-        </tr>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Message Subscription Key</th>
+            <th scope="col">Message Name</th>
+            <th scope="col">Element</th>
+            <th scope="col"># Correlated Messages</th>
+            <th scope="col"></th>
+          </tr>
         </thead>
         <tbody>
-        <tr>
-          <td>1</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>
-            <span class="badge bg-secondary">0</span>
-          </td>
-          <td>
-            <div class="btn-group">
-              <button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Publish Message" onclick="publishMessage(' + messageName + ');">
-                <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#envelope"/></svg>
-              </button>
-              <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
+          <tr>
+            <td>1</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>
+              <span class="badge bg-secondary">0</span>
+            </td>
+            <td>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary overlay-button"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="bottom"
+                  title="Publish Message"
+                  onclick="publishMessage(' + messageName + ');"
+                >
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#envelope" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
                 <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#publish-message-modal" href="#">with variables</a></li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      data-bs-toggle="modal"
+                      data-bs-target="#publish-message-modal"
+                      href="#"
+                      >with variables</a
+                    >
+                  </li>
                 </ul>
               </div>
-          </td>
-        </tr>
+            </td>
+          </tr>
         </tbody>
       </table>
-
     </div>
   </div>
-
 </div>

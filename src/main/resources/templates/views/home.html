@@ -1,175 +1,198 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head"></head>
-<body onload="loadHomeView();">
+  <head th:replace="fragments/header :: head"></head>
+  <body onload="loadHomeView();">
+    <div th:replace="fragments/navbar :: navbar"></div>
 
-<div th:replace="fragments/navbar :: navbar"></div>
-
-<div class="container-fluid w-75">
-  <div class="row row-cols-1 row-cols-md-3 g-4">
-
-    <div class="col">
-      <div class="card h-100">
-        <h5 class="card-header">
-          <svg class="bi" width="24" height="24">
-            <use xlink:href="/img/bootstrap-icons.svg#upload"/>
-          </svg>
-          Get started
-        </h5>
-        <div class="card-body">
-          <p class="card-text">
-            Go to <a href="/view/deployment">deployments</a> and click on
-            <button type="button" class="btn btn-sm btn-primary">
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#upload"/>
+    <div class="container-fluid w-75">
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+          <div class="card h-100">
+            <h5 class="card-header">
+              <svg class="bi" width="24" height="24">
+                <use xlink:href="/img/bootstrap-icons.svg#upload" />
               </svg>
-            </button>
-            to deploy a new process and other resources. Or, use the Camunda modeler or a Zeebe
-            client.
-          </p>
-          <p class="card-text">
-            Select the deployed process, look for the start event <span
-              class="bpmn-icon-start-event-none fs-3"></span> and
-            click on
-            <button type="button" class="btn btn-sm btn-primary">
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#play"/>
+              Get started
+            </h5>
+            <div class="card-body">
+              <p class="card-text">
+                Go to <a href="/view/deployment">deployments</a> and click on
+                <button type="button" class="btn btn-sm btn-primary">
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#upload" />
+                  </svg>
+                </button>
+                to deploy a new process and other resources. Or, use the Camunda
+                modeler or a Zeebe client.
+              </p>
+              <p class="card-text">
+                Select the deployed process, look for the start event
+                <span class="bpmn-icon-start-event-none fs-3"></span> and click
+                on
+                <button type="button" class="btn btn-sm btn-primary">
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#play" />
+                  </svg>
+                </button>
+                to create a new process instance.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card h-100">
+            <h5 class="card-header">
+              <svg class="bi" width="32" height="32">
+                <use xlink:href="/img/bootstrap-icons.svg#play" />
               </svg>
-            </button>
-            to create a new process instance.
-          </p>
+              Drive the process instance
+            </h5>
+            <div class="card-body">
+              <p class="card-text">
+                Select a task
+                <span class="bpmn-icon-service-task fs-3"></span> and click on
+                <button type="button" class="btn btn-sm btn-primary">
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#play" />
+                  </svg>
+                </button>
+                to complete it.
+              </p>
+              <p class="card-text">
+                Or, select a start event
+                <span class="bpmn-icon-start-event-message fs-3"></span> or a
+                catch event
+                <span
+                  class="bpmn-icon-intermediate-event-catch-timer fs-3"
+                ></span>
+                and publish a message
+                <button type="button" class="btn btn-sm btn-primary">
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#envelope" />
+                  </svg>
+                </button>
+                or manipulate the time
+                <button type="button" class="btn btn-sm btn-primary">
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#clock" />
+                  </svg>
+                </button>
+                to trigger the event.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card h-100">
+            <h5 class="card-header">
+              <svg class="bi" width="32" height="32">
+                <use xlink:href="/img/bootstrap-icons.svg#easel" />
+              </svg>
+              Demo process
+            </h5>
+            <div class="card-body">
+              <p class="card-text">
+                Try out Zeebe Play by using a demo process. Click on the buttons
+                below.
+              </p>
+            </div>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">
+                <button class="btn btn-sm btn-primary" onclick="deployDemo();">
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#upload" />
+                  </svg>
+                </button>
+                First, deploy the demo process
+              </li>
+              <li class="list-group-item">
+                <button
+                  id="demo-create-instance-button"
+                  class="btn btn-sm btn-primary"
+                  disabled
+                >
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#play" />
+                  </svg>
+                </button>
+                Then, create a new process instance
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card h-100">
+            <h5 class="card-header">
+              <svg class="bi" width="32" height="32">
+                <use xlink:href="/img/bootstrap-icons.svg#person" />
+              </svg>
+              User forms
+            </h5>
+            <div class="card-body">
+              <p class="card-text">
+                Select a user task
+                <span class="bpmn-icon-user-task fs-3"></span> with a
+                <a
+                  href="https://docs.camunda.io/docs/guides/utilizing-forms/"
+                  target="_blank"
+                  >Camunda form</a
+                >
+                and click on
+                <button type="button" class="btn btn-sm btn-primary">
+                  <img
+                    width="18"
+                    height="18"
+                    style="margin-top: -4px"
+                    src="/img/edit-form.svg"
+                  />
+                </button>
+                to see the form and fill it out. The user task gets completed
+                with the form data.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card h-100">
+            <h5 class="card-header">
+              <svg class="bi" width="32" height="32">
+                <use xlink:href="/img/bootstrap-icons.svg#plugin" />
+              </svg>
+              Connectors
+              <span class="badge bg-success">New</span>
+            </h5>
+            <div class="card-body">
+              <p class="card-text">
+                Select a task
+                <span class="bpmn-icon-service-task fs-3"></span> of an
+                available
+                <a
+                  href="https://docs.camunda.io/docs/components/connectors/use-connectors/"
+                  target="_blank"
+                  >connector</a
+                >
+                and click on
+                <button type="button" class="btn btn-sm btn-primary">
+                  <svg class="bi" width="18" height="18" fill="white">
+                    <use xlink:href="/img/bootstrap-icons.svg#plugin" />
+                  </svg>
+                </button>
+                to invoke the connector and complete the task.
+              </p>
+              <p class="card-text">
+                Go to <a href="/view/connectors">connectors</a> and see the
+                available connectors.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="col">
-      <div class="card h-100">
-        <h5 class="card-header">
-          <svg class="bi" width="32" height="32">
-            <use xlink:href="/img/bootstrap-icons.svg#play"/>
-          </svg>
-          Drive the process instance
-        </h5>
-        <div class="card-body">
-          <p class="card-text">
-            Select a task <span class="bpmn-icon-service-task fs-3"></span> and click on
-            <button type="button" class="btn btn-sm btn-primary">
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#play"/>
-              </svg>
-            </button>
-            to complete it.
-          </p>
-          <p class="card-text">
-            Or, select a start event <span
-              class="bpmn-icon-start-event-message fs-3"></span>
-            or a catch event <span class="bpmn-icon-intermediate-event-catch-timer fs-3"></span>
-            and publish a message
-            <button type="button" class="btn btn-sm btn-primary">
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#envelope"/>
-              </svg>
-            </button>
-            or manipulate the time
-            <button type="button" class="btn btn-sm btn-primary">
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#clock"/>
-              </svg>
-            </button>
-            to trigger the event.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="card h-100">
-        <h5 class="card-header">
-          <svg class="bi" width="32" height="32">
-            <use xlink:href="/img/bootstrap-icons.svg#easel"/>
-          </svg>
-          Demo process
-        </h5>
-        <div class="card-body">
-          <p class="card-text">
-            Try out Zeebe Play by using a demo process. Click on the buttons below.
-          </p>
-        </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">
-            <button class="btn btn-sm btn-primary" onclick="deployDemo();">
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#upload"/>
-              </svg>
-            </button>
-            First, deploy the demo process
-          </li>
-          <li class="list-group-item">
-            <button id="demo-create-instance-button" class="btn btn-sm btn-primary" disabled>
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#play"/>
-              </svg>
-            </button>
-            Then, create a new process instance
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="card h-100">
-        <h5 class="card-header">
-          <svg class="bi" width="32" height="32">
-            <use xlink:href="/img/bootstrap-icons.svg#person"/>
-          </svg>
-          User forms
-        </h5>
-        <div class="card-body">
-          <p class="card-text">
-            Select a user task <span class="bpmn-icon-user-task fs-3"></span> with a <a
-              href="https://docs.camunda.io/docs/guides/utilizing-forms/" target="_blank">Camunda
-            form</a> and click on
-            <button type="button" class="btn btn-sm btn-primary">
-              <img width="18" height="18" style="margin-top:-4px;" src="/img/edit-form.svg"/>
-            </button>
-            to see the form and fill it out. The user task gets completed with the form data.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="card h-100">
-        <h5 class="card-header">
-          <svg class="bi" width="32" height="32">
-            <use xlink:href="/img/bootstrap-icons.svg#plugin"/>
-          </svg>
-          Connectors
-          <span class="badge bg-success">New</span>
-        </h5>
-        <div class="card-body">
-          <p class="card-text">
-            Select a task <span class="bpmn-icon-service-task fs-3"></span> of an available <a
-              href="https://docs.camunda.io/docs/components/connectors/use-connectors/"
-              target="_blank">connector</a> and click on
-            <button type="button" class="btn btn-sm btn-primary">
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#plugin"/>
-              </svg>
-            </button>
-            to invoke the connector and complete the task.
-          </p>
-          <p class="card-text">
-            Go to <a href="/view/connectors">connectors</a> and see the available connectors.
-          </p>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<footer th:replace="fragments/footer :: footer"></footer>
-
-</body>
+    <footer th:replace="fragments/footer :: footer"></footer>
+  </body>
 </html>

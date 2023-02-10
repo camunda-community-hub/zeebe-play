@@ -1,72 +1,125 @@
 <div th:fragment="messages">
   <div class="row">
     <div class="col">
-
-      <table class="table table-striped table-hover caption-top" id="messages-table">
+      <table
+        class="table table-striped table-hover caption-top"
+        id="messages-table"
+      >
         <caption>
-          published <span class="badge bg-primary" id="messages-published">0</span> /
-          expired <span class="badge bg-secondary"  id="messages-expired">0</span>
+          published
+          <span class="badge bg-primary" id="messages-published">0</span>
+          / expired
+          <span class="badge bg-secondary" id="messages-expired">0</span>
         </caption>
         <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Message Key</th>
-          <th scope="col">Message Name</th>
-          <th scope="col">Message Correlation Key</th>
-          <th scope="col">Message Details</th>
-          <th scope="col"># Correlated Instances</th>
-          <th scope="col">State</th>
-        </tr>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Message Key</th>
+            <th scope="col">Message Name</th>
+            <th scope="col">Message Correlation Key</th>
+            <th scope="col">Message Details</th>
+            <th scope="col"># Correlated Instances</th>
+            <th scope="col">State</th>
+          </tr>
         </thead>
         <tbody>
-        <tr>
-          <td>1</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-        </tr>
+          <tr>
+            <td>1</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
         </tbody>
       </table>
-
     </div>
   </div>
 
   <div class="row justify-content-center">
     <div class="col-auto">
-
       <nav aria-label="Page navigation processes" id="messages-pagination">
         <ul class="pagination">
-          <li class="page-item" id="messages-pagination-previous-button"><a class="page-link" href="#" onclick="loadIncidentsPrevious();">Previous</a></li>
+          <li class="page-item" id="messages-pagination-previous-button">
+            <a class="page-link" href="#" onclick="loadIncidentsPrevious();"
+              >Previous</a
+            >
+          </li>
 
-          <li class="page-item"><a class="page-link" href="#" id="messages-pagination-first" onclick="loadIncidentsFirst();">1</a></li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="messages-pagination-first"
+              onclick="loadIncidentsFirst();"
+              >1</a
+            >
+          </li>
 
           <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="gap" id="messages-pagination-first-gap">
+            <a
+              class="page-link"
+              href="#"
+              aria-label="gap"
+              id="messages-pagination-first-gap"
+            >
               <span aria-hidden="true">..</span>
             </a>
           </li>
 
-          <li class="page-item"><a class="page-link" href="#" id="messages-pagination-previous" onclick="loadIncidentsPrevious();">2</a></li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="messages-pagination-previous"
+              onclick="loadIncidentsPrevious();"
+              >2</a
+            >
+          </li>
 
-          <li class="page-item active"><a class="page-link" href="#" id="messages-pagination-current">3</a></li>
+          <li class="page-item active">
+            <a class="page-link" href="#" id="messages-pagination-current">3</a>
+          </li>
 
-          <li class="page-item"><a class="page-link" href="#" id="messages-pagination-next" onclick="loadIncidentsNext();">4</a></li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="messages-pagination-next"
+              onclick="loadIncidentsNext();"
+              >4</a
+            >
+          </li>
 
           <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="gap" id="messages-pagination-last-gap">
+            <a
+              class="page-link"
+              href="#"
+              aria-label="gap"
+              id="messages-pagination-last-gap"
+            >
               <span aria-hidden="true">..</span>
             </a>
           </li>
 
-          <li class="page-item"><a class="page-link" href="#" id="messages-pagination-last" onclick="loadIncidentsLast();">5</a></li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="messages-pagination-last"
+              onclick="loadIncidentsLast();"
+              >5</a
+            >
+          </li>
 
-          <li class="page-item" id="messages-pagination-next-button"><a class="page-link" href="#" onclick="loadIncidentsNext();">Next</a></li>
+          <li class="page-item" id="messages-pagination-next-button">
+            <a class="page-link" href="#" onclick="loadIncidentsNext();"
+              >Next</a
+            >
+          </li>
         </ul>
       </nav>
-
     </div>
   </div>
 </div>

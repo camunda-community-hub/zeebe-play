@@ -1,0 +1,3 @@
+src/main/resources/public/js/bootstrap.*
+src/main/resources/public/js/*.min.js
+src/main/resources/public/js/*.umd.js
