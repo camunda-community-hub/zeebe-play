@@ -210,85 +210,99 @@ function onBpmnElementClick(callback) {
 function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
   const fillModalAction = function (type) {
     return `fillJobModal("${jobKey}", "${type}");`;
-  }
+  };
 
   const actions = [];
-  
-  if(taskForm) {
+
+  if (taskForm) {
     actions.push({
       icon: `<img width="18" height="18" style="margin-top:-4px;" src="/img/edit-form.svg" />`,
-      text: 'Fill form',
-      action: `showTaskModal(${jobKey}, "${elementId}")`
+      text: "Fill form",
+      action: `showTaskModal(${jobKey}, "${elementId}")`,
     });
   }
 
-  const cachedResponse = localStorage.getItem('jobCompletion ' + getBpmnProcessId() + ' ' + elementId);
-  if(!taskForm && cachedResponse && Object.keys(JSON.parse(cachedResponse)).length > 0) {
+  const cachedResponse = localStorage.getItem(
+    "jobCompletion " + getBpmnProcessId() + " " + elementId
+  );
+  if (
+    !taskForm &&
+    cachedResponse &&
+    Object.keys(JSON.parse(cachedResponse)).length > 0
+  ) {
     actions.push({
       icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#robot"/></svg>',
-      text: 'Use previous response',
-      action: `completeJob(${jobKey}, ${JSON.stringify(cachedResponse)});`
+      text: "Use previous response",
+      action: `completeJob(${jobKey}, ${JSON.stringify(cachedResponse)});`,
     });
   }
 
   actions.push({
     icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>',
-    text: 'Complete Job',
-    action: `completeJob(${jobKey}, "{}");`
+    text: "Complete Job",
+    action: `completeJob(${jobKey}, "{}");`,
   });
 
-  if(!taskForm) {
+  if (!taskForm) {
     actions.push({
       icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#filetype-json"/></svg>',
-      text: 'Complete with variables',
-      modalTarget: '#complete-job-modal',
-      action: fillModalAction('complete')
+      text: "Complete with variables",
+      modalTarget: "#complete-job-modal",
+      action: fillModalAction("complete"),
     });
   }
 
-  if(!isUserTask) {
+  if (!isUserTask) {
     actions.push(
       {}, // DIVIDER
       {
         icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>',
-        text: 'Fail',
-        modalTarget: '#fail-job-modal',
-        action: fillModalAction('fail')
+        text: "Fail",
+        modalTarget: "#fail-job-modal",
+        action: fillModalAction("fail"),
       },
       {
         icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>',
-        text: 'Throw Error',
-        modalTarget: '#throw-error-job-modal',
-        action: fillModalAction('throw-error')
+        text: "Throw Error",
+        modalTarget: "#throw-error-job-modal",
+        action: fillModalAction("throw-error"),
       }
     );
   }
 
-  let content = '<div class="btn-group">'
-      + `<button type="button" class="btn btn-sm btn-primary overlay-button completeButton-${jobKey}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${actions[0].text}" onclick='${actions[0].action}'>`
-      + actions[0].icon
-      + '</button>';
+  let content =
+    '<div class="btn-group">' +
+    `<button type="button" class="btn btn-sm btn-primary overlay-button completeButton-${jobKey}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${actions[0].text}" onclick='${actions[0].action}'>` +
+    actions[0].icon +
+    "</button>";
 
-  if(actions.length > 1) {
+  if (actions.length > 1) {
     // add a dropdown
-    content += '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>'
-    + '<ul class="dropdown-menu">';
+    content +=
+      '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>' +
+      '<ul class="dropdown-menu">';
 
-    content += actions.map(({icon, text, action, modalTarget}, idx) => {
-      if(idx === 0) return ''; // first item is already the default button
-      if(!action) return '<li><hr class="dropdown-divider"></li>';
+    content += actions
+      .map(({ icon, text, action, modalTarget }, idx) => {
+        if (idx === 0) {
+          return "";
+        } // first item is already the default button
+        if (!action) {
+          return '<li><hr class="dropdown-divider"></li>';
+        }
 
-      if(modalTarget) {
-        return `<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="${modalTarget}" href="#" onclick='${action}'>${icon} ${text}</a></li>`;
-      }
+        if (modalTarget) {
+          return `<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="${modalTarget}" href="#" onclick='${action}'>${icon} ${text}</a></li>`;
+        }
 
-      return `<li><a class="dropdown-item" href="#" onclick='${action}'>${icon} ${text}</a></li>`;
-    }).join('');
+        return `<li><a class="dropdown-item" href="#" onclick='${action}'>${icon} ${text}</a></li>`;
+      })
+      .join("");
 
-    content += '</ul>';
+    content += "</ul>";
   }
 
-  content += '</div>';
+  content += "</div>";
 
   overlays.add(elementId, "job-marker", {
     position: {

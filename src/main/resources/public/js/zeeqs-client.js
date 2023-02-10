@@ -558,26 +558,27 @@ const variablesByUserTaskQuery = `query VariablesOfUserTask($key: ID!) {
 }`;
 
 function fetchData(query, variables) {
-
   return $.ajax({
-    type: 'POST',
-    url: '/graphql/',
+    type: "POST",
+    url: "/graphql/",
     data: JSON.stringify({
       query,
       variables,
     }),
-    contentType: 'application/json; charset=utf-8',
-    accept: 'application/json; charset=utf-8',
+    contentType: "application/json; charset=utf-8",
+    accept: "application/json; charset=utf-8",
     timeout: 5000,
     crossDomain: true,
   })
-      .done(function (data) {
-        return data.data;
-      })
-      .fail(showFailure(
-          "zeeqs-query-failed-" + query,
-          "Failed to query data from ZeeQS's GraphQL API")
-      );
+    .done(function (data) {
+      return data.data;
+    })
+    .fail(
+      showFailure(
+        "zeeqs-query-failed-" + query,
+        "Failed to query data from ZeeQS's GraphQL API"
+      )
+    );
 }
 
 function getTimeZone() {
@@ -585,191 +586,168 @@ function getTimeZone() {
 }
 
 function queryProcesses(perPage, page) {
-
   return fetchData(processesQuery, {
     perPage: perPage,
     page: page,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryProcess(processKey) {
-
   return fetchData(processQuery, {
     key: processKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryInstancesByProcess(processKey, perPage, page) {
-
   return fetchData(instancesByProcessQuery, {
     key: processKey,
     perPage: perPage,
     page: page,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryMessageSubscriptionsByProcess(processKey) {
-
   return fetchData(messageSubscriptionsByProcessQuery, {
     key: processKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryTimersByProcess(processKey) {
-
   return fetchData(timersByProcessQuery, {
     key: processKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryElementsByProcess(processKey) {
-
   return fetchData(elementsByProcessQuery, {
-    key: processKey
+    key: processKey,
   });
 }
 
 function queryElementsInfoByProcess(processKey) {
-
   return fetchData(elementsInfoByProcessQuery, {
-    key: processKey
+    key: processKey,
   });
 }
 
 function queryProcessInstances(perPage, page) {
-
   return fetchData(processInstancesQuery, {
     perPage: perPage,
     page: page,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryProcessInstance(processInstanceKey) {
-
   return fetchData(processInstanceQuery, {
     key: processInstanceKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryVariablesByProcessInstance(processInstanceKey) {
-
   return fetchData(variablesByProcessInstanceQuery, {
     key: processInstanceKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryElementInstancesByProcessInstance(processInstanceKey) {
-
   return fetchData(elementInstancesByProcessInstanceQuery, {
     key: processInstanceKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryJobsByProcessInstance(processInstanceKey) {
-
   return fetchData(jobsByProcessInstanceQuery, {
     key: processInstanceKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryUserTasksByProcessInstance(processInstanceKey) {
-
   return fetchData(userTasksByProcessInstanceQuery, {
-    key: processInstanceKey
+    key: processInstanceKey,
   });
 }
 
 function queryIncidentsByProcessInstance(processInstanceKey) {
-
   return fetchData(incidentsByProcessInstanceQuery, {
     key: processInstanceKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryMessageSubscriptionsByProcessInstance(processInstanceKey) {
-
   return fetchData(messageSubscriptionByProcessInstanceQuery, {
     key: processInstanceKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryTimersByProcessInstance(processInstanceKey) {
-
   return fetchData(timersByProcessInstanceQuery, {
     key: processInstanceKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryMessageByKey(messageKey) {
-
   return fetchData(messageByKeyQuery, {
     key: messageKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryChildInstancesByProcessInstance(processInstanceKey) {
-
   return fetchData(childInstancesByProcessInstanceQuery, {
     key: processInstanceKey,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryParentInstanceByProcessInstance(processInstanceKey) {
-
   return fetchData(parentInstanceByProcessInstanceQuery, {
-    key: processInstanceKey
+    key: processInstanceKey,
   });
 }
 
 function queryElementInfosByProcessInstance(processInstanceKey) {
-
   return fetchData(elementsInfoByProcessInstanceQuery, {
-    key: processInstanceKey
+    key: processInstanceKey,
   });
 }
 
 function queryIncidents(perPage, page) {
-
   return fetchData(incidentsQuery, {
     perPage: perPage,
     page: page,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryMessages(perPage, page) {
-
   return fetchData(messagesQuery, {
     perPage: perPage,
     page: page,
-    zoneId: getTimeZone()
+    zoneId: getTimeZone(),
   });
 }
 
 function queryErrorByProcessInstanceKey(processInstanceKey) {
-
   return fetchData(errorByProcessInstanceQuery, {
-    key: processInstanceKey
+    key: processInstanceKey,
   });
 }
 
 function queryVariablesByUserTask(userTask) {
-  return fetchData(variablesByUserTaskQuery, {key: userTask});
+  return fetchData(variablesByUserTaskQuery, { key: userTask });
 }
 
 function subscribeToUpdates(type, key, handler) {

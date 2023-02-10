@@ -1,5 +1,4 @@
 function updatePagination(prefix, perPage, currentPage, totalCount) {
-
   let previousButton = $("#" + prefix + "-pagination-previous-button");
   let first = $("#" + prefix + "-pagination-first");
   let firstGap = $("#" + prefix + "-pagination-first-gap");
@@ -64,19 +63,20 @@ function updatePagination(prefix, perPage, currentPage, totalCount) {
 }
 
 function showNotificationSuccess(id, content) {
-
   const toastId = "new-toast-" + id;
 
-  const newNotificationToast = '<div id="' + toastId
-      + '" class="toast" role="status" aria-live="polite" aria-atomic="true">'
-      + '<div class="toast-header bg-success text-white">'
-      + '<strong class="me-auto">Success</strong>'
-      + '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>'
-      + '</div>'
-      + '<div class="toast-body">'
-      + content
-      + '</div>'
-      + '</div>';
+  const newNotificationToast =
+    '<div id="' +
+    toastId +
+    '" class="toast" role="status" aria-live="polite" aria-atomic="true">' +
+    '<div class="toast-header bg-success text-white">' +
+    '<strong class="me-auto">Success</strong>' +
+    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>' +
+    "</div>" +
+    '<div class="toast-body">' +
+    content +
+    "</div>" +
+    "</div>";
 
   let notificationToastContainer = $("#notifications-toast-container");
 
@@ -88,19 +88,20 @@ function showNotificationSuccess(id, content) {
 }
 
 function showNotificationFailure(id, content) {
-
   const toastId = "new-toast-" + id;
 
-  const newNotificationToast = '<div id="' + toastId
-      + '" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">'
-      + '<div class="toast-header bg-danger text-white">'
-      + '<strong class="me-auto">Failure</strong>'
-      + '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>'
-      + '</div>'
-      + '<div class="toast-body">'
-      + content
-      + '</div>'
-      + '</div>';
+  const newNotificationToast =
+    '<div id="' +
+    toastId +
+    '" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">' +
+    '<div class="toast-header bg-danger text-white">' +
+    '<strong class="me-auto">Failure</strong>' +
+    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>' +
+    "</div>" +
+    '<div class="toast-body">' +
+    content +
+    "</div>" +
+    "</div>";
 
   let notificationToastContainer = $("#notifications-toast-container");
 
@@ -112,7 +113,6 @@ function showNotificationFailure(id, content) {
 }
 
 function showNotificationWarning(id, content) {
-
   const toastId = "new-toast-" + id;
 
   const newNotificationToast = `
@@ -144,10 +144,10 @@ function showFailure(actionId, message) {
       failureMessage = xhr.responseJSON.message;
     }
 
-    const content = message + ': <code>' + failureMessage + '</code>';
+    const content = message + ": <code>" + failureMessage + "</code>";
 
     showNotificationFailure(toastId, content);
-  }
+  };
 }
 
 function getCurrentView() {
@@ -192,7 +192,7 @@ function formatProcessInstanceState(processInstance) {
       state = '<span class="badge bg-dark">terminated</span>';
       break;
     default:
-      state = "?"
+      state = "?";
   }
 
   const incidents = processInstance.incidents;
@@ -202,14 +202,15 @@ function formatProcessInstanceState(processInstance) {
 
   const error = processInstance.error;
   if (error) {
-    const fillErrorModalAction = 'fillErrorDetailsModal(\''
-        + processInstance.key + '\');';
-    state += ' <span class="badge bg-warning">error</span>'
-        + ' <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#error-detail-modal" title="Show error details" onclick="'
-        + fillErrorModalAction
-        + '">'
-        + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>'
-        + '</button>';
+    const fillErrorModalAction =
+      "fillErrorDetailsModal('" + processInstance.key + "');";
+    state +=
+      ' <span class="badge bg-warning">error</span>' +
+      ' <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#error-detail-modal" title="Show error details" onclick="' +
+      fillErrorModalAction +
+      '">' +
+      '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>' +
+      "</button>";
   }
 
   return state;
@@ -224,7 +225,7 @@ function formatTimerState(state) {
     case "CANCELED":
       return '<span class="badge bg-dark">canceled</span>';
     default:
-      return "?"
+      return "?";
   }
 }
 
@@ -254,7 +255,7 @@ function formatElementInstanceState(state) {
     case "TAKEN":
       return '<span class="badge bg-secondary">taken</span>';
     default:
-      return "?"
+      return "?";
   }
 }
 
@@ -271,7 +272,7 @@ function formatJobState(state) {
     case "ERROR_THROWN":
       return '<span class="badge bg-warning">error thrown</span>';
     default:
-      return "?"
+      return "?";
   }
 }
 
@@ -328,12 +329,14 @@ function formatBpmnElement(bpmnElementType) {
 
 function formatBpmnElementInstance(element) {
   const bpmnElement = formatBpmnElement(element.bpmnElementType);
-  const action = 'highlightElement(\'' + element.elementId + '\');';
+  const action = "highlightElement('" + element.elementId + "');";
 
-  const highlightButton = '<button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element"  onclick="'
-      + action + '">'
-      + '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>'
-      + '</button> ';
+  const highlightButton =
+    '<button type="button" class="btn btn-sm btn-outline-light text-dark" title="Highlight element"  onclick="' +
+    action +
+    '">' +
+    '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#geo-alt"/></svg>' +
+    "</button> ";
 
   let elementFormatted = highlightButton + bpmnElement + " ";
   if (element.elementName) {
@@ -351,7 +354,7 @@ function formatIncidentState(state) {
     case "RESOLVED":
       return '<span class="badge bg-secondary">resolved</span>';
     default:
-      return "?"
+      return "?";
   }
 }
 
@@ -364,7 +367,7 @@ function formatMessageSubscriptionState(state) {
     case "DELETED":
       return '<span class="badge bg-dark">deleted</span>';
     default:
-      return "?"
+      return "?";
   }
 }
 
@@ -375,7 +378,7 @@ function formatMessageState(state) {
     case "EXPIRED":
       return '<span class="badge bg-secondary">expired</span>';
     default:
-      return "?"
+      return "?";
   }
 }
 
@@ -386,38 +389,38 @@ function showInfoOfBpmnElement(element) {
 
   let info;
   if (metadata.jobType) {
-    info = 'job type: ' + metadata.jobType;
+    info = "job type: " + metadata.jobType;
   }
   if (metadata.conditionExpression) {
-    info = 'condition: ' + metadata.conditionExpression;
+    info = "condition: " + metadata.conditionExpression;
   }
   if (metadata.timerDefinition) {
-    info = 'timer: ' + metadata.timerDefinition;
+    info = "timer: " + metadata.timerDefinition;
   }
   if (metadata.errorCode) {
-    info = 'error code: ' + metadata.errorCode;
+    info = "error code: " + metadata.errorCode;
   }
   if (metadata.calledProcessId) {
-    info = 'called process id: ' + metadata.calledProcessId;
+    info = "called process id: " + metadata.calledProcessId;
   }
   if (metadata.messageSubscriptionDefinition) {
     let subscription = metadata.messageSubscriptionDefinition;
-    info = 'message name: ' + subscription.messageName;
+    info = "message name: " + subscription.messageName;
     if (subscription.messageCorrelationKey) {
-      info += '<br>' + 'correlation key: ' + subscription.messageCorrelationKey;
+      info += "<br>" + "correlation key: " + subscription.messageCorrelationKey;
     }
   }
   if (metadata.userTaskAssignmentDefinition) {
     let userTask = metadata.userTaskAssignmentDefinition;
     if (userTask.assignee) {
-      info = 'assignee: ' + userTask.assignee;
+      info = "assignee: " + userTask.assignee;
     }
 
     if (userTask.candidateGroups) {
       if (info) {
-        info += '<br> candidateGroups: ' + userTask.candidateGroups;
+        info += "<br> candidateGroups: " + userTask.candidateGroups;
       } else {
-        info = 'candidateGroups: ' + userTask.candidateGroups;
+        info = "candidateGroups: " + userTask.candidateGroups;
       }
     }
   }
@@ -430,20 +433,25 @@ function showInfoOfBpmnElement(element) {
 // ----------------------------------------------------------
 
 function publishMessage(messageName, messageCorrelationKey) {
-  history.push({action: 'publishMessage', messageName, messageCorrelationKey});
+  history.push({
+    action: "publishMessage",
+    messageName,
+    messageCorrelationKey,
+  });
   refreshHistory();
 
   sendPublishMessageRequest(messageName, messageCorrelationKey)
-      .done(messageKey => {
-        const toastId = "message-published-" + messageKey;
-        const content = 'New message <code>' + messageKey
-            + '</code> published.';
-        showNotificationSuccess(toastId, content);
-      })
-      .fail(showFailure(
-          "publish-message-failed-" + messageName,
-          "Failed to publish message")
-      );
+    .done((messageKey) => {
+      const toastId = "message-published-" + messageKey;
+      const content = "New message <code>" + messageKey + "</code> published.";
+      showNotificationSuccess(toastId, content);
+    })
+    .fail(
+      showFailure(
+        "publish-message-failed-" + messageName,
+        "Failed to publish message"
+      )
+    );
 }
 
 function fillPublishMessageModal(messageName, correlationKey) {
@@ -461,30 +469,33 @@ function publishMessageModal() {
   const timeToLive = $("#publishMessageTimeToLive").val();
   const messageId = $("#publishMessageId").val();
 
-  history.push({action: 'publishMessage', messageName, messageCorrelationKey, variables, timeToLive, messageId});
+  history.push({
+    action: "publishMessage",
+    messageName,
+    messageCorrelationKey,
+    variables,
+    timeToLive,
+    messageId,
+  });
   refreshHistory();
 
   sendPublishMessageRequest(
-      messageName,
-      messageCorrelationKey,
-      variables,
-      timeToLive,
-      messageId
+    messageName,
+    messageCorrelationKey,
+    variables,
+    timeToLive,
+    messageId
   )
-      .done(messageKey => {
-        const toastId = "message-published-" + messageKey;
-        const content = 'New message <code>' + messageKey
-            + '</code> published.';
-        showNotificationSuccess(toastId, content);
-      })
-      .fail(showFailure(
-          "publish-message-failed",
-          "Failed to publish message")
-      );
+    .done((messageKey) => {
+      const toastId = "message-published-" + messageKey;
+      const content = "New message <code>" + messageKey + "</code> published.";
+      showNotificationSuccess(toastId, content);
+    })
+    .fail(showFailure("publish-message-failed", "Failed to publish message"));
 }
 
 function timeTravel(timeDefinition, elementId) {
-  history.push({action: 'timeTravel', elementId});
+  history.push({ action: "timeTravel", elementId });
   refreshHistory();
 
   const index = timeDefinition.indexOf("P");
@@ -496,26 +507,24 @@ function timeTravel(timeDefinition, elementId) {
     let duration = timeDefinition.substring(index);
     request = sendTimeTravelRequestWithDuration(duration);
 
-    successMessage = 'Time travel by <code>' + duration + '</code>.';
+    successMessage = "Time travel by <code>" + duration + "</code>.";
   } else {
     let dateTime = timeDefinition;
     request = sendTimeTravelRequestWithDateTime(dateTime);
 
-    successMessage = 'Time travel to <code>' + dateTime + '</code>.';
+    successMessage = "Time travel to <code>" + dateTime + "</code>.";
   }
 
   request
-      .done(newTime => {
-        const toastId = "time-travel-" + newTime;
-        showNotificationSuccess(toastId, successMessage);
-      })
-      .fail(showFailure(
-          "time-travel-failed",
-          "Failed to time travel")
-      );
+    .done((newTime) => {
+      const toastId = "time-travel-" + newTime;
+      showNotificationSuccess(toastId, successMessage);
+    })
+    .fail(showFailure("time-travel-failed", "Failed to time travel"));
 }
 
 let timeTravelModalElementId;
+
 function fillTimeTravelModal(timeDefinition, elementId) {
   timeTravelModalElementId = elementId;
   const index = timeDefinition.indexOf("P");
@@ -535,7 +544,6 @@ function fillTimeTravelModal(timeDefinition, elementId) {
 }
 
 function timeTravelModal() {
-
   const timeDuration = $("#timeDuration").val();
   const timeDate = $("#timeDate").val();
 
@@ -550,73 +558,92 @@ function completeJob(jobKey, variables) {
   const toastId = "job-complete-" + jobKey;
 
   const task = jobKeyToElementIdMapping[jobKey];
-  if(task) {
-    localStorage.setItem('jobCompletion ' + getBpmnProcessId() + ' ' + task, variables);
+  if (task) {
+    localStorage.setItem(
+      "jobCompletion " + getBpmnProcessId() + " " + task,
+      variables
+    );
   }
 
-  history.push({action: 'completeJob', task, variables});
+  history.push({ action: "completeJob", task, variables });
   refreshHistory();
 
   sendCompleteJobRequest(jobKey, variables)
-      .done(key => {
-        showNotificationSuccess(toastId,
-            "Job <code>" + jobKey + "</code> completed.");
-      })
-      .fail(showFailure(toastId,
-          "Failed to complete job <code>" + jobKey + "</code>.")
+    .done((key) => {
+      showNotificationSuccess(
+        toastId,
+        "Job <code>" + jobKey + "</code> completed."
       );
+    })
+    .fail(
+      showFailure(
+        toastId,
+        "Failed to complete job <code>" + jobKey + "</code>."
+      )
+    );
 }
 
 function failJob(jobKey, retries, errorMessage) {
   const toastId = "job-fail-" + jobKey;
 
   const task = jobKeyToElementIdMapping[jobKey];
-  history.push({action: 'failJob', task, retries, errorMessage});
+  history.push({ action: "failJob", task, retries, errorMessage });
   refreshHistory();
 
   sendFailJobRequest(jobKey, retries, errorMessage)
-      .done(key => {
-        showNotificationSuccess(toastId,
-            "Job <code>" + jobKey + "</code> failed.");
-      })
-      .fail(showFailure(toastId,
-          "Failed to fail job <code>" + jobKey + "</code>.")
+    .done((key) => {
+      showNotificationSuccess(
+        toastId,
+        "Job <code>" + jobKey + "</code> failed."
       );
+    })
+    .fail(
+      showFailure(toastId, "Failed to fail job <code>" + jobKey + "</code>.")
+    );
 }
 
 function throwErrorJob(jobKey, errorCode, errorMessage) {
   const toastId = "job-throw-error-" + jobKey;
 
   const task = jobKeyToElementIdMapping[jobKey];
-  history.push({action: 'throwJob', task, errorCode, errorMessage});
+  history.push({ action: "throwJob", task, errorCode, errorMessage });
   refreshHistory();
 
   sendThrowErrorJobRequest(jobKey, errorCode, errorMessage)
-      .done(key => {
-        showNotificationSuccess(toastId, "An error <code>" + errorCode
-            + "</code> was thrown for the job <code>" + jobKey + "</code>.");
-      })
-      .fail(showFailure(toastId,
-          "Failed to throw error for the job <code>" + jobKey + "</code>.")
+    .done((key) => {
+      showNotificationSuccess(
+        toastId,
+        "An error <code>" +
+          errorCode +
+          "</code> was thrown for the job <code>" +
+          jobKey +
+          "</code>."
       );
+    })
+    .fail(
+      showFailure(
+        toastId,
+        "Failed to throw error for the job <code>" + jobKey + "</code>."
+      )
+    );
 }
 
 function executeConnectorJob(jobType, jobKey) {
   const toastId = "connector-job-" + jobKey;
 
   sendExecuteConnectorRequest(jobType, jobKey)
-      .done((key) => {
-        showNotificationSuccess(
-            toastId,
-            `Connector of type <code>${jobType}</code> invoked.`
-        );
-      })
-      .fail(
-          showFailure(
-              toastId,
-              `Failed to invoke connector of type <code>${jobType}</code>.`
-          )
+    .done((key) => {
+      showNotificationSuccess(
+        toastId,
+        `Connector of type <code>${jobType}</code> invoked.`
       );
+    })
+    .fail(
+      showFailure(
+        toastId,
+        `Failed to invoke connector of type <code>${jobType}</code>.`
+      )
+    );
 }
 
 function fillJobModal(jobKey, type) {
@@ -651,16 +678,20 @@ function resolveIncident(incidentKey, jobKey) {
 
   if (jobKey) {
     sendUpdateRetriesJobRequest(jobKey, 1)
-        .done(key => {
-          showNotificationSuccess(toastId,
-              "Retries of job <code>" + jobKey + "</code> increase.");
-
-          resolveIncidentByKey(incidentKey);
-        })
-        .fail(showFailure(toastId,
-            "Failed to update retries of the job <code>" + jobKey + "</code>.")
+      .done((key) => {
+        showNotificationSuccess(
+          toastId,
+          "Retries of job <code>" + jobKey + "</code> increase."
         );
 
+        resolveIncidentByKey(incidentKey);
+      })
+      .fail(
+        showFailure(
+          toastId,
+          "Failed to update retries of the job <code>" + jobKey + "</code>."
+        )
+      );
   } else {
     resolveIncidentByKey(incidentKey);
   }
@@ -669,19 +700,22 @@ function resolveIncident(incidentKey, jobKey) {
 function resolveIncidentByKey(incidentKey) {
   const toastId = "incident-resolve-" + incidentKey;
   sendResolveIncidentRequest(incidentKey)
-      .done(key => {
-        showNotificationSuccess(toastId,
-            "Incident <code>" + incidentKey + "</code> resolved.");
-      })
-      .fail(showFailure(toastId,
-          "Failed to resolve incident <code>" + incidentKey + "</code>.")
+    .done((key) => {
+      showNotificationSuccess(
+        toastId,
+        "Incident <code>" + incidentKey + "</code> resolved."
       );
+    })
+    .fail(
+      showFailure(
+        toastId,
+        "Failed to resolve incident <code>" + incidentKey + "</code>."
+      )
+    );
 }
 
 function fillMessageDetailsModal(messageKey) {
-
   queryMessageByKey(messageKey).done(function (response) {
-
     const message = response.data.message;
 
     let variables = {};
@@ -700,9 +734,7 @@ function fillMessageDetailsModal(messageKey) {
 }
 
 function fillErrorDetailsModal(processInstanceKey) {
-
   queryErrorByProcessInstanceKey(processInstanceKey).done(function (response) {
-
     const processInstance = response.data.processInstance;
     const error = processInstance.error;
 
@@ -714,35 +746,32 @@ function fillErrorDetailsModal(processInstanceKey) {
 }
 
 function checkForMissingConnectorSecrets(processKey) {
-  sendGetMissingConnectSecretsRequest(processKey)
-      .done(response => {
-        let connectorSecretNames = response.connectorSecretNames;
-        if (connectorSecretNames.length > 0) {
+  sendGetMissingConnectSecretsRequest(processKey).done((response) => {
+    let connectorSecretNames = response.connectorSecretNames;
+    if (connectorSecretNames.length > 0) {
+      let buttonId = "add-missing-connector-secrets";
 
-          let buttonId = "add-missing-connector-secrets";
-
-          showNotificationWarning(
-              "connector-secrets-missing",
-              `Connector secrets are missing. The process references secrets that are not set yet.
+      showNotificationWarning(
+        "connector-secrets-missing",
+        `Connector secrets are missing. The process references secrets that are not set yet.
                 <div class="mt-2 pt-2 border-top">
                   <button id="${buttonId}" type="button" class="btn btn-outline-primary btn-sm">Add missing secrets</button>
                 </div>`
-          );
+      );
 
-          $("#" + buttonId).click(function () {
+      $("#" + buttonId).click(function () {
+        let newSecrets = connectorSecretNames.map(function (name) {
+          return {
+            name: name,
+            value: "ENTER_YOUR_SECRET",
+          };
+        });
 
-            let newSecrets = connectorSecretNames.map(function (name) {
-              return {
-                "name": name,
-                "value": "ENTER_YOUR_SECRET"
-              };
-            });
-
-            sendAddConnectorSecretsRequest(newSecrets).done(response => {
-              // switch to connector secrets page
-              window.location.href = "/view/connectors";
-            });
-          });
-        }
+        sendAddConnectorSecretsRequest(newSecrets).done((response) => {
+          // switch to connector secrets page
+          window.location.href = "/view/connectors";
+        });
       });
+    }
+  });
 }
