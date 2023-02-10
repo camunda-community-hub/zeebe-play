@@ -786,6 +786,12 @@ function subscribeToProcessInstanceUpdates(type, key, handler) {
   let subscription = `processInstanceUpdates(filter: {${type}: ${key}}) {
         updateType
       }`;
+  openSubscription(subscription, handler);
+}
 
+function subscribeToProcessUpdates(handler) {
+  let subscription = `processUpdates{
+        key
+      }`;
   openSubscription(subscription, handler);
 }
