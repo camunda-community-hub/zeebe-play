@@ -24,8 +24,8 @@ zeebe:
     endpoint: 127.0.0.1:9600/actuator/clock
 
   connectors:
-    # start Camunda connectors by default
-    enabled: true
+    # connector mode options: 'active' (as job workers) / 'passive' (trigger manually in process)
+    mode: passive
     secrets:
     #  - name: SLACK_OAUTH_TOKEN
     #    value: my-slack-oauth-token

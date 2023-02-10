@@ -601,6 +601,24 @@ function throwErrorJob(jobKey, errorCode, errorMessage) {
       );
 }
 
+function executeConnectorJob(jobType, jobKey) {
+  const toastId = "connector-job-" + jobKey;
+
+  sendExecuteConnectorRequest(jobType, jobKey)
+      .done((key) => {
+        showNotificationSuccess(
+            toastId,
+            `Connector of type <code>${jobType}</code> invoked.`
+        );
+      })
+      .fail(
+          showFailure(
+              toastId,
+              `Failed to invoke connector of type <code>${jobType}</code>.`
+          )
+      );
+}
+
 function fillJobModal(jobKey, type) {
   $("#jobKey-" + type).val(jobKey);
 }

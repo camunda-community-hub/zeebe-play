@@ -7,11 +7,15 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties("zeebe.connectors")
 data class ConnectorProperties(
     val secrets: List<ConnectorSecretProperty> = emptyList(),
-    val enabled: Boolean = true
+    val mode: ConnectorsMode = ConnectorsMode.PASSIVE
 ) {
 
     data class ConnectorSecretProperty(
         val name: String,
         val value: String
     )
+
+    enum class ConnectorsMode {
+        ACTIVE, PASSIVE
+    }
 }

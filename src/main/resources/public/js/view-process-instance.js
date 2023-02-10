@@ -778,6 +778,8 @@ function loadJobsOfProcessInstance() {
           let state = formatJobState(job.state);
           const isActiveJob = job.state === "ACTIVATABLE";
 
+          let connectorButtonId = `action-connector-execute-${elementId}`;
+
           let actionButton = '';
           if (isActiveJob) {
             let fillModalAction = function (type) {
@@ -804,23 +806,37 @@ function loadJobsOfProcessInstance() {
                 + '</div>';
           }
 
-          $("#jobs-of-process-instance-table > tbody:last-child").append('<tr>'
-              + '<td>' + (indexOffset + index) + '</td>'
-              + '<td>' + job.key + '</td>'
-              + '<td>' + job.jobType + '</td>'
-              + '<td>' + elementFormatted + '</td>'
-              + '<td>' + job.elementInstance.key + '</td>'
-              + '<td>' + state + '</td>'
-              + '<td>' + actionButton + '</td>'
-              + '</tr>');
+        $("#jobs-of-process-instance-table > tbody:last-child").append('<tr>'
+            + '<td>' + (indexOffset + index) + '</td>'
+            + '<td>' + job.key + '</td>'
+            + '<td>' + job.jobType + '</td>'
+            + '<td>' + elementFormatted + '</td>'
+            + '<td>' + job.elementInstance.key + '</td>'
+            + '<td>' + state + '</td>'
+            + '<td>' + actionButton + '</td>'
+            + '</tr>');
 
-          if (isActiveJob) {
-            makeTaskPlayable(elementId, job.key);
-          }
-        });
+      if (isActiveJob) {
+        // connector are handled differently
+        if (isConnectorJob(job)) {
+          makeConnectorTaskPlayable(elementId, job.key, job.jobType);
+
+          $("#" + connectorButtonId).click(function () {
+            executeConnectorJob(job.jobType, job.key);
+          });
+        } else {
+          makeTaskPlayable(elementId, job.key);
+        }
+      }
+    });
 
         removeTaskPlayableMarkersOfJobs(jobs);
       });
+}
+
+function isConnectorJob(job) {
+  // assuming that a job for a connector starts with this prefix
+  return job.jobType.startsWith("io.camunda:");
 }
 
 function removeTaskPlayableMarkersOfJobs(jobs) {

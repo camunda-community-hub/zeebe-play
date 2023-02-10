@@ -307,6 +307,35 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
   });
 }
 
+function makeConnectorTaskPlayable(elementId, jobKey, jobType) {
+  let buttonId = `connector-execute-${elementId}`;
+
+  let content = `
+      <button id="${buttonId}" type="button" class="btn btn-sm btn-primary" title="Invoke connector">
+        <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#plugin"/></svg>
+      </button>`;
+
+  overlays.add(elementId, "job-marker", {
+    position: {
+      top: -20,
+      left: -20,
+    },
+    html: content,
+  });
+
+  $("#" + buttonId).click(function () {
+    executeConnectorJob(jobType, jobKey);
+  });
+
+  $(`.${buttonId}`).tooltip();
+
+  // We have to remove the tooltip manually when removing the element that triggers it
+  // see https://github.com/twbs/bootstrap/issues/3084#issuecomment-5207780
+  $(`.${buttonId}`).on("click", () => {
+    $(`[data-bs-toggle="tooltip"]`).tooltip("hide");
+  });
+}
+
 function removeTaskPlayableMarker(elementId) {
   overlays.remove({ element: elementId, type: "job-marker" });
 }
