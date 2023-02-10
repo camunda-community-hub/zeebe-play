@@ -1,5 +1,5 @@
 // store current connector secrets
-let connectorSecrets = {}
+let connectorSecrets = {};
 
 function loadConnectorsView() {
   loadConnectorSecrets();
@@ -7,8 +7,7 @@ function loadConnectorsView() {
 }
 
 function loadConnectorSecrets() {
-
-  sendGetConnectorSecretsRequest().done(response => {
+  sendGetConnectorSecretsRequest().done((response) => {
     let secrets = response.secrets;
 
     connectorSecrets = secrets;
@@ -17,7 +16,6 @@ function loadConnectorSecrets() {
     $("#connector-secrets-table tbody").empty();
 
     secrets.forEach((secret, index) => {
-
       let editButtonId = `connector-secrets-edit-${index}`;
       let deleteButtonId = `connector-secrets-delete-${index}`;
 
@@ -56,7 +54,7 @@ function loadConnectorSecrets() {
 
         updateConnectSecrets();
       });
-    })
+    });
   });
 }
 
@@ -65,47 +63,45 @@ function onAddNewConnectorSecret() {
   let secretValueElement = $("#new-connector-secret-value");
 
   connectorSecrets.push({
-    "name": secretNameElement.val(),
-    "value": secretValueElement.val()
+    name: secretNameElement.val(),
+    value: secretValueElement.val(),
   });
 
   updateConnectSecrets();
 
-  secretNameElement.val('');
-  secretValueElement.val('');
+  secretNameElement.val("");
+  secretValueElement.val("");
 }
 
 function onEditConnectorSecret() {
   let secretName = $("#edit-connector-secret-name").val();
   let secretValue = $("#edit-connector-secret-value").val();
 
-  let index = connectorSecrets.findIndex(item => item.name === secretName);
+  let index = connectorSecrets.findIndex((item) => item.name === secretName);
 
   connectorSecrets.splice(index, 1, {
-    "name": secretName,
-    "value": secretValue
+    name: secretName,
+    value: secretValue,
   });
 
   updateConnectSecrets();
 }
 
 function updateConnectSecrets() {
-  sendUpdateConnectorSecretsRequest(connectorSecrets).done(response => {
+  sendUpdateConnectorSecretsRequest(connectorSecrets).done((response) => {
     // reload page
     loadConnectorSecrets();
   });
 }
 
 function loadAvailableConnectors() {
-
-  sendGetAvailableConnectorsRequest().done(response => {
+  sendGetAvailableConnectorsRequest().done((response) => {
     let connectors = response.connectors;
 
     $("#available-connectors-totalCount").text(connectors.length);
     $("#available-connectors-table tbody").empty();
 
     connectors.forEach((connector, index) => {
-
       let row = `
         <tr>
           <td>${index + 1}</td>
@@ -116,6 +112,6 @@ function loadAvailableConnectors() {
         </tr>`;
 
       $("#available-connectors-table tbody:last-child").append(row);
-    })
+    });
   });
 }

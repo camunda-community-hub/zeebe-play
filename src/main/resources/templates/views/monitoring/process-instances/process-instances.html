@@ -1,75 +1,145 @@
 <div th:fragment="process-instances">
   <div class="row">
     <div class="col">
-
-      <table class="table table-striped table-hover caption-top" id="process-instances-table">
+      <table
+        class="table table-striped table-hover caption-top"
+        id="process-instances-table"
+      >
         <caption>
-          active <span class="badge bg-primary" id="process-instances-active">0</span> /
-          completed <span class="badge bg-secondary"  id="process-instances-completed">0</span> /
-          terminated <span class="badge bg-dark"  id="process-instances-terminated">0</span>
+          active
+          <span class="badge bg-primary" id="process-instances-active">0</span>
+          / completed
+          <span class="badge bg-secondary" id="process-instances-completed"
+            >0</span
+          >
+          / terminated
+          <span class="badge bg-dark" id="process-instances-terminated">0</span>
         </caption>
         <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Process Instance Key</th>
-          <th scope="col">BPMN Process Id</th>
-          <th scope="col">Version</th>
-          <th scope="col">Process Key</th>
-          <th scope="col">Start Time</th>
-          <th scope="col">End Time</th>
-          <th scope="col">State</th>
-        </tr>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Process Instance Key</th>
+            <th scope="col">BPMN Process Id</th>
+            <th scope="col">Version</th>
+            <th scope="col">Process Key</th>
+            <th scope="col">Start Time</th>
+            <th scope="col">End Time</th>
+            <th scope="col">State</th>
+          </tr>
         </thead>
         <tbody>
-        <tr>
-          <td>1</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-        </tr>
+          <tr>
+            <td>1</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
         </tbody>
       </table>
-
     </div>
   </div>
 
   <div class="row justify-content-center">
     <div class="col-auto">
-
-      <nav aria-label="Page navigation processes" id="process-instances-pagination">
+      <nav
+        aria-label="Page navigation processes"
+        id="process-instances-pagination"
+      >
         <ul class="pagination">
-          <li class="page-item" id="process-instances-pagination-previous-button"><a class="page-link" href="#" onclick="loadProcessInstancesPrevious();">Previous</a></li>
+          <li
+            class="page-item"
+            id="process-instances-pagination-previous-button"
+          >
+            <a
+              class="page-link"
+              href="#"
+              onclick="loadProcessInstancesPrevious();"
+              >Previous</a
+            >
+          </li>
 
-          <li class="page-item"><a class="page-link" href="#" id="process-instances-pagination-first" onclick="loadProcessInstancesFirst();">1</a></li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="process-instances-pagination-first"
+              onclick="loadProcessInstancesFirst();"
+              >1</a
+            >
+          </li>
 
           <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="gap" id="process-instances-pagination-first-gap">
+            <a
+              class="page-link"
+              href="#"
+              aria-label="gap"
+              id="process-instances-pagination-first-gap"
+            >
               <span aria-hidden="true">..</span>
             </a>
           </li>
 
-          <li class="page-item"><a class="page-link" href="#" id="process-instances-pagination-previous" onclick="loadProcessInstancesPrevious();">2</a></li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="process-instances-pagination-previous"
+              onclick="loadProcessInstancesPrevious();"
+              >2</a
+            >
+          </li>
 
-          <li class="page-item active"><a class="page-link" href="#" id="process-instances-pagination-current">3</a></li>
+          <li class="page-item active">
+            <a
+              class="page-link"
+              href="#"
+              id="process-instances-pagination-current"
+              >3</a
+            >
+          </li>
 
-          <li class="page-item"><a class="page-link" href="#" id="process-instances-pagination-next" onclick="loadProcessInstancesNext();">4</a></li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="process-instances-pagination-next"
+              onclick="loadProcessInstancesNext();"
+              >4</a
+            >
+          </li>
 
           <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="gap" id="process-instances-pagination-last-gap">
+            <a
+              class="page-link"
+              href="#"
+              aria-label="gap"
+              id="process-instances-pagination-last-gap"
+            >
               <span aria-hidden="true">..</span>
             </a>
           </li>
 
-          <li class="page-item"><a class="page-link" href="#" id="process-instances-pagination-last" onclick="loadProcessInstancesLast();">5</a></li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="process-instances-pagination-last"
+              onclick="loadProcessInstancesLast();"
+              >5</a
+            >
+          </li>
 
-          <li class="page-item" id="process-instances-pagination-next-button"><a class="page-link" href="#" onclick="loadProcessInstancesNext();">Next</a></li>
+          <li class="page-item" id="process-instances-pagination-next-button">
+            <a class="page-link" href="#" onclick="loadProcessInstancesNext();"
+              >Next</a
+            >
+          </li>
         </ul>
       </nav>
-
     </div>
   </div>
 </div>

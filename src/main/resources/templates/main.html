@@ -1,52 +1,58 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head th:fragment="headerfiles">
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<head th:fragment="headerfiles">
-  <!-- Required meta tags -->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
 
-  <!-- Bootstrap CSS -->
-  <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="/img/favicon.ico" />
 
-  <link rel=icon href="/img/favicon.ico">
+    <title>Zeebe Play</title>
+  </head>
 
-  <title>Zeebe Play</title>
-</head>
+  <body>
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-light"
+      th:fragment="navbar"
+    >
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img
+            src="/img/logo.png"
+            alt=""
+            width="30"
+            height="24"
+            class="d-inline-block align-text-top"
+          />
+          Zeebe Play
+        </a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="#">Deployment</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Monitoring</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Testing</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
 
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-light bg-light" th:fragment="navbar">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">
-      <img src="/img/logo.png" alt="" width="30" height="24" class="d-inline-block align-text-top">
-      Zeebe Play
-    </a>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="#">Deployment</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Monitoring</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Testing</a>
-        </li>
-      </ul>
+    <div class="container-fluid">
+      <div class="row" th:fragment="content">
+        <h1>Hello, world!</h1>
+      </div>
     </div>
-  </div>
-</nav>
 
-<div class="container-fluid">
-  <div class="row" th:fragment="content">
-    <h1>Hello, world!</h1>
-  </div>
-</div>
-
-<footer th:fragment="footer">
-  <script src="/js/bootstrap.bundle.min.js"></script>
-</footer>
-
-</body>
+    <footer th:fragment="footer">
+      <script src="/js/bootstrap.bundle.min.js"></script>
+    </footer>
+  </body>
 </html>
