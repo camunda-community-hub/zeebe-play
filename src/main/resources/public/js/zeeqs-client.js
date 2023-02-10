@@ -750,7 +750,7 @@ function queryVariablesByUserTask(userTask) {
   return fetchData(variablesByUserTaskQuery, { key: userTask });
 }
 
-function subscribeToProcessInstanceUpdates(type, key, handler) {
+function openSubscription(subscription, handler) {
   const socketProtocol = window.location.protocol === "https:" ? "wss" : "ws";
   const socket = new WebSocket(
     socketProtocol + "://" + window.location.host + "/graphql"
@@ -768,11 +768,7 @@ function subscribeToProcessInstanceUpdates(type, key, handler) {
           variables: {},
           extensions: {},
           operationName: null,
-          query: `subscription {
-      processInstanceUpdates(filter: {${type}: ${key}}) {
-        updateType
-      }
-    }`,
+          query: `subscription { ${subscription} }`,
         },
       })
     );
@@ -784,4 +780,12 @@ function subscribeToProcessInstanceUpdates(type, key, handler) {
       handler(response);
     }
   });
+}
+
+function subscribeToProcessInstanceUpdates(type, key, handler) {
+  let subscription = `processInstanceUpdates(filter: {${type}: ${key}}) {
+        updateType
+      }`;
+
+  openSubscription(subscription, handler);
 }
