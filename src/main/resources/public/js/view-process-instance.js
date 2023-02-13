@@ -235,6 +235,10 @@ async function rewind(task) {
           );
           break;
         }
+        case "setVariables": {
+          await sendSetVariablesRequest(newId, newId, step.variables);
+          break;
+        }
         default:
           console.error("Unknown rewind action: " + step.action);
       }
@@ -579,11 +583,17 @@ function fillSetVariablesModal(scopeKey, variableName, variableValue) {
 
 function setVariablesModal() {
   let scope = $("#variablesScope").val();
+  let variables = $("#updatedVariables").val();
+
   if (scope === "global") {
     scope = getProcessInstanceKey();
-  }
 
-  let variables = $("#updatedVariables").val();
+    history.push({
+      action: "setVariables",
+      variables,
+    });
+    refreshHistory();
+  }
 
   sendSetVariablesRequest(getProcessInstanceKey(), scope, variables)
     .done((key) => {
