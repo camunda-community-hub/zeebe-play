@@ -213,8 +213,22 @@ async function rewind(task) {
           );
           break;
         case "timeTravel":
-          const timer = await fetchTimerForElement(newId, step.elementId);
-          await sendTimeTravelRequestWithDateTime(timer.dueDate);
+          if (step.elementId) {
+            // we are waiting for a timer of a specific element
+            const timer = await fetchTimerForElement(newId, step.elementId);
+            await sendTimeTravelRequestWithDateTime(timer.dueDate);
+          } else {
+            // general time travel without correlation to an element
+            const index = step.timeDefinition.indexOf("P");
+
+            if (index >= 0) {
+              await sendTimeTravelRequestWithDuration(
+                step.timeDefinition.substring(index)
+              );
+            } else {
+              await sendTimeTravelRequestWithDateTime(step.timeDefinition);
+            }
+          }
           break;
         case "completeJob": {
           const jobKey = await fetchJobKeyForTask(newId, step.task);

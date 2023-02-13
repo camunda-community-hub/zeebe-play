@@ -495,7 +495,7 @@ function publishMessageModal() {
 }
 
 function timeTravel(timeDefinition, elementId) {
-  history.push({ action: "timeTravel", elementId });
+  history.push({ action: "timeTravel", elementId, timeDefinition });
   refreshHistory();
 
   const index = timeDefinition.indexOf("P");
