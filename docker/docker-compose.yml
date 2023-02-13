@@ -7,7 +7,7 @@ networks:
 services:
   zeebe-play-in-memory:
     container_name: zeebe-play-in-memory
-    image: ghcr.io/camunda-community-hub/zeebe-play:1.3.0
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.4.0
     ports:
       - "8080:8080"
       - "26500:26500"
@@ -18,7 +18,7 @@ services:
 
   zeebe-play-remote-engine:
     container_name: zeebe-play-remote-engine
-    image: ghcr.io/camunda-community-hub/zeebe-play:1.3.0
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.4.0
     environment:
       - ZEEBE_ENGINE=remote
       - ZEEBE_CLIENT_BROKER_GATEWAYADDRESS=zeebe:26500
@@ -35,7 +35,7 @@ services:
 
   zeebe-play-postgres:
     container_name: zeebe-play-postgres
-    image: ghcr.io/camunda-community-hub/zeebe-play:1.3.0
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.4.0
     environment:
       - ZEEBE_ENGINE=remote
       - ZEEBE_CLIENT_BROKER_GATEWAYADDRESS=zeebe:26500
@@ -59,7 +59,7 @@ services:
 
   zeebe-play-mysql:
     container_name: zeebe-play-mysql
-    image: ghcr.io/camunda-community-hub/zeebe-play:1.3.0
+    image: ghcr.io/camunda-community-hub/zeebe-play:1.4.0
     environment:
       - ZEEBE_ENGINE=remote
       - ZEEBE_CLIENT_BROKER_GATEWAYADDRESS=zeebe:26500
