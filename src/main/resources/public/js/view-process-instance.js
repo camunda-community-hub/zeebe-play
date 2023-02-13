@@ -5,6 +5,8 @@ var isElementCountersViewEnabled = false;
 
 const jobKeyToElementIdMapping = {};
 
+let processInstance;
+
 function getProcessInstanceKey() {
   return $("#process-instance-page-key").text();
 }
@@ -49,7 +51,7 @@ function loadProcessInstanceView() {
   const processInstanceKey = getProcessInstanceKey();
 
   queryProcessInstance(processInstanceKey).done(function (response) {
-    let processInstance = response.data.processInstance;
+    processInstance = response.data.processInstance;
     let process = processInstance.process;
 
     currentProcessKey = process.key;
@@ -159,6 +161,11 @@ async function rewind(task) {
 
   let newId, newHistory;
   try {
+    // cancel the current process instance before creating a new instance
+    if (processInstance.state === "ACTIVATED") {
+      await sendCancelProcessInstanceRequest(processInstance.key);
+    }
+
     const startEvent = await getStartEvent(getProcessInstanceKey());
 
     if (!startEvent.eventDefinitions) {
