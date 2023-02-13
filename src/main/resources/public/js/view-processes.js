@@ -1,8 +1,22 @@
 const processesPerPage = 20;
 let processesCurrentPage = 0;
 
+let processesSubscriptionOpened = false;
+
 function loadProcessesView() {
   loadProcesses(0);
+
+  if (!processesSubscriptionOpened) {
+    processesSubscriptionOpened = true;
+    // reload to show the new process
+    subscribeToProcessUpdates(() => loadProcessesView());
+    // reload to update the process instance count
+    subscribeToProcessInstanceUpdates(
+      "updateTypeIn",
+      "[PROCESS_INSTANCE_STATE]",
+      () => loadProcessesView()
+    );
+  }
 }
 
 function loadProcesses(currentPage) {

@@ -81,8 +81,10 @@ function loadProcessInstanceView() {
     }
 
     if (!bpmnViewIsLoaded) {
-      subscribeToUpdates("processInstanceKey", processInstance.key, () =>
-        loadViewDebounced()
+      subscribeToProcessInstanceUpdates(
+        "processInstanceKey",
+        processInstance.key,
+        () => loadViewDebounced()
       );
 
       checkForMissingConnectorSecrets(process.key);

@@ -20,7 +20,9 @@ function loadProcessView() {
     $("#process-deployment-time").text(process.deployTime);
 
     if (!bpmnViewIsLoaded) {
-      subscribeToUpdates("processKey", processKey, () => loadViewDebounced());
+      subscribeToProcessInstanceUpdates("processKey", processKey, () =>
+        loadViewDebounced()
+      );
 
       checkForMissingConnectorSecrets(processKey);
 
