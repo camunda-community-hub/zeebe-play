@@ -655,6 +655,9 @@ function completeJobModal() {
   const jobVariables = $("#jobVariables").val();
 
   completeJob(jobKey, jobVariables);
+
+  // reset modal
+  $("#jobVariables").val("{}");
 }
 
 function failJobModal() {
@@ -663,6 +666,10 @@ function failJobModal() {
   const errorMessage = $("#jobErrorMessage").val();
 
   failJob(jobKey, retries, errorMessage);
+
+  // reset modal
+  $("#jobRetries").val("0");
+  $("#jobErrorMessage").val("");
 }
 
 function throwErrorJobModal() {
@@ -671,6 +678,10 @@ function throwErrorJobModal() {
   const errorMessage = $("#job-throw-error-errorMessage").val();
 
   throwErrorJob(jobKey, errorCode, errorMessage);
+
+  // reset modal
+  $("#jobErrorCode").val("");
+  $("#job-throw-error-errorMessage").val("");
 }
 
 function resolveIncident(incidentKey, jobKey) {
