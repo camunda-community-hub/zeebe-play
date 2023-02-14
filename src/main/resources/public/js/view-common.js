@@ -140,7 +140,7 @@ function showFailure(actionId, message) {
     const toastId = actionId;
     const responseJSON = xhr.responseJSON;
 
-    let failureMessage = error;
+    let failureMessage = `<code>${error}</code>`;
     if (responseJSON) {
       failureMessage = `<code>${responseJSON.message}</code>`;
 
