@@ -650,14 +650,19 @@ function fillJobModal(jobKey, type) {
   $("#jobKey-" + type).val(jobKey);
 }
 
+function showJobCompleteModal(jobKey, type, variables) {
+  $("#jobKey-" + type).val(jobKey);
+  $("#jobVariables").val(variables);
+
+  $("#complete-job-modal").modal("show");
+}
+
 function completeJobModal() {
   const jobKey = $("#jobKey-complete").val();
   const jobVariables = $("#jobVariables").val();
 
   completeJob(jobKey, jobVariables);
-
-  // reset modal
-  $("#jobVariables").val("{}");
+  resetJobModal();
 }
 
 function failJobModal() {
@@ -666,10 +671,7 @@ function failJobModal() {
   const errorMessage = $("#jobErrorMessage").val();
 
   failJob(jobKey, retries, errorMessage);
-
-  // reset modal
-  $("#jobRetries").val("0");
-  $("#jobErrorMessage").val("");
+  resetJobModal();
 }
 
 function throwErrorJobModal() {
@@ -678,8 +680,13 @@ function throwErrorJobModal() {
   const errorMessage = $("#job-throw-error-errorMessage").val();
 
   throwErrorJob(jobKey, errorCode, errorMessage);
+  resetJobModal();
+}
 
-  // reset modal
+function resetJobModal() {
+  $("#jobVariables").val("{}");
+  $("#jobRetries").val("0");
+  $("#jobErrorMessage").val("");
   $("#jobErrorCode").val("");
   $("#job-throw-error-errorMessage").val("");
 }

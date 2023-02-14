@@ -225,36 +225,44 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
   const cachedResponse = localStorage.getItem(
     "jobCompletion " + getBpmnProcessId() + " " + elementId
   );
-  if (
-    !taskForm &&
-    cachedResponse &&
-    Object.keys(JSON.parse(cachedResponse)).length > 0
-  ) {
+  const hasCachedResponse =
+    cachedResponse && Object.keys(JSON.parse(cachedResponse)).length > 0;
+
+  if (!taskForm && hasCachedResponse) {
     actions.push({
-      icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#robot"/></svg>',
+      icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#filetype-json"/></svg>',
       text: "Use previous response",
-      action: `completeJob(${jobKey}, ${JSON.stringify(cachedResponse)});`,
+      action: `showJobCompleteModal(${jobKey}, "complete", ${JSON.stringify(
+        cachedResponse
+      )})`,
     });
   }
 
-  actions.push({
-    icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>',
-    text: "Complete Job",
-    action: `completeJob(${jobKey}, "{}");`,
-  });
+  if (isUserTask || !hasCachedResponse) {
+    actions.push({
+      icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>',
+      text: "Complete Job",
+      action: `completeJob(${jobKey}, "{}");`,
+    });
+  }
 
-  if (!taskForm) {
+  if (!taskForm && !hasCachedResponse) {
     actions.push({
       icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#filetype-json"/></svg>',
       text: "Complete with variables",
       modalTarget: "#complete-job-modal",
       action: fillModalAction("complete"),
     });
+
+    if (!isUserTask) {
+      actions.push(
+        {} // DIVIDER
+      );
+    }
   }
 
   if (!isUserTask) {
     actions.push(
-      {}, // DIVIDER
       {
         icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>',
         text: "Fail",
@@ -270,11 +278,13 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
     );
   }
 
-  let content =
-    '<div class="btn-group">' +
-    `<button type="button" class="btn btn-sm btn-primary overlay-button completeButton-${jobKey}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${actions[0].text}" onclick='${actions[0].action}'>` +
-    actions[0].icon +
-    "</button>";
+  let content = `
+    <div class="btn-group">
+      <button type="button" class="btn btn-sm btn-primary overlay-button completeButton-${jobKey}" 
+        data-bs-toggle="tooltip" data-bs-placement="bottom" 
+        title="${actions[0].text}" onclick='${actions[0].action}'>
+        ${actions[0].icon} 
+      </button>`;
 
   if (actions.length > 1) {
     // add a dropdown
