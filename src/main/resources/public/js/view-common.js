@@ -138,13 +138,28 @@ function showNotificationWarning(id, content) {
 function showFailure(actionId, message) {
   return function (xhr, status, error) {
     const toastId = actionId;
+    const responseJSON = xhr.responseJSON;
 
-    var failureMessage = error;
-    if (xhr.responseJSON) {
-      failureMessage = xhr.responseJSON.message;
+    let failureMessage = `<code>${error}</code>`;
+    if (responseJSON) {
+      failureMessage = `<code>${responseJSON.message}</code>`;
+
+      if (responseJSON.failureType === "COMMAND_REJECTION") {
+        failureMessage = `The command was rejected (Status: <code>${responseJSON.message}</code>).`;
+      }
+
+      if (responseJSON.details) {
+        failureMessage += `
+          <div class="mt-2 pt-2 border-top">
+            <details>
+              <summary>Details</summary>
+              <code>${responseJSON.details}</code>
+            </details>
+          </div>`;
+      }
     }
 
-    const content = message + ": <code>" + failureMessage + "</code>";
+    const content = message + " " + failureMessage;
 
     showNotificationFailure(toastId, content);
   };
