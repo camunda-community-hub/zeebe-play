@@ -715,7 +715,7 @@ function resolveIncident(incidentKey, jobKey) {
       .done((key) => {
         showNotificationSuccess(
           toastId,
-          "Retries of job <code>" + jobKey + "</code> increase."
+          "Retries of job <code>" + jobKey + "</code> increased."
         );
 
         resolveIncidentByKey(incidentKey);
