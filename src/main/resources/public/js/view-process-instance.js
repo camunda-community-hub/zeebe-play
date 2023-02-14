@@ -258,6 +258,16 @@ async function rewind(task) {
           );
           break;
         }
+        case "resolveIncident": {
+          const [incidentKey, jobKey] = await Promise.all([
+            fetchIncidentKeyForJobKey(newId, step.task),
+            fetchJobKeyForTask(newId, step.task),
+          ]);
+
+          await sendUpdateRetriesJobRequest(jobKey, 1);
+          await sendResolveIncidentRequest(incidentKey);
+          break;
+        }
         case "setVariables": {
           await sendSetVariablesRequest(newId, newId, step.variables);
           break;
@@ -442,6 +452,30 @@ function fetchJobKeyForTask(id, task) {
           ) {
             clearInterval(interval);
             resolve(job.key);
+          }
+        });
+      });
+    }, 250);
+  });
+}
+
+function fetchIncidentKeyForJobKey(id, elementId) {
+  return new Promise((resolve, reject) => {
+    let remainingTries = 6;
+    let interval = setInterval(() => {
+      remainingTries--;
+      if (remainingTries === 0) {
+        clearInterval(interval);
+        return reject();
+      }
+      queryIncidentsByProcessInstance(id).done((response) => {
+        response.data.processInstance.incidents.forEach((incident) => {
+          if (
+            incident.elementInstance.element.elementId === elementId &&
+            incident.state !== "RESOLVED"
+          ) {
+            clearInterval(interval);
+            resolve(incident.key);
           }
         });
       });

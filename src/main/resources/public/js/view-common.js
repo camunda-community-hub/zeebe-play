@@ -674,6 +674,13 @@ function throwErrorJobModal() {
 }
 
 function resolveIncident(incidentKey, jobKey) {
+  const task = jobKeyToElementIdMapping[jobKey];
+  history.push({
+    action: "resolveIncident",
+    task,
+  });
+  refreshHistory();
+
   const toastId = "job-update-retries-" + jobKey;
 
   if (jobKey) {
