@@ -647,10 +647,14 @@ function executeConnectorJob(jobType, jobKey) {
 }
 
 function fillJobModal(jobKey, type) {
+  resetJobModal();
+
   $("#jobKey-" + type).val(jobKey);
 }
 
 function showJobCompleteModal(jobKey, type, variables) {
+  resetJobModal();
+
   $("#jobKey-" + type).val(jobKey);
   $("#jobVariables").val(variables);
 
@@ -662,7 +666,6 @@ function completeJobModal() {
   const jobVariables = $("#jobVariables").val();
 
   completeJob(jobKey, jobVariables);
-  resetJobModal();
 }
 
 function failJobModal() {
@@ -671,7 +674,6 @@ function failJobModal() {
   const errorMessage = $("#jobErrorMessage").val();
 
   failJob(jobKey, retries, errorMessage);
-  resetJobModal();
 }
 
 function throwErrorJobModal() {
@@ -680,7 +682,6 @@ function throwErrorJobModal() {
   const errorMessage = $("#job-throw-error-errorMessage").val();
 
   throwErrorJob(jobKey, errorCode, errorMessage);
-  resetJobModal();
 }
 
 function resetJobModal() {
