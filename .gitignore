@@ -27,5 +27,3 @@ target/
 hs_err_pid*
 
 /node_modules/
-/package.json
-/package-lock.json
