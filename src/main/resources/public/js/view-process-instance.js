@@ -4,6 +4,7 @@ var markedBpmnElement;
 var isElementCountersViewEnabled = false;
 
 const jobKeyToElementIdMapping = {};
+const incidentKeyToElementIdMapping = {};
 
 let processInstance;
 
@@ -259,12 +260,12 @@ async function rewind(task) {
           break;
         }
         case "resolveIncident": {
-          const [incidentKey, jobKey] = await Promise.all([
-            fetchIncidentKeyForJobKey(newId, step.task),
-            fetchJobKeyForTask(newId, step.task),
-          ]);
+          if (step.hasJob) {
+            const jobKey = await fetchJobKeyForTask(newId, step.task);
+            await sendUpdateRetriesJobRequest(jobKey, 1);
+          }
 
-          await sendUpdateRetriesJobRequest(jobKey, 1);
+          const incidentKey = await fetchIncidentKeyForJobKey(newId, step.task);
           await sendResolveIncidentRequest(incidentKey);
           break;
         }
@@ -1170,6 +1171,8 @@ function loadIncidentsOfProcessInstance() {
 
       let state = formatIncidentState(incident.state);
       const isActiveIncident = incident.state === "CREATED";
+
+      incidentKeyToElementIdMapping[incident.key] = elementId;
 
       let jobKey = "";
       if (incident.job) {

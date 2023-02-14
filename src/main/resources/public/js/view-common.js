@@ -674,10 +674,11 @@ function throwErrorJobModal() {
 }
 
 function resolveIncident(incidentKey, jobKey) {
-  const task = jobKeyToElementIdMapping[jobKey];
+  const task = incidentKeyToElementIdMapping[incidentKey];
   history.push({
     action: "resolveIncident",
     task,
+    hasJob: Boolean(jobKey),
   });
   refreshHistory();
 
