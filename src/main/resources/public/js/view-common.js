@@ -708,6 +708,14 @@ function resetJobModal() {
 }
 
 function resolveIncident(incidentKey, jobKey) {
+  const task = incidentKeyToElementIdMapping[incidentKey];
+  history.push({
+    action: "resolveIncident",
+    task,
+    hasJob: Boolean(jobKey),
+  });
+  refreshHistory();
+
   const toastId = "job-update-retries-" + jobKey;
 
   if (jobKey) {
