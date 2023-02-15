@@ -26,13 +26,31 @@ async function openDiagram(bpmnXML) {
   eventBus = bpmnViewer.get("eventBus");
   overlays = bpmnViewer.get("overlays");
 
+  eventBus.on("canvas.viewbox.changed", ({ viewbox }) => {
+    const { x, y, width, height } = viewbox;
+    window.location.hash = `${Math.round(x)}:${Math.round(y)}:${Math.round(
+      width
+    )}:${Math.round(height)}`;
+  });
+
   try {
     await bpmnViewer.importXML(bpmnXML);
 
-    // zoom to fit full viewport
-    canvas.zoom("fit-viewport");
-    // scroll to include the button overlays
-    canvas.scroll({ dx: 30 });
+    const hashSegments = window.location.hash?.split(":");
+    if (hashSegments.length === 4) {
+      // use location from url hash
+      canvas.viewbox({
+        x: parseInt(hashSegments[0].substring(1), 10),
+        y: parseInt(hashSegments[1], 10),
+        width: parseInt(hashSegments[2], 10),
+        height: parseInt(hashSegments[3], 10),
+      });
+    } else {
+      // zoom to fit full viewport
+      canvas.zoom("fit-viewport");
+      // scroll to include the button overlays
+      canvas.scroll({ dx: 30 });
+    }
   } catch (err) {
     console.error("could not import BPMN 2.0 diagram", err);
   }

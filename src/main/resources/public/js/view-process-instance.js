@@ -298,7 +298,8 @@ async function rewind(task) {
 
   if (newId && newHistory) {
     localStorage.setItem("history " + newId, JSON.stringify(newHistory));
-    window.location.href = "/view/process-instance/" + newId;
+    window.location.href =
+      "/view/process-instance/" + newId + window.location.hash;
   }
 }
 
