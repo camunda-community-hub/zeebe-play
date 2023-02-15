@@ -986,35 +986,39 @@ function loadJobsOfProcessInstance() {
       let connectorButtonId = `action-connector-execute-${elementId}`;
 
       let actionButton = "";
+      let completeJobButtonId = `complete-job-${job.key}`;
+
       if (isActiveJob) {
         let fillModalAction = function (type) {
-          return "fillJobModal('" + job.key + "', '" + type + "');";
+          return `fillJobModal(${job.key}, '${type}');`;
         };
 
-        actionButton =
-          '<div class="btn-group">' +
-          '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="modal" data-bs-target="#complete-job-modal" onclick="' +
-          fillModalAction("complete") +
-          '">' +
-          '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>' +
-          " Complete" +
-          "</button>" +
-          '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>' +
-          '<ul class="dropdown-menu">' +
-          '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#fail-job-modal" href="#" onclick="' +
-          fillModalAction("fail") +
-          '">' +
-          '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>' +
-          " Fail" +
-          "</a></li>" +
-          '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#throw-error-job-modal" href="#" onclick="' +
-          fillModalAction("throw-error") +
-          '">' +
-          '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>' +
-          " Throw Error" +
-          "</a></li>" +
-          "</ul>" +
-          "</div>";
+        actionButton = `
+          <div class="btn-group">
+            <button id="${completeJobButtonId}" type="button" class="btn btn-sm btn-primary overlay-button">
+              <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>
+              Complete
+            </button>
+            <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#fail-job-modal" href="#" onclick="${fillModalAction(
+                    "fail"
+                  )}">
+                    <svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>
+                  Fail
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#throw-error-job-modal" href="#" onclick="${fillModalAction(
+                  "throw-error"
+                )}">
+                  <svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>
+                  Throw Error
+                </a>
+              </li>
+            </ul>
+          </div>`;
       }
 
       $("#jobs-of-process-instance-table > tbody:last-child").append(
@@ -1052,6 +1056,18 @@ function loadJobsOfProcessInstance() {
             executeConnectorJob(job.jobType, job.key);
           });
         } else {
+          // bind action for completing the job
+          $("#" + completeJobButtonId).click(function () {
+            const cachedResponse = localStorage.getItem(
+              "jobCompletion " + getBpmnProcessId() + " " + elementId
+            );
+            let jobVariables = cachedResponse;
+            if (!cachedResponse) {
+              jobVariables = {};
+            }
+            showJobCompleteModal(job.key, "complete", jobVariables);
+          });
+
           makeTaskPlayable(elementId, job.key);
         }
       }
