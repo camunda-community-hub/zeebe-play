@@ -973,6 +973,10 @@ function loadJobsOfProcessInstance() {
 
     const indexOffset = 1;
 
+    // first, remove all task markers on the BPMN
+    removeAllJobActionMarkers();
+    removeAllConnectorActionMarkers();
+
     jobs.forEach((job, index) => {
       const bpmnElement = job.elementInstance.element;
       let elementFormatted = formatBpmnElementInstance(bpmnElement);
@@ -1070,40 +1074,12 @@ function loadJobsOfProcessInstance() {
         }
       }
     });
-
-    removeTaskPlayableMarkersOfJobs(jobs);
   });
 }
 
 function isConnectorJob(job) {
   // assuming that a job for a connector starts with this prefix
   return job.jobType.startsWith("io.camunda:");
-}
-
-function removeTaskPlayableMarkersOfJobs(jobs) {
-  let elementIdsOfActivatableJobs = jobs
-    .filter(function (job) {
-      return job.state === "ACTIVATABLE";
-    })
-    .map(function (job) {
-      return job.elementInstance.element.elementId;
-    });
-
-  let elementIdsOfNotActivatableJobs = jobs
-    .filter(function (job) {
-      return job.state !== "ACTIVATABLE";
-    })
-    .map(function (job) {
-      return job.elementInstance.element.elementId;
-    });
-
-  elementIdsOfNotActivatableJobs
-    .filter(function (elementId) {
-      return !elementIdsOfActivatableJobs.includes(elementId);
-    })
-    .forEach(function (elementId) {
-      removeTaskPlayableMarker(elementId);
-    });
 }
 
 function loadUserTasksOfProcessInstance() {
@@ -1115,6 +1091,9 @@ function loadUserTasksOfProcessInstance() {
 
     let totalCount = userTasks.totalCount;
     let nodes = userTasks.nodes;
+
+    // first, remove all user task markers on the BPMN
+    removeAllUserTaskActionMarkers();
 
     // TODO (#67): show user tasks in tab
 
@@ -1132,35 +1111,7 @@ function loadUserTasksOfProcessInstance() {
         });
       }
     });
-
-    removeUserTaskMarkers(nodes);
   });
-}
-
-function removeUserTaskMarkers(userTasks) {
-  let elementIdsOfActiveTasks = userTasks
-    .filter(function (userTask) {
-      return userTask.state === "CREATED";
-    })
-    .map(function (userTask) {
-      return userTask.elementInstance.element.elementId;
-    });
-
-  let elementIdsOfNotActiveTasks = userTasks
-    .filter(function (userTask) {
-      return userTask.state !== "CREATED";
-    })
-    .map(function (userTask) {
-      return userTask.elementInstance.element.elementId;
-    });
-
-  elementIdsOfNotActiveTasks
-    .filter(function (elementId) {
-      return !elementIdsOfActiveTasks.includes(elementId);
-    })
-    .forEach(function (elementId) {
-      removeTaskPlayableMarker(elementId);
-    });
 }
 
 function loadIncidentsOfProcessInstance() {

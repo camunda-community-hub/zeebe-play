@@ -296,9 +296,11 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
     );
   }
 
+  let buttonId = `complete-job-button-${jobKey}`;
+
   let content = `
     <div class="btn-group">
-      <button type="button" class="btn btn-sm btn-primary overlay-button completeButton-${jobKey}" 
+      <button id="${buttonId}" type="button" class="btn btn-sm btn-primary overlay-button" 
         data-bs-toggle="tooltip" data-bs-placement="bottom" 
         title="${actions[0].text}" onclick='${actions[0].action}'>
         ${actions[0].icon} 
@@ -332,7 +334,8 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
 
   content += "</div>";
 
-  overlays.add(elementId, "job-marker", {
+  let overlayType = isUserTask ? "user-task-action" : "job-action";
+  overlays.add(elementId, overlayType, {
     position: {
       top: -20,
       left: -40,
@@ -340,11 +343,12 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
     html: content,
   });
 
-  $(`.completeButton-${jobKey}`).tooltip();
+  const buttonElement = $("#" + buttonId);
+  buttonElement.tooltip();
 
   // We have to remove the tooltip manually when removing the element that triggers it
   // see https://github.com/twbs/bootstrap/issues/3084#issuecomment-5207780
-  $(`.completeButton-${jobKey}`).on("click", () => {
+  buttonElement.on("click", () => {
     $(`[data-bs-toggle="tooltip"]`).tooltip("hide");
   });
 }
@@ -357,7 +361,7 @@ function makeConnectorTaskPlayable(elementId, jobKey, jobType) {
         <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#plugin"/></svg>
       </button>`;
 
-  overlays.add(elementId, "job-marker", {
+  overlays.add(elementId, "connector-action", {
     position: {
       top: -20,
       left: -20,
@@ -365,21 +369,30 @@ function makeConnectorTaskPlayable(elementId, jobKey, jobType) {
     html: content,
   });
 
-  $("#" + buttonId).click(function () {
+  const buttonElement = $("#" + buttonId);
+  buttonElement.click(function () {
     executeConnectorJob(jobType, jobKey);
   });
 
-  $("#" + buttonId).tooltip();
+  buttonElement.tooltip();
 
   // We have to remove the tooltip manually when removing the element that triggers it
   // see https://github.com/twbs/bootstrap/issues/3084#issuecomment-5207780
-  $("#" + buttonId).on("click", () => {
+  buttonElement.on("click", () => {
     $(`[data-bs-toggle="tooltip"]`).tooltip("hide");
   });
 }
 
-function removeTaskPlayableMarker(elementId) {
-  overlays.remove({ element: elementId, type: "job-marker" });
+function removeAllUserTaskActionMarkers() {
+  overlays.remove({ type: "user-task-action" });
+}
+
+function removeAllJobActionMarkers() {
+  overlays.remove({ type: "job-action" });
+}
+
+function removeAllConnectorActionMarkers() {
+  overlays.remove({ type: "connector-action" });
 }
 
 function addResolveIncidentButton(elementId, action) {
