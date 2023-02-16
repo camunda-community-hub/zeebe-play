@@ -350,7 +350,7 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
 }
 
 function makeConnectorTaskPlayable(elementId, jobKey, jobType) {
-  let buttonId = `connector-execute-${elementId}`;
+  let buttonId = `connector-execute-${jobKey}`;
 
   let content = `
       <button id="${buttonId}" type="button" class="btn btn-sm btn-primary" title="Invoke connector">
@@ -369,11 +369,11 @@ function makeConnectorTaskPlayable(elementId, jobKey, jobType) {
     executeConnectorJob(jobType, jobKey);
   });
 
-  $(`.${buttonId}`).tooltip();
+  $("#" + buttonId).tooltip();
 
   // We have to remove the tooltip manually when removing the element that triggers it
   // see https://github.com/twbs/bootstrap/issues/3084#issuecomment-5207780
-  $(`.${buttonId}`).on("click", () => {
+  $("#" + buttonId).on("click", () => {
     $(`[data-bs-toggle="tooltip"]`).tooltip("hide");
   });
 }
