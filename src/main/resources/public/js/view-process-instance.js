@@ -987,72 +987,85 @@ function loadJobsOfProcessInstance() {
       let connectorButtonId = `action-connector-execute-${elementId}`;
 
       let actionButton = "";
-      if (isActiveJob) {
-        let fillModalAction = function (type) {
-          return "fillJobModal('" + job.key + "', '" + type + "');";
-        };
+      let jobCompleteButtonId = `job-complete-${job.key}`;
+      let jobFailButtonId = `job-fail-${job.key}`;
+      let jobThrowErrorButtonId = `job-throw-error-${job.key}`;
 
-        actionButton =
-          '<div class="btn-group">' +
-          '<button type="button" class="btn btn-sm btn-primary overlay-button" data-bs-toggle="modal" data-bs-target="#complete-job-modal" onclick="' +
-          fillModalAction("complete") +
-          '">' +
-          '<svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>' +
-          " Complete" +
-          "</button>" +
-          '<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>' +
-          '<ul class="dropdown-menu">' +
-          '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#fail-job-modal" href="#" onclick="' +
-          fillModalAction("fail") +
-          '">' +
-          '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>' +
-          " Fail" +
-          "</a></li>" +
-          '<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#throw-error-job-modal" href="#" onclick="' +
-          fillModalAction("throw-error") +
-          '">' +
-          '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>' +
-          " Throw Error" +
-          "</a></li>" +
-          "</ul>" +
-          "</div>";
+      if (isActiveJob) {
+        if (isConnectorJob(job)) {
+          // a job for a connector can only be invoked
+          actionButton = `
+            <button id="${connectorButtonId}" type="button" class="btn btn-sm btn-primary">
+              <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#plugin"/></svg>
+              Invoke
+            </button>`;
+        } else {
+          // show all actions for a regular job
+          actionButton = `
+          <div class="btn-group">
+            <button id="${jobCompleteButtonId}" type="button" class="btn btn-sm btn-primary overlay-button">
+              <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>
+              Complete
+            </button>
+            <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a id="${jobFailButtonId}" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#fail-job-modal" href="#">
+                    <svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>
+                  Fail
+                </a>
+              </li>
+              <li>
+                <a id="${jobThrowErrorButtonId}" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#throw-error-job-modal" href="#">
+                  <svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>
+                  Throw Error
+                </a>
+              </li>
+            </ul>
+          </div>`;
+        }
       }
 
-      $("#jobs-of-process-instance-table > tbody:last-child").append(
-        "<tr>" +
-          "<td>" +
-          (indexOffset + index) +
-          "</td>" +
-          "<td>" +
-          job.key +
-          "</td>" +
-          "<td>" +
-          job.jobType +
-          "</td>" +
-          "<td>" +
-          elementFormatted +
-          "</td>" +
-          "<td>" +
-          job.elementInstance.key +
-          "</td>" +
-          "<td>" +
-          state +
-          "</td>" +
-          "<td>" +
-          actionButton +
-          "</td>" +
-          "</tr>"
-      );
+      $("#jobs-of-process-instance-table > tbody:last-child").append(`
+        <tr>
+          <td>${indexOffset + index}</td>
+          <td>${job.key}</td>
+          <td>${job.jobType}</td>
+          <td>${elementFormatted}</td>
+          <td>${job.elementInstance.key}</td>
+          <td>${state}</td>
+          <td>${actionButton}</td>
+          </tr>`);
 
       if (isActiveJob) {
-        // connector are handled differently
         if (isConnectorJob(job)) {
-          makeConnectorTaskPlayable(elementId, job.key, job.jobType);
-
+          // bind action for connector button
           $("#" + connectorButtonId).click(function () {
             executeConnectorJob(job.jobType, job.key);
           });
+
+          makeConnectorTaskPlayable(elementId, job.key, job.jobType);
         } else {
+          // bind actions for job buttons
+          $("#" + jobCompleteButtonId).click(function () {
+            const cachedResponse = localStorage.getItem(
+              "jobCompletion " + getBpmnProcessId() + " " + elementId
+            );
+            let jobVariables = cachedResponse;
+            if (!cachedResponse) {
+              jobVariables = {};
+            }
+            showJobCompleteModal(job.key, "complete", jobVariables);
+          });
+
+          $("#" + jobFailButtonId).click(function () {
+            fillJobModal(job.key, "fail");
+          });
+
+          $("#" + jobThrowErrorButtonId).click(function () {
+            fillJobModal(job.key, "throw-error");
+          });
+
           makeTaskPlayable(elementId, job.key);
         }
       }
