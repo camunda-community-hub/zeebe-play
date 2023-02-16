@@ -991,7 +991,16 @@ function loadJobsOfProcessInstance() {
       let jobThrowErrorButtonId = `job-throw-error-${job.key}`;
 
       if (isActiveJob) {
-        actionButton = `
+        if (isConnectorJob(job)) {
+          // a job for a connector can only be invoked
+          actionButton = `
+            <button id="${connectorButtonId}" type="button" class="btn btn-sm btn-primary">
+              <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#plugin"/></svg>
+              Invoke
+            </button>`;
+        } else {
+          // show all actions for a regular job
+          actionButton = `
           <div class="btn-group">
             <button id="${jobCompleteButtonId}" type="button" class="btn btn-sm btn-primary overlay-button">
               <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>
@@ -1013,6 +1022,7 @@ function loadJobsOfProcessInstance() {
               </li>
             </ul>
           </div>`;
+        }
       }
 
       $("#jobs-of-process-instance-table > tbody:last-child").append(`
@@ -1027,13 +1037,13 @@ function loadJobsOfProcessInstance() {
           </tr>`);
 
       if (isActiveJob) {
-        // connector are handled differently
         if (isConnectorJob(job)) {
-          makeConnectorTaskPlayable(elementId, job.key, job.jobType);
-
+          // bind action for connector button
           $("#" + connectorButtonId).click(function () {
             executeConnectorJob(job.jobType, job.key);
           });
+
+          makeConnectorTaskPlayable(elementId, job.key, job.jobType);
         } else {
           // bind actions for job buttons
           $("#" + jobCompleteButtonId).click(function () {
