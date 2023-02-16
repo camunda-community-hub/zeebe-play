@@ -1015,31 +1015,16 @@ function loadJobsOfProcessInstance() {
           </div>`;
       }
 
-      $("#jobs-of-process-instance-table > tbody:last-child").append(
-        "<tr>" +
-          "<td>" +
-          (indexOffset + index) +
-          "</td>" +
-          "<td>" +
-          job.key +
-          "</td>" +
-          "<td>" +
-          job.jobType +
-          "</td>" +
-          "<td>" +
-          elementFormatted +
-          "</td>" +
-          "<td>" +
-          job.elementInstance.key +
-          "</td>" +
-          "<td>" +
-          state +
-          "</td>" +
-          "<td>" +
-          actionButton +
-          "</td>" +
-          "</tr>"
-      );
+      $("#jobs-of-process-instance-table > tbody:last-child").append(`
+        <tr>
+          <td>${indexOffset + index}</td>
+          <td>${job.key}</td>
+          <td>${job.jobType}</td>
+          <td>${elementFormatted}</td>
+          <td>${job.elementInstance.key}</td>
+          <td>${state}</td>
+          <td>${actionButton}</td>
+          </tr>`);
 
       if (isActiveJob) {
         // connector are handled differently
