@@ -291,6 +291,19 @@ function formatJobState(state) {
   }
 }
 
+function formatUserTaskState(state) {
+  switch (state) {
+    case "CREATED":
+      return '<span class="badge bg-primary">active</span>';
+    case "COMPLETED":
+      return '<span class="badge bg-secondary">completed</span>';
+    case "CANCELED":
+      return '<span class="badge bg-dark">canceled</span>';
+    default:
+      return "?";
+  }
+}
+
 function formatBpmnElement(bpmnElementType) {
   switch (bpmnElementType) {
     case "PROCESS":

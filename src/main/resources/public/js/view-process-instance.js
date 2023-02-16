@@ -1088,31 +1088,107 @@ function isConnectorJob(job) {
 function loadUserTasksOfProcessInstance() {
   const processInstanceKey = getProcessInstanceKey();
 
+  let indexOffset = 1;
   queryUserTasksByProcessInstance(processInstanceKey).done(function (response) {
     let processInstance = response.data.processInstance;
     let userTasks = processInstance.userTasks;
 
     let totalCount = userTasks.totalCount;
+    $("#user-tasks-total-count").text(totalCount);
+
     let nodes = userTasks.nodes;
 
     // first, remove all user task markers on the BPMN
     removeAllUserTaskActionMarkers();
 
-    // TODO (#67): show user tasks in tab
+    $("#user-tasks-of-process-instance-table tbody").empty();
 
-    nodes.forEach((userTask) => {
+    nodes.forEach((userTask, index) => {
       const bpmnElement = userTask.elementInstance.element;
       const elementId = bpmnElement.elementId;
 
       jobKeyToElementIdMapping[userTask.key] = elementId;
 
+      let candidateGroupsFormatted = "-";
+      if (userTask.candidateGroups) {
+        // candidate groups should be a stringified array of strings
+        candidateGroupsFormatted = userTask.candidateGroups
+          .replaceAll("[", "")
+          .replaceAll("]", "")
+          .replaceAll('"', "");
+      }
+
       const isActiveTask = userTask.state === "CREATED";
+      const userForm = userTask.form?.resource;
+
+      let fillFormButtonId = `job-fill-form-${userTask.key}`;
+      let jobCompleteButtonId = `job-complete-${userTask.key}`;
+      let jobCompleteWithVariablesButtonId = `job-complete-with-variables-${userTask.key}`;
+      let actionButton = "";
+
       if (isActiveTask) {
         makeTaskPlayable(elementId, userTask.key, {
           isUserTask: true,
           taskForm: userTask.form?.resource,
         });
+
+        if (userForm) {
+          actionButton = `
+          <div class="btn-group">
+            <button id="${fillFormButtonId}" type="button" class="btn btn-sm btn-primary overlay-button">
+              <img width="18" height="18" style="margin-top:-4px;" src="/img/edit-form.svg" />
+              Fill form
+            </button>
+            <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a id="${jobCompleteButtonId}" class="dropdown-item" href="#">
+                    <svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>
+                  Complete
+                </a>
+              </li>
+            </ul>
+          </div>`;
+        } else {
+          actionButton = `
+            <button id="${jobCompleteWithVariablesButtonId}" type="button" class="btn btn-sm btn-primary">
+              <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>
+              Complete
+            </button>`;
+        }
       }
+
+      $("#user-tasks-of-process-instance-table > tbody:last-child").append(`
+        <tr>
+          <td>${indexOffset + index}</td>
+          <td>${userTask.key}</td>
+          <td>${userTask.assignee ?? "-"}</td>
+          <td>${candidateGroupsFormatted}</td>
+          <td>${formatBpmnElementInstance(bpmnElement)}</td>
+          <td>${userTask.elementInstance.key}</td>
+          <td>${formatUserTaskState(userTask.state)}</td>
+          <td>${actionButton}</td>
+          </tr>`);
+
+      // bind action buttons
+      $("#" + jobCompleteButtonId)?.click(function () {
+        completeJob(userTask.key, "{}");
+      });
+
+      $("#" + jobCompleteWithVariablesButtonId)?.click(function () {
+        const cachedResponse = localStorage.getItem(
+          "jobCompletion " + getBpmnProcessId() + " " + elementId
+        );
+        let jobVariables = cachedResponse;
+        if (!cachedResponse) {
+          jobVariables = {};
+        }
+        showJobCompleteModal(userTask.key, "complete", jobVariables);
+      });
+
+      $("#" + fillFormButtonId)?.click(function () {
+        showTaskModal(userTask.key, elementId);
+      });
     });
   });
 }
