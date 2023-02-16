@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/header :: head"></head>
+  <body onload="loadHomeView();">
+    <div th:replace="fragments/navbar :: navbar"></div>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col">
+          <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading" th:text="${status}">Oops</h4>
+            <p th:text="${message}">Something went wrong.</p>
+            <hr />
+            <p class="mb-0">
+              <img width="128" src="/img/zeebe-broken.png" />
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer th:replace="fragments/footer :: footer"></footer>
+  </body>
+</html>
