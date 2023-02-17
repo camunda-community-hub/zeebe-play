@@ -11,6 +11,10 @@
   opacity: 0.9;
 }
 
+.hidden {
+  display: none;
+}
+
 .rewind-button {
   padding: 0.2rem 0.35rem;
   padding-right: 0.4rem;
@@ -85,4 +89,13 @@
 /* make form-js powered by appear above bootstrap modal */
 .fjs-powered-by-lightbox {
   z-index: 1100 !important;
+}
+
+#resolve-incident-error-message {
+  background-color: #eee;
+  padding: 1em;
+}
+
+#resolve-incident-variables-section {
+  margin-top: 1em;
 }
