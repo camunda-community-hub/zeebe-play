@@ -124,6 +124,9 @@ function loadProcessInstanceDetailsViews() {
 }
 
 function makeTasksReplayable() {
+  // first, remove all rewind markers
+  overlays.remove({ type: "rewind-marker" });
+
   const tasks = new Set(
     history
       .filter(({ action }) => action === "completeJob")
