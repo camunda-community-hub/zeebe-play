@@ -61,6 +61,24 @@
         <li class="nav-item" role="presentation">
           <button
             class="nav-link"
+            id="user-tasks-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#user-tasks"
+            type="button"
+            role="tab"
+            aria-controls="user-tasks"
+            aria-selected="false"
+          >
+            User Tasks
+            <span class="badge bg-light text-dark" id="user-tasks-total-count"
+              >0</span
+            >
+          </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
             id="incidents-tab"
             data-bs-toggle="tab"
             data-bs-target="#incidents"
@@ -183,6 +201,17 @@
       >
         <div
           th:replace="views/monitoring/process-instances/process-instance-details-jobs.html :: process-instance-details-jobs"
+        ></div>
+      </div>
+
+      <div
+        class="tab-pane fade"
+        id="user-tasks"
+        role="tabpanel"
+        aria-labelledby="user-tasks-tab"
+      >
+        <div
+          th:replace="views/monitoring/process-instances/process-instance-details-user-tasks.html :: process-instance-details-user-tasks"
         ></div>
       </div>
 
