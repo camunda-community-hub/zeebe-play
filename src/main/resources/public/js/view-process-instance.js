@@ -1060,7 +1060,7 @@ function loadJobsOfProcessInstance() {
             );
             let jobVariables = cachedResponse;
             if (!cachedResponse) {
-              jobVariables = {};
+              jobVariables = "{}";
             }
             showJobCompleteModal(job.key, "complete", jobVariables);
           });
@@ -1112,10 +1112,9 @@ function loadUserTasksOfProcessInstance() {
       let candidateGroupsFormatted = "-";
       if (userTask.candidateGroups) {
         // candidate groups should be a stringified array of strings
-        candidateGroupsFormatted = userTask.candidateGroups
-          .replaceAll("[", "")
-          .replaceAll("]", "")
-          .replaceAll('"', "");
+        candidateGroupsFormatted = JSON.parse(userTask.candidateGroups).join(
+          ", "
+        );
       }
 
       const isActiveTask = userTask.state === "CREATED";
@@ -1181,7 +1180,7 @@ function loadUserTasksOfProcessInstance() {
         );
         let jobVariables = cachedResponse;
         if (!cachedResponse) {
-          jobVariables = {};
+          jobVariables = "{}";
         }
         showJobCompleteModal(userTask.key, "complete", jobVariables);
       });
