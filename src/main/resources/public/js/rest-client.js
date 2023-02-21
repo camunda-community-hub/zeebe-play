@@ -138,3 +138,7 @@ function sendGetAvailableConnectorsRequest() {
 function sendExecuteConnectorRequest(jobType, jobKey) {
   return sendPostRequest(`connectors/${jobType}/execute/${jobKey}`);
 }
+
+function sendStatusRequest() {
+  return sendGetRequest("status");
+}
