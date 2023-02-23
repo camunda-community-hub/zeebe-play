@@ -1665,6 +1665,8 @@ function loadElementInfoOfProcessInstance() {
 function switchToIncidentsTab(evt) {
   evt.preventDefault();
 
+  evt.target.closest(".toast").querySelector(".btn-close").click();
+
   if (detailsCollapsed) {
     toggleDetailsCollapse();
   }

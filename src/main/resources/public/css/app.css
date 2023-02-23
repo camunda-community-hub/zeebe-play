@@ -94,6 +94,7 @@
 #resolve-incident-error-message {
   background-color: #eee;
   padding: 1em;
+  white-space: pre-wrap;
 }
 
 #resolve-incident-variables-section {

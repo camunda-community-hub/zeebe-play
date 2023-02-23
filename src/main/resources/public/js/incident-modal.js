@@ -1,6 +1,8 @@
 async function openResolveIncidentModal(incidentKey, jobKey) {
   const processInstanceKey = getProcessInstanceKey();
 
+  document.querySelector("#new-toast-new-incident .btn-close")?.click();
+
   const [incidentResponse, variableResponse] = await Promise.all([
     queryIncidentsByProcessInstance(processInstanceKey),
     queryVariablesByProcessInstance(processInstanceKey),
@@ -78,6 +80,21 @@ async function confirmResolveIncidentModal() {
       variables,
     });
     refreshHistory();
+  }
+
+  let hasVariables = true;
+  try {
+    hasVariables = Object.keys(JSON.parse(variables || "{}")).length > 0;
+  } catch (e) {
+    // unparseable variable input
+    // let's assume there are variables and let the backend figure it out
+  }
+
+  if (!hasVariables) {
+    return resolveIncident(
+      $("#resolve-incident-key").val(),
+      $("#resolve-incident-jobKey").val()
+    );
   }
 
   sendSetVariablesRequest(getProcessInstanceKey(), scope, variables)
