@@ -1060,7 +1060,7 @@ function loadJobsOfProcessInstance() {
             );
             let jobVariables = cachedResponse;
             if (!cachedResponse) {
-              jobVariables = "{}";
+              jobVariables = "";
             }
             showJobCompleteModal(job.key, "complete", jobVariables);
           });
@@ -1180,7 +1180,7 @@ function loadUserTasksOfProcessInstance() {
         );
         let jobVariables = cachedResponse;
         if (!cachedResponse) {
-          jobVariables = "{}";
+          jobVariables = "";
         }
         showJobCompleteModal(userTask.key, "complete", jobVariables);
       });
@@ -1192,6 +1192,7 @@ function loadUserTasksOfProcessInstance() {
   });
 }
 
+let previousNumberOfIncidents;
 function loadIncidentsOfProcessInstance() {
   const processInstanceKey = getProcessInstanceKey();
 
@@ -1204,6 +1205,18 @@ function loadIncidentsOfProcessInstance() {
     $("#incidents-total-count").text(totalCount);
 
     $("#incidents-of-process-instance-table tbody").empty();
+
+    if (
+      typeof previousNumberOfIncidents === "number" &&
+      previousNumberOfIncidents < totalCount
+    ) {
+      // a new incident occured, let's inform the user about it
+      showNotificationFailure(
+        "new-incident",
+        `<a href="#" onclick="switchToIncidentsTab(event)">A new incident occured!</a>`
+      );
+    }
+    previousNumberOfIncidents = totalCount;
 
     const indexOffset = 1;
 
@@ -1222,7 +1235,8 @@ function loadIncidentsOfProcessInstance() {
         jobKey = incident.job.key;
       }
 
-      const action = "resolveIncident(" + incident.key + ", " + jobKey + ");";
+      const action =
+        "openResolveIncidentModal('" + incident.key + "', '" + jobKey + "');";
 
       let actionButton = "";
       if (isActiveIncident) {
@@ -1646,4 +1660,16 @@ function loadElementInfoOfProcessInstance() {
     const elements = process.elements;
     elements.forEach((element) => showInfoOfBpmnElement(element));
   });
+}
+
+function switchToIncidentsTab(evt) {
+  evt.preventDefault();
+
+  evt.target.closest(".toast").querySelector(".btn-close").click();
+
+  if (detailsCollapsed) {
+    toggleDetailsCollapse();
+  }
+
+  document.getElementById("incidents-tab").click();
 }

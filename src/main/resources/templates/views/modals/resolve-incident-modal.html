@@ -1,0 +1,95 @@
+<div th:fragment="resolve-incident-modal">
+  <div
+    class="modal fade"
+    id="resolve-incident-modal"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskFormModal">Resolve Incident</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>Error Message:</p>
+          <pre id="resolve-incident-error-message"></pre>
+          <p>
+            <b>
+              You may want to set variables in order to resolve this incident:
+            </b>
+          </p>
+          <form class="form">
+            <input type="hidden" id="resolve-incident-key" />
+            <input type="hidden" id="resolve-incident-jobKey" />
+            <div class="row">
+              <div class="col col-md-3">
+                <label for="resolve-incident-variables-scope" class="form-label"
+                  >Scope</label
+                >
+                <input
+                  class="form-control"
+                  id="resolve-incident-variables-scope"
+                  type="text"
+                  value="global"
+                />
+              </div>
+              <div class="col">
+                <label
+                  for="resolve-incident-variables-payload"
+                  class="form-label"
+                  >Variables (JSON)</label
+                >
+                <textarea
+                  class="form-control"
+                  id="resolve-incident-variables-payload"
+                  rows="1"
+                  placeholder='{"variableName": "variableValue"}'
+                ></textarea>
+              </div>
+            </div>
+          </form>
+
+          <details id="resolve-incident-variables-section">
+            <summary>Existing Variables</summary>
+            <table class="table table-striped table-hover caption-top">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Value</th>
+                  <th scope="col">Scope</th>
+                  <th scope="col">Scope Element</th>
+                  <th scope="col">Scope Key</th>
+                </tr>
+              </thead>
+              <tbody id="resolve-incident-variables-table"></tbody>
+            </table>
+          </details>
+        </div>
+        <div class="modal-footer">
+          <div>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="confirmResolveIncidentModal();"
+            >
+              Resolve Incident
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -713,7 +713,7 @@ function throwErrorJobModal() {
 }
 
 function resetJobModal() {
-  $("#jobVariables").val("{}");
+  $("#jobVariables").val("");
   $("#jobRetries").val("0");
   $("#jobErrorMessage").val("");
   $("#jobErrorCode").val("");

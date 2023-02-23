@@ -144,7 +144,7 @@ function createNewProcessInstance() {
 
 function createNewProcessInstanceWithVariables() {
   const processKey = getProcessKey();
-  const variables = $("#newInstanceVariables").val();
+  const variables = $("#newInstanceVariables").val() || "{}";
 
   let json = JSON.parse(variables);
 
