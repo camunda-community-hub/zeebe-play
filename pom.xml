@@ -26,7 +26,7 @@
     <eze.version>1.2.0-alpha1</eze.version>
     <hazelcast.version>1.2.1</hazelcast.version>
     <spring-zeebe.version>8.1.17</spring-zeebe.version>
-    <camunda-connector-bundle.version>0.16.0</camunda-connector-bundle.version>
+    <camunda-connector-bundle.version>0.16.1</camunda-connector-bundle.version>
     <camunda-connector-sdk.version>0.6.0</camunda-connector-sdk.version>
 
     <kotlin.version>1.8.10</kotlin.version>
