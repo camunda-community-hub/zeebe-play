@@ -91,6 +91,11 @@ async function confirmResolveIncidentModal() {
   }
 
   if (!hasVariables) {
+    track("zeebePlay:single-operation", {
+      operationType: "RESOLVE_INCIDENT",
+      process_id: getBpmnProcessId(),
+    });
+
     return resolveIncident(
       $("#resolve-incident-key").val(),
       $("#resolve-incident-jobKey").val()
@@ -110,6 +115,11 @@ async function confirmResolveIncidentModal() {
         "set-variables-" + key,
         "Set variables <code>" + variables + "</code>."
       );
+
+      track("zeebePlay:single-operation", {
+        operationType: "RESOLVE_INCIDENT",
+        process_id: getBpmnProcessId(),
+      });
 
       resolveIncident(incidentKey, jobKey);
     })

@@ -29,6 +29,11 @@ function enableButtonToCreateInstanceOfDemoProcess(processKey) {
   const createInstanceButton = $("#demo-create-instance-button");
   createInstanceButton.attr("disabled", false);
   createInstanceButton.click(function () {
+    track("zeebePlay:bpmnelement:completed", {
+      element_type: "START_EVENT",
+      From: "home",
+      process_id: "solos-transport-process",
+    });
     createNewProcessInstanceWith(processKey, {
       captain: "Han Solo",
       ship: "Millennium Falcon",
