@@ -458,6 +458,22 @@ function showInfoOfBpmnElement(element) {
   }
 }
 
+function formatDecisionEvaluationState(evaluation) {
+  let state = "";
+  switch (evaluation.state) {
+    case "EVALUATED":
+      state = '<span class="badge bg-secondary">success</span>';
+      break;
+    case "FAILED":
+      state = '<span class="badge bg-dark">failed</span>';
+      break;
+    default:
+      state = "?";
+  }
+
+  return state;
+}
+
 // ----------------------------------------------------------
 
 function publishMessage(messageName, messageCorrelationKey) {

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="fragments/header :: head"></head>
-  <body onload="loadProcessesView();">
+  <body onload="loadDeploymentView();">
     <div th:replace="fragments/navbar :: navbar"></div>
     <div
       th:replace="views/new-deployment-modal.html :: #new-deployment-modal"
@@ -28,6 +28,24 @@
                 >
               </button>
             </li>
+
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="decisions-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#decisions"
+                type="button"
+                role="tab"
+                aria-controls="decisions"
+                aria-selected="false"
+              >
+                Decisions
+                <span class="badge bg-light text-dark" id="decisions-totalCount"
+                  >0</span
+                >
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -47,7 +65,7 @@
       </div>
 
       <div class="container-fluid">
-        <div class="tab-content" id="processesTabContent">
+        <div class="tab-content" id="deploymentTabContent">
           <div
             class="tab-pane fade show active"
             id="processes"
@@ -56,6 +74,17 @@
           >
             <div
               th:replace="views/deployment/processes.html :: processes"
+            ></div>
+          </div>
+
+          <div
+            class="tab-pane fade"
+            id="decisions"
+            role="tabpanel"
+            aria-labelledby="decisions-tab"
+          >
+            <div
+              th:replace="views/deployment/decisions.html :: decisions"
             ></div>
           </div>
         </div>

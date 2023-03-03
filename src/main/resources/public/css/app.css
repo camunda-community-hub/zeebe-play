@@ -100,3 +100,7 @@
 #resolve-incident-variables-section {
   margin-top: 1em;
 }
+
+.dmn-decision-table-container tbody .dmn-row-highlighted td {
+  background: rgba(0, 125, 255, 0.2);
+}

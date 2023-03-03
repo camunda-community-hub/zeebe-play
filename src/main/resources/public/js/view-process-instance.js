@@ -119,6 +119,7 @@ function loadProcessInstanceDetailsViews() {
   loadMessageSubscriptionsOfProcessInstance();
   loadTimersOfProcessInstance();
   loadChildInstancesOfProcessInstance();
+  loadDecisionEvaluationsOfProcessInstance();
 
   makeTasksReplayable();
 }
@@ -1695,4 +1696,51 @@ function switchToIncidentsTab(evt) {
   }
 
   document.getElementById("incidents-tab").click();
+}
+
+function loadDecisionEvaluationsOfProcessInstance() {
+  const processInstanceKey = getProcessInstanceKey();
+
+  queryDecisionInstancesByProcessInstance(processInstanceKey).done(function (
+    response
+  ) {
+    let processInstance = response.data.processInstance;
+    let decisionEvaluations = processInstance.decisionEvaluations;
+    let totalCount = decisionEvaluations.totalCount;
+
+    $("#decision-evaluations-total-count").text(totalCount);
+
+    $("#decision-evaluations-of-process-instance-table tbody").empty();
+
+    const indexOffset = 1;
+
+    decisionEvaluations.nodes.forEach((decisionEvaluation, index) => {
+      const element = decisionEvaluation.elementInstance?.element;
+      const decisionEvaluationHref =
+        "/view/decision-evaluation/" + decisionEvaluation.key;
+
+      $(
+        "#decision-evaluations-of-process-instance-table > tbody:last-child"
+      ).append(
+        `
+        <tr>
+          <td>${indexOffset + index}</td>
+          <td>
+            <a href="${decisionEvaluationHref}">
+              ${decisionEvaluation.key}
+            </a>
+          </td>
+          <td>${decisionEvaluation.decision?.decisionName}</td>
+          <td>${formatBpmnElementInstance(element)}</td>
+          <td>${decisionEvaluation.elementInstance?.key}</td>
+          <td>${formatDecisionEvaluationState(decisionEvaluation)}</td>
+        </tr>`
+      );
+
+      addOpenDecisionEvaluationButton(
+        element?.elementId,
+        decisionEvaluationHref
+      );
+    });
+  });
 }

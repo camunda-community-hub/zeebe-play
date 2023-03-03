@@ -495,6 +495,23 @@ function addOpenChildInstanceButton(elementId, href) {
   });
 }
 
+function addOpenDecisionEvaluationButton(elementId, href) {
+  overlays.remove({ element: elementId, type: "open-decision-evaluation" });
+
+  const content = `
+      <a type="button" class="btn btn-sm btn-secondary" title="Open decision evaluation" href="${href}">
+        <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#zoom-in"/></svg>
+      </a>`;
+
+  overlays.add(elementId, "open-decision-evaluation", {
+    position: {
+      top: -20,
+      right: 20,
+    },
+    html: content,
+  });
+}
+
 function showElementInfo(elementId, bpmnElementType, info) {
   const infoId = "bpmn-element-info-" + elementId;
   let tooltipPlacement = "bottom";

@@ -23,6 +23,13 @@ class DeploymentView {
         return "views/deployment/process/process"
     }
 
+    @GetMapping("/decision/{key}")
+    fun decision(@PathVariable("key") decisionKey: Long, model: Model): String {
+        model.addAttribute("decisionKey", decisionKey)
+        addPageInfoToModel(model, "decision")
+        return "views/deployment/decision/decision"
+    }
+
     private fun addPageInfoToModel(model: Model, view: String) {
         model.addAttribute("page", "deployment")
         model.addAttribute("view", view)

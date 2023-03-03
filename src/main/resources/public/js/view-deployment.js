@@ -1,21 +1,29 @@
 const processesPerPage = 20;
 let processesCurrentPage = 0;
 
-let processesSubscriptionOpened = false;
+const decisionsPerPage = 20;
+let decisionsCurrentPage = 0;
 
-function loadProcessesView() {
+let deploymentSubscriptionsOpened = false;
+
+function loadDeploymentView() {
   loadProcesses(0);
+  loadDecisions(0);
 
-  if (!processesSubscriptionOpened) {
-    processesSubscriptionOpened = true;
+  if (!deploymentSubscriptionsOpened) {
+    deploymentSubscriptionsOpened = true;
     // reload to show the new process
-    subscribeToProcessUpdates(() => loadProcessesView());
+    subscribeToProcessUpdates(() => loadDeploymentView());
     // reload to update the process instance count
     subscribeToProcessInstanceUpdates(
       "updateTypeIn",
       "[PROCESS_INSTANCE_STATE]",
-      () => loadProcessesView()
+      () => loadDeploymentView()
     );
+    // reload to show the new decision
+    subscribeToDecisionUpdates(() => loadDeploymentView());
+    // reload to update the decision evaluation count
+    subscribeToDecisionEvaluationUpdates(() => loadDeploymentView());
   }
 }
 
@@ -110,7 +118,74 @@ function deploymentModal() {
       const content = "New resources deployed.";
       showNotificationSuccess(toastId, content);
 
-      loadProcesses(processesCurrentPage);
+      loadDeploymentView();
     })
     .fail(showFailure("deployment-failed", "Failed to deploy resources"));
+}
+
+function loadDecisions(currentPage) {
+  decisionsCurrentPage = currentPage;
+
+  queryDecisions(decisionsPerPage, decisionsCurrentPage).done(function (
+    response
+  ) {
+    let decisions = response.data.decisions;
+    let totalCount = decisions.totalCount;
+
+    $("#decisions-totalCount").text(totalCount);
+
+    $("#decisions-table tbody").empty();
+
+    const indexOffset = decisionsCurrentPage * decisionsPerPage + 1;
+
+    decisions.nodes.forEach((decision, index) => {
+      $("#decisions-table tbody:last-child").append(`
+        <tr>
+          <td>${indexOffset + index}</td>
+          <td>
+            <a href="/view/decision/${decision.key}">${decision.key}</a>
+          </td>
+          <td>${decision.decisionName}</td>
+          <td>${decision.decisionRequirements?.decisionRequirementsName}</td>
+          <td>${decision.version}</td>
+          <td>${decision.decisionRequirements?.deployTime}</td>
+          <td>
+            <span class="badge bg-secondary">
+               ${decision.successfulEvaluations.totalCount}
+              </span> / 
+              <span class="badge bg-dark">
+                ${decision.failedEvaluations.totalCount}
+              </span> 
+          </td>
+        </tr>`);
+    });
+
+    updateDecisionsPagination(totalCount);
+  });
+}
+
+function updateDecisionsPagination(totalCount) {
+  updatePagination(
+    "decisions",
+    decisionsPerPage,
+    decisionsCurrentPage,
+    totalCount
+  );
+}
+
+function loadDecisionsFirst() {
+  loadDecisions(0);
+}
+
+function loadDecisionsPrevious() {
+  loadDecisions(decisionsCurrentPage - 1);
+}
+
+function loadDecisionsNext() {
+  loadDecisions(decisionsCurrentPage + 1);
+}
+
+function loadDecisionsLast() {
+  let last = $("#decisions-pagination-last").text() - 1;
+  loadDecisions(last);
 }
