@@ -780,6 +780,15 @@ function openSubscription(subscription, handler) {
       handler(response);
     }
   });
+
+  socket.addEventListener("error", (error) => {
+    console.error("GraphQL subscription error", error);
+  });
+
+  socket.addEventListener("close", () => {
+    // the connection was closed. This can happen due to inactivity, let's re-establish the connection
+    openSubscription(subscription, handler);
+  });
 }
 
 function subscribeToProcessInstanceUpdates(type, key, handler) {
