@@ -1010,12 +1010,23 @@ function loadJobsOfProcessInstance() {
 
       if (isActiveJob) {
         if (isConnectorJob(job)) {
-          // a job for a connector can only be invoked
+          // a job for a connector can be invoked, or completed with variables
           actionButton = `
-            <button id="${connectorButtonId}" type="button" class="btn btn-sm btn-primary">
-              <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#plugin"/></svg>
-              Invoke
-            </button>`;
+            <div class="btn-group">
+              <button id="${connectorButtonId}" type="button" class="btn btn-sm btn-primary overlay-button">
+                <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#plugin"/></svg>
+                Invoke
+              </button>
+              <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">Toggle Dropdown</span></button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a id="${jobCompleteButtonId}" class="dropdown-item" href="#">
+                      <svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#check"/></svg>
+                    Complete
+                  </a>
+                </li>
+              </ul>
+            </div>`;
         } else {
           // show all actions for a regular job
           actionButton = `
@@ -1055,26 +1066,25 @@ function loadJobsOfProcessInstance() {
           </tr>`);
 
       if (isActiveJob) {
+        // bind actions for job/connector buttons
+        $("#" + jobCompleteButtonId).click(function () {
+          const cachedResponse = localStorage.getItem(
+            "jobCompletion " + getBpmnProcessId() + " " + elementId
+          );
+          let jobVariables = cachedResponse;
+          if (!cachedResponse) {
+            jobVariables = "";
+          }
+          showJobCompleteModal(job.key, "complete", jobVariables);
+        });
+
         if (isConnectorJob(job)) {
-          // bind action for connector button
           $("#" + connectorButtonId).click(function () {
             executeConnectorJob(job.jobType, job.key);
           });
 
           makeConnectorTaskPlayable(elementId, job.key, job.jobType);
         } else {
-          // bind actions for job buttons
-          $("#" + jobCompleteButtonId).click(function () {
-            const cachedResponse = localStorage.getItem(
-              "jobCompletion " + getBpmnProcessId() + " " + elementId
-            );
-            let jobVariables = cachedResponse;
-            if (!cachedResponse) {
-              jobVariables = "";
-            }
-            showJobCompleteModal(job.key, "complete", jobVariables);
-          });
-
           $("#" + jobFailButtonId).click(function () {
             fillJobModal(job.key, "fail");
           });
@@ -1203,6 +1213,7 @@ function loadUserTasksOfProcessInstance() {
 }
 
 let previousNumberOfIncidents;
+
 function loadIncidentsOfProcessInstance() {
   const processInstanceKey = getProcessInstanceKey();
 
