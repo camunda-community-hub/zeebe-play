@@ -7,6 +7,10 @@ function getProcessKey() {
   return $("#process-page-key").text();
 }
 
+function getProcessId() {
+  return $("#bpmnProcessId").text();
+}
+
 function loadProcessView() {
   const processKey = getProcessKey();
 
@@ -138,11 +142,23 @@ function loadInstancesOfProcessLast() {
 }
 
 function createNewProcessInstance() {
+  track("zeebePlay:bpmnelement:completed", {
+    element_type: "START_EVENT",
+    From: "processPage",
+    process_id: getProcessId(),
+  });
+
   const processKey = getProcessKey();
   createNewProcessInstanceWith(processKey, {});
 }
 
 function createNewProcessInstanceWithVariables() {
+  track("zeebePlay:bpmnelement:completed", {
+    element_type: "START_EVENT",
+    From: "processPage",
+    process_id: getProcessId(),
+  });
+
   const processKey = getProcessKey();
   const variables = $("#newInstanceVariables").val() || "{}";
 
@@ -230,8 +246,11 @@ function loadMessageSubscriptionsOfProcess() {
           "</tr>"
       );
 
-      const clickAction =
-        "publishMessage('" + messageSubscription.messageName + "');";
+      const clickAction = `track('zeebePlay:bpmnelement:completed', {
+          element_type: 'START_EVENT',
+          From: 'processPage',
+          process_id: getProcessId()
+        }); publishMessage('${messageSubscription.messageName}');`;
       addPublishMessageButton(
         messageSubscription.element.elementId,
         clickAction,
@@ -304,6 +323,11 @@ function loadTimersOfProcess() {
       );
 
       const action =
+        `track('zeebePlay:bpmnelement:completed', {
+          element_type: 'START_EVENT',
+          From: 'processPage',
+          process_id: getProcessId()
+        });` +
         "timeTravel('" +
         timer.dueDate +
         "', '" +

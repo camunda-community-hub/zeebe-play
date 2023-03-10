@@ -199,6 +199,12 @@ async function rewind(task) {
       newId = await createNewInstanceFromTimerStartEvent(startEvent);
     }
 
+    track("zeebePlay:bpmnelement:completed", {
+      element_type: "START_EVENT",
+      From: "rewind",
+      process_id: getBpmnProcessId(),
+    });
+
     newHistory = [];
 
     for (let i = 0; i < history.length; i++) {
@@ -708,6 +714,10 @@ function loadElementInstancesOfProcessInstance() {
     const indexOffset = 1;
 
     elementInstances.forEach((elementInstance, index) => {
+      if (elementInstance.state === "COMPLETED") {
+        trackElementInstanceCompletion(elementInstance);
+      }
+
       let elementFormatted = formatBpmnElementInstance(elementInstance.element);
 
       let scopeFormatted = "";
@@ -1221,6 +1231,8 @@ function loadIncidentsOfProcessInstance() {
     const indexOffset = 1;
 
     incidents.forEach((incident, index) => {
+      trackIncident(incident);
+
       const bpmnElement = incident.elementInstance.element;
       let elementFormatted = formatBpmnElementInstance(bpmnElement);
       const elementId = bpmnElement.elementId;
