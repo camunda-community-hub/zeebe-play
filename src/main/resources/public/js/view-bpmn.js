@@ -354,31 +354,64 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
 }
 
 function makeConnectorTaskPlayable(elementId, jobKey, jobType) {
-  let buttonId = `connector-execute-${jobKey}`;
+  let connectorButtonId = `connector-execute-${jobKey}`;
+  let completeButtonId = `connector-complete-${jobKey}`;
 
   let content = `
-      <button id="${buttonId}" type="button" class="btn btn-sm btn-primary" title="Invoke connector">
-        <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#plugin"/></svg>
-      </button>`;
+    <div class="btn-group">
+      <button id="${connectorButtonId}" type="button"
+              class="btn btn-sm btn-primary overlay-button" title="Invoke connector">
+        <svg class="bi" width="18" height="18" fill="white">
+          <use xlink:href="/img/bootstrap-icons.svg#plugin"/>
+        </svg>
+      </button>
+      <button type="button"
+              class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split"
+              data-bs-toggle="dropdown" aria-expanded="false"><span
+          class="visually-hidden">Toggle Dropdown</span></button>
+      <ul class="dropdown-menu">
+        <li>
+          <a id="${completeButtonId}" class="dropdown-item" href="#">
+            <svg class="bi" width="18" height="18" fill="black">
+              <use xlink:href="/img/bootstrap-icons.svg#check"/>
+            </svg>
+            Complete
+          </a>
+        </li>
+      </ul>
+    </div>`;
 
   overlays.add(elementId, "connector-action", {
     position: {
       top: -20,
-      left: -20,
+      left: -40,
     },
     html: content,
   });
 
-  const buttonElement = $("#" + buttonId);
-  buttonElement.click(function () {
+  const connectorButtonElement = $("#" + connectorButtonId);
+  connectorButtonElement.click(function () {
     executeConnectorJob(jobType, jobKey);
   });
 
-  buttonElement.tooltip();
+  connectorButtonElement.tooltip();
 
   // We have to remove the tooltip manually when removing the element that triggers it
   // see https://github.com/twbs/bootstrap/issues/3084#issuecomment-5207780
-  buttonElement.on("click", () => {
+  connectorButtonElement.on("click", () => {
+    $(`[data-bs-toggle="tooltip"]`).tooltip("hide");
+  });
+
+  $("#" + completeButtonId).click(function () {
+    const cachedResponse = localStorage.getItem(
+      "jobCompletion " + getBpmnProcessId() + " " + elementId
+    );
+    let jobVariables = cachedResponse;
+    if (!cachedResponse) {
+      jobVariables = "";
+    }
+    showJobCompleteModal(jobKey, "complete", jobVariables);
+
     $(`[data-bs-toggle="tooltip"]`).tooltip("hide");
   });
 }
