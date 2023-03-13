@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>zeebe-play</artifactId>
@@ -13,7 +15,7 @@
     <groupId>org.camunda.community</groupId>
     <artifactId>community-hub-release-parent</artifactId>
     <version>1.4.2</version>
-    <relativePath />
+    <relativePath/>
   </parent>
 
   <properties>
@@ -21,7 +23,7 @@
 
     <maven.version>3.0</maven.version>
     <zeeqs.version>2.8.0</zeeqs.version>
-    <eze.version>1.2.0-alpha1</eze.version>
+    <eze.version>1.2.0-alpha2</eze.version>
     <hazelcast.version>1.4.0-alpha1</hazelcast.version>
     <spring-zeebe.version>8.1.17</spring-zeebe.version>
     <camunda-connector-bundle.version>0.16.1</camunda-connector-bundle.version>
@@ -458,7 +460,7 @@
         <version>3.2.1</version>
         <configuration>
           <rules>
-            <dependencyConvergence />
+            <dependencyConvergence/>
           </rules>
           <skip>${skip.enforcer-plugin}</skip>
         </configuration>
