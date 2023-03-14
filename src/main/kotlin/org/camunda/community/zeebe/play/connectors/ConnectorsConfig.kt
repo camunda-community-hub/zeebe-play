@@ -1,6 +1,7 @@
 package org.camunda.community.zeebe.play.connectors
 
 import io.camunda.connector.api.secret.SecretProvider
+import io.camunda.connector.runtime.util.ConnectorHelper
 import io.camunda.connector.runtime.util.outbound.ConnectorJobHandler
 import io.camunda.zeebe.client.ZeebeClient
 import io.camunda.zeebe.spring.client.lifecycle.ZeebeClientLifecycle
@@ -39,10 +40,14 @@ class ConnectorsConfig(
             connectorService
                 .findAvailableConnectors()
                 .forEach { connectorConfig ->
+                    val connector =
+                        ConnectorHelper.instantiateConnector(connectorConfig.connectorClass)
+                    val jobHandler = ConnectorJobHandler(connector, secretProvider)
+
                     zeebeClient
                         .newWorker()
                         .jobType(connectorConfig.type)
-                        .handler(ConnectorJobHandler(connectorConfig.function, secretProvider))
+                        .handler(jobHandler)
                         .name(connectorConfig.name)
                         .fetchVariables(connectorConfig.inputVariables.toList())
                         .open()
