@@ -195,24 +195,24 @@ function loadViewDebounced(delay = 150) {
 // ----------------------------------------
 
 function formatProcessInstanceState(processInstance) {
-  let state = "";
+  let state = "<div class='process-instance-state'>";
   switch (processInstance.state) {
     case "ACTIVATED":
-      state = '<span class="badge bg-primary">active</span>';
+      state += '<span class="badge bg-primary">Active</span>';
       break;
     case "COMPLETED":
-      state = '<span class="badge bg-secondary">completed</span>';
+      state += '<span class="badge bg-secondary">Completed</span>';
       break;
     case "TERMINATED":
-      state = '<span class="badge bg-dark">terminated</span>';
+      state += '<span class="badge bg-dark">Terminated</span>';
       break;
     default:
-      state = "?";
+      state += "?";
   }
 
   const incidents = processInstance.incidents;
   if (incidents && incidents.length > 0) {
-    state += ' <span class="badge bg-danger">incidents</span>';
+    state += ' <span class="badge bg-danger">Incidents</span>';
   }
 
   const error = processInstance.error;
@@ -220,13 +220,14 @@ function formatProcessInstanceState(processInstance) {
     const fillErrorModalAction =
       "fillErrorDetailsModal('" + processInstance.key + "');";
     state +=
-      ' <span class="badge bg-warning">error</span>' +
+      ' <span class="badge bg-warning">Error</span>' +
       ' <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#error-detail-modal" title="Show error details" onclick="' +
       fillErrorModalAction +
       '">' +
       '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>' +
       "</button>";
   }
+  state += "</div>";
 
   return state;
 }

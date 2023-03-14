@@ -80,7 +80,7 @@ function loadInstancesOfProcess(currentPage) {
 
     processInstances.nodes.forEach((processInstance, index) => {
       const state = formatProcessInstanceState(processInstance);
-
+      console.log("state", state);
       let endTime = "";
       if (processInstance.endTime) {
         endTime = processInstance.endTime;

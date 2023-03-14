@@ -122,3 +122,27 @@
 .dmn-decision-table-container tbody .dmn-row-highlighted td {
   background: rgba(0, 125, 255, 0.2);
 }
+
+.breadcrumb {
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.breadcrumb-item.active {
+  color: #6e757c;
+}
+
+.breadcrumb-item a {
+  color: #316cf4;
+}
+
+#process-instance-state {
+  margin-left: 7px;
+}
+
+.process-instance-state .badge {
+  font-size: 12px;
+  border-radius: 12px;
+  font-weight: normal;
+  margin-right: 4px;
+}
