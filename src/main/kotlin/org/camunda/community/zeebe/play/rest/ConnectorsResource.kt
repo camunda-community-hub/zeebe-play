@@ -1,6 +1,7 @@
 package org.camunda.community.zeebe.play.rest
 
 import io.camunda.connector.impl.outbound.OutboundConnectorConfiguration
+import io.camunda.connector.runtime.util.ConnectorHelper
 import io.camunda.connector.runtime.util.outbound.ConnectorJobHandler
 import io.camunda.zeebe.client.ZeebeClient
 import io.camunda.zeebe.client.api.response.ActivatedJob
@@ -35,7 +36,8 @@ class ConnectorsResource(
             .find { it.type == jobType }
             ?: throw RuntimeException("No connector found with job type '$jobType'."))
 
-        val jobHandler = ConnectorJobHandler(connectorConfig.function, connectorsSecretProvider)
+        val connector = ConnectorHelper.instantiateConnector(connectorConfig.connectorClass)
+        val jobHandler = ConnectorJobHandler(connector, connectorsSecretProvider)
 
         findConnectorJob(connectorConfig, jobKey)
             ?.let { jobHandler.handle(zeebeClient, it) }
