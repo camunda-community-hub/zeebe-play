@@ -847,3 +847,9 @@ function checkForMissingConnectorSecrets(processKey) {
     }
   });
 }
+
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
+  new bootstrap.Tooltip(element, {
+    boundary: document.body,
+  });
+});

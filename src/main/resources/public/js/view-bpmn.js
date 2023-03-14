@@ -575,3 +575,51 @@ function toggleDetailsCollapse() {
 
   canvasElement.height(canvasHeight);
 }
+
+function zoomIn() {
+  bpmnViewer.get("zoomScroll").stepZoom(0.1);
+}
+function zoomOut() {
+  bpmnViewer.get("zoomScroll").stepZoom(-0.1);
+}
+function resetViewport() {
+  const outerViewbox = canvas.viewbox().outer;
+  canvas.viewbox({
+    x: 0,
+    y: 0,
+    width: outerViewbox.width,
+    height: outerViewbox.height,
+  });
+}
+function enterFullscreen() {
+  const button = document.querySelector("#toggleFullscreenButton");
+
+  $(button).tooltip("hide");
+
+  button.setAttribute("title", "Disable fullscreen");
+  button.innerHTML =
+    '<img src="/img/DisableFullscreen.svg" width="14" height="14" />';
+  button.onclick = exitFullscreen;
+
+  new bootstrap.Tooltip(button, {
+    boundary: document.body,
+  });
+
+  document.documentElement.requestFullscreen();
+}
+function exitFullscreen() {
+  const button = document.querySelector("#toggleFullscreenButton");
+
+  $(button).tooltip("hide");
+
+  button.setAttribute("title", "Enable fullscreen");
+  button.innerHTML =
+    '<img src="/img/EnableFullscreen.svg" width="14" height="14" />';
+  button.onclick = enterFullscreen;
+
+  new bootstrap.Tooltip(button, {
+    boundary: document.body,
+  });
+
+  document.exitFullscreen();
+}

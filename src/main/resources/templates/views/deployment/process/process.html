@@ -120,7 +120,46 @@
           </table>
         </div>
 
-        <div class="col-10">
+        <div class="col-10" style="position: relative">
+          <div id="canvas-controls">
+            <button
+              id="toggleFullscreenButton"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-trigger="hover"
+              title="Enable fullscreen"
+              onclick="enterFullscreen()"
+            >
+              <img src="/img/EnableFullscreen.svg" width="14" height="14" />
+            </button>
+            <button
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-trigger="hover"
+              title="Reset viewport"
+              onclick="resetViewport()"
+            >
+              <img src="/img/Target.svg" width="15" height="15" />
+            </button>
+            <button
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-trigger="hover"
+              title="Zoom out"
+              onclick="zoomOut()"
+            >
+              <img src="/img/Minus.svg" width="12" height="12" />
+            </button>
+            <button
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-trigger="hover"
+              title="Zoom in"
+              onclick="zoomIn()"
+            >
+              <img src="/img/Plus.svg" width="20" height="20" />
+            </button>
+          </div>
           <div id="canvas" style="height: 400px"></div>
         </div>
       </div>
