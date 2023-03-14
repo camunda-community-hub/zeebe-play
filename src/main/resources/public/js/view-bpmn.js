@@ -539,11 +539,9 @@ function showElementInfo(elementId, bpmnElementType, info) {
     infoId +
     '" data-bs-toggle="tooltip" data-bs-placement="' +
     tooltipPlacement +
-    '" data-bs-html="true" data-bs-customClass="bpmn-element-info" title="' +
+    '" data-bs-html="true" data-bs-customClass="bpmn-element-info" class="info-icon" title="' +
     info +
-    '">' +
-    '<svg class="bi" width="18" height="18" fill="#007DFFB2"><use xlink:href="/img/bootstrap-icons.svg#info-circle-fill"/></svg>' +
-    "</div>";
+    '">i</div>';
 
   overlays.add(elementId, "element-info", {
     position: overlayPosition,

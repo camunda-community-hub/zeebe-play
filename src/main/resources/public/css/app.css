@@ -6,6 +6,24 @@
   pointer-events: none; /* no pointer events, allows clicking through onto the element */
 }
 
+.bjs-powered-by {
+  display: none;
+}
+
+.info-icon {
+  background: #007dffb2;
+  border-radius: 2px;
+  width: 18px;
+  height: 18px;
+  color: white;
+  text-align: center;
+  font-style: italic;
+  font-weight: bold;
+  font-size: 12px;
+  padding-right: 1px;
+  margin-top: 5px;
+}
+
 .overlay-button {
   /* background-color: #20ed20; */
   opacity: 0.9;
