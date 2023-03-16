@@ -58,14 +58,16 @@ function loadProcessInstanceView() {
     currentProcessKey = process.key;
 
     $("#process-instance-key").text(processInstance.key);
-    $("#process-instance-start-time").text(processInstance.startTime);
+    $("#process-instance-start-time").html(
+      formatTime(processInstance.startTime)
+    );
 
     let endTime = "-";
     if (processInstance.endTime) {
-      endTime = processInstance.endTime;
+      endTime = formatTime(processInstance.endTime);
     }
 
-    $("#process-instance-end-time").text(endTime);
+    $("#process-instance-end-time").html(endTime);
 
     let state = formatProcessInstanceState(processInstance);
 

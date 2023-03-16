@@ -853,3 +853,12 @@ document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
     boundary: document.body,
   });
 });
+
+function toggleDetailInfo() {
+  document.getElementById("detail-info").classList.toggle("hidden");
+}
+
+function formatTime(time) {
+  const parsed = /([^T]+)T([^\.]+)[^+]+(.+)/gm.exec(time);
+  return `${parsed[1]}<br />${parsed[2]} (${parsed[3]})`;
+}

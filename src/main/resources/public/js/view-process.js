@@ -21,7 +21,7 @@ function loadProcessView() {
 
     $("#bpmnProcessId").text(process.bpmnProcessId);
     $("#process-version").text(process.version);
-    $("#process-deployment-time").text(process.deployTime);
+    $("#process-deployment-time").html(formatTime(process.deployTime));
 
     if (!bpmnViewIsLoaded) {
       subscribeToProcessInstanceUpdates("processKey", processKey, () =>

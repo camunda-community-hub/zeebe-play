@@ -136,6 +136,13 @@
   color: #316cf4;
 }
 
+.breadcrumb-item + .breadcrumb-item::before {
+  padding-right: 3px;
+}
+.breadcrumb-item + .breadcrumb-item {
+  padding-left: 3px;
+}
+
 #process-instance-state {
   margin-left: 7px;
 }
@@ -177,4 +184,65 @@
 
 #canvas-controls button img {
   margin-top: -5px;
+}
+
+#diagram-actions {
+  position: absolute;
+  z-index: 1;
+}
+
+#diagram-actions button {
+  width: 24px;
+  height: 24px;
+  background-color: #efefee;
+  border-radius: 4px;
+  border: none;
+  display: block;
+  padding: 0;
+
+  margin-bottom: 6px;
+}
+
+#diagram-actions button.disabled {
+  pointer-events: none;
+}
+
+#diagram-actions button img,
+#diagram-actions button svg {
+  margin-top: -4px;
+}
+
+#diagram-actions #info-container {
+  position: relative;
+}
+
+#detail-info {
+  position: absolute;
+  top: 0;
+  left: 28px;
+
+  width: 130px;
+  background-color: #efefee;
+  border-radius: 4px;
+
+  font-size: 11px;
+  line-height: 13px;
+}
+
+#detail-info .detail-entry {
+  padding: 9px 10px;
+}
+
+#detail-info .detail-entry:not(:last-child) {
+  border-bottom: 1px solid #dedede;
+}
+
+#detail-info .detail-entry b {
+  display: block;
+  color: #545454;
+  margin-bottom: 4px;
+}
+
+#detail-info .detail-entry span {
+  color: #565656;
 }
