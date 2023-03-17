@@ -16,9 +16,12 @@ function deployDemo() {
   sendRequest("demo/", "POST")
     .done(function (processKey) {
       const toastId = "new-process-" + processKey;
-      const content =
-        '<a href="/view/process/' + processKey + '">Demo process</a> deployed.';
-      showNotificationSuccess(toastId, content);
+      const content = `Process key ${processKey}<br /><a class="cta" href="/view/process/${processKey}">View process</a>`;
+      showNotificationSuccess(
+        toastId,
+        "Process deployed successfully",
+        content
+      );
 
       enableButtonToCreateInstanceOfDemoProcess(processKey);
     })

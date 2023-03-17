@@ -115,7 +115,7 @@ function deploymentModal() {
   deployResources(resources)
     .done(function (deploymentKey) {
       const toastId = "new-deployment-" + deploymentKey;
-      const content = "New resources deployed.";
+      const content = "New resources deployed";
       showNotificationSuccess(toastId, content);
 
       loadDeploymentView();

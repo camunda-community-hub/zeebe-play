@@ -246,3 +246,75 @@
 #detail-info .detail-entry span {
   color: #565656;
 }
+
+.toast.notification {
+  position: relative;
+
+  width: 270px;
+  padding: 12px;
+  padding-left: 32px;
+
+  background: #ededed;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+
+  text-align: left;
+}
+
+.toast.notification .btn-close {
+  opacity: 1;
+
+  width: 14px;
+  height: 14px;
+  padding: 3px;
+
+  background-size: 8px;
+
+  position: absolute;
+  top: 9px;
+  right: 9px;
+}
+
+.toast.notification svg {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+
+.toast.notification .notification-header {
+  color: #000000;
+  font-size: 14px;
+  line-height: 16px;
+
+  margin-bottom: 2px;
+}
+
+.toast.notification .notification-body {
+  color: #757575;
+  font-size: 13px;
+  line-height: 15px;
+}
+
+.toast-container {
+  padding: 0px;
+  padding-bottom: 10px;
+}
+
+.toast.notification .cta {
+  display: inline-block;
+
+  border: none;
+
+  margin-top: 10px;
+  background-color: #c4a1eb;
+  color: #ffffff;
+  border-radius: 2px;
+  padding: 4px 8px;
+
+  text-decoration: none;
+
+  text-align: center;
+  font-size: 12px;
+  line-height: 14px;
+}
