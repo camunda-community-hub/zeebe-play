@@ -554,7 +554,6 @@ function showElementInfo(elementId, bpmnElementType, info) {
 }
 
 function toggleDetailsCollapse() {
-  let windowHeight = $(window).height();
   let canvasElement = $("#canvas");
   let button = $("#details-collapse-button");
   let buttonImage = $("#details-collapse-button > svg > use");
@@ -562,18 +561,21 @@ function toggleDetailsCollapse() {
   let canvasHeight;
   if (detailsCollapsed) {
     // initial state on loading
-    canvasHeight = "400px";
     button.attr("title", "collapse");
-    buttonImage.attr("href", "/img/bootstrap-icons.svg#arrow-bar-down");
+    buttonImage.attr("href", "/img/bootstrap-icons.svg#chevron-down");
     detailsCollapsed = false;
   } else {
-    canvasHeight = windowHeight * 0.8;
     button.attr("title", "expand");
-    buttonImage.attr("href", "/img/bootstrap-icons.svg#arrow-bar-up");
+    buttonImage.attr("href", "/img/bootstrap-icons.svg#chevron-up");
     detailsCollapsed = true;
   }
 
-  canvasElement.height(canvasHeight);
+  const tabElement = document.querySelector(".details-container .tab-content");
+  if (detailsCollapsed) {
+    tabElement?.classList.add("collapsed");
+  } else {
+    tabElement?.classList.remove("collapsed");
+  }
 }
 
 function zoomIn() {

@@ -147,6 +147,10 @@
   margin-left: 7px;
 }
 
+.badge {
+  border-radius: 11px;
+}
+
 .process-instance-state .badge {
   font-size: 12px;
   border-radius: 12px;
@@ -317,4 +321,88 @@
   text-align: center;
   font-size: 12px;
   line-height: 14px;
+}
+
+.tab-container {
+  background-color: #f8f8f8;
+  border-width: 1px 0px;
+  border-style: solid;
+  border-color: #cbcbcb;
+}
+
+.tab-container .nav-tabs {
+  border: none;
+}
+
+.tab-container .col {
+  padding: 0;
+}
+
+.tab-container .nav-link {
+  padding: 9px 16px 8px;
+  font-size: 13px;
+  line-height: 15px;
+  color: #535353;
+
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+}
+
+.tab-container .nav-link.active {
+  border: none;
+  background: transparent;
+
+  border-bottom: 2px solid #5e8ff7;
+}
+
+.tab-container .nav-link .badge {
+  background: #535353;
+  border-radius: 10px;
+
+  font-size: 10px;
+  line-height: 11px;
+  font-weight: 400;
+  text-align: center;
+
+  padding: 2.5px 5px;
+  margin: 0;
+  margin-left: 10px;
+  transform: translateY(-1px);
+}
+
+.tab-container .btn-primary {
+  height: 100%;
+}
+
+.top-tabs {
+  margin-top: -9px;
+}
+
+.resizable-tabs ~ .tab-content {
+  height: 185px;
+  overflow: auto;
+}
+
+.resizable-tabs ~ .tab-content.collapsed {
+  height: 0 !important;
+}
+
+.fill-height {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 66px);
+}
+
+.fill-height .canvas-container {
+  flex-grow: 1;
+  min-height: 180px;
+}
+
+.fill-height .canvas-container #canvas {
+  height: 100%;
+}
+
+.fill-height .details-container {
+  flex-grow: 0;
 }

@@ -31,7 +31,7 @@
       th:replace="views/modals/resolve-incident-modal.html :: #resolve-incident-modal"
     ></div>
 
-    <div class="container-fluid">
+    <div class="container-fluid fill-height">
       <div class="row justify-content-between">
         <div class="col">
           <nav id="process-instance-breadcrumb" aria-label="breadcrumb">
@@ -56,7 +56,7 @@
         </div>
       </div>
 
-      <div class="row">
+      <div class="row canvas-container">
         <div class="col-12" style="position: relative">
           <div id="diagram-actions">
             <div id="info-container">
@@ -209,7 +209,7 @@
               <img src="/img/Plus.svg" width="20" height="20" />
             </button>
           </div>
-          <div id="canvas" style="height: 400px"></div>
+          <div id="canvas"></div>
           <div
             class="toast-container bottom-0"
             style="z-index: 101; position: absolute"
@@ -220,7 +220,7 @@
         </div>
       </div>
 
-      <div class="col">
+      <div class="col details-container">
         <div
           th:replace="views/monitoring/process-instances/process-instance-details.html :: process-instance-details"
         ></div>

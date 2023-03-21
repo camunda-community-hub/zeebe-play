@@ -12,61 +12,57 @@
     ></div>
 
     <div class="container-fluid">
-      <ul class="nav nav-tabs" id="monitoring-tabs" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button
-            class="nav-link active"
-            id="process-instances-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#process-instances"
-            type="button"
-            role="tab"
-            aria-controls="process-instances"
-            aria-selected="true"
-          >
-            Process Instances
-            <span
-              class="badge bg-light text-dark"
-              id="process-instances-total-count"
-              >0</span
-            >
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="incidents-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#incidents"
-            type="button"
-            role="tab"
-            aria-controls="incidents"
-            aria-selected="false"
-          >
-            Incidents
-            <span class="badge bg-light text-dark" id="incidents-total-count"
-              >0</span
-            >
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="messages-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#messages"
-            type="button"
-            role="tab"
-            aria-controls="messages"
-            aria-selected="false"
-          >
-            Messages
-            <span class="badge bg-light text-dark" id="messages-total-count"
-              >0</span
-            >
-          </button>
-        </li>
-      </ul>
+      <div class="row tab-container top-tabs">
+        <div class="col">
+          <ul class="nav nav-tabs" id="monitoring-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link active"
+                id="process-instances-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#process-instances"
+                type="button"
+                role="tab"
+                aria-controls="process-instances"
+                aria-selected="true"
+              >
+                Process Instances
+                <span class="badge" id="process-instances-total-count">0</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="incidents-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#incidents"
+                type="button"
+                role="tab"
+                aria-controls="incidents"
+                aria-selected="false"
+              >
+                Incidents
+                <span class="badge" id="incidents-total-count">0</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="messages-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#messages"
+                type="button"
+                role="tab"
+                aria-controls="messages"
+                aria-selected="false"
+              >
+                Messages
+                <span class="badge" id="messages-total-count">0</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
 
       <div class="container-fluid">
         <div class="tab-content" id="monitoringTabContent">
