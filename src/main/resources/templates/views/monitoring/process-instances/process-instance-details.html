@@ -151,6 +151,26 @@
             >
           </button>
         </li>
+
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="decision-evaluations-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#decision-evaluations"
+            type="button"
+            role="tab"
+            aria-controls="decision-evaluations"
+            aria-selected="false"
+          >
+            Decision Evaluations
+            <span
+              class="badge bg-light text-dark"
+              id="decision-evaluations-total-count"
+              >0</span
+            >
+          </button>
+        </li>
       </ul>
     </div>
 
@@ -256,6 +276,17 @@
       >
         <div
           th:replace="views/monitoring/process-instances/process-instance-details-child-instances.html :: process-instance-details-child-instances"
+        ></div>
+      </div>
+
+      <div
+        class="tab-pane fade"
+        id="decision-evaluations"
+        role="tabpanel"
+        aria-labelledby="decision-evaluations-tab"
+      >
+        <div
+          th:replace="views/monitoring/process-instances/process-instance-details-decision-evaluations.html :: process-instance-details-decision-evaluations"
         ></div>
       </div>
     </div>

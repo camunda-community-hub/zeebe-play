@@ -23,6 +23,13 @@ class MonitoringView {
         return "views/monitoring/process-instances/process-instance"
     }
 
+    @GetMapping("/decision-evaluation/{key}")
+    fun decisionEvaluation(@PathVariable("key") decisionEvaluationKey: Long, model: Model): String {
+        model.addAttribute("decisionEvaluationKey", decisionEvaluationKey)
+        addPageInfoToModel(model, "decision-evaluation")
+        return "views/monitoring/decision-evaluations/decision-evaluation"
+    }
+
     private fun addPageInfoToModel(model: Model, view: String) {
         model.addAttribute("page", "monitoring")
         model.addAttribute("view", view)

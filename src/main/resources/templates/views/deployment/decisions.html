@@ -1,0 +1,124 @@
+<div th:fragment="decisions">
+  <div class="row">
+    <div class="col">
+      <table
+        class="table table-striped table-hover caption-top"
+        id="decisions-table"
+      >
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Decision Key</th>
+            <th scope="col">Decision Name</th>
+            <th scope="col">DRD Name</th>
+            <th scope="col">Version</th>
+            <th scope="col">Deployment Time</th>
+            <th scope="col">
+              # Evaluations <span class="badge bg-secondary">success</span> /
+              <span class="badge bg-dark">failed</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-auto">
+      <nav aria-label="Page navigation processes" id="decisions-pagination">
+        <ul class="pagination">
+          <li class="page-item" id="decisions-pagination-previous-button">
+            <a class="page-link" href="#" onclick="loadDecisionsPrevious();"
+              >Previous</a
+            >
+          </li>
+
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="decisions-pagination-first"
+              onclick="loadDecisionsFirst();"
+              >1</a
+            >
+          </li>
+
+          <li class="page-item disabled">
+            <a
+              class="page-link"
+              href="#"
+              aria-label="gap"
+              id="decisions-pagination-first-gap"
+            >
+              <span aria-hidden="true">..</span>
+            </a>
+          </li>
+
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="decisions-pagination-previous"
+              onclick="loadDecisionsPrevious();"
+              >2</a
+            >
+          </li>
+
+          <li class="page-item active">
+            <a class="page-link" href="#" id="decisions-pagination-current"
+              >3</a
+            >
+          </li>
+
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="decisions-pagination-next"
+              onclick="loadDecisionsNext();"
+              >4</a
+            >
+          </li>
+
+          <li class="page-item disabled">
+            <a
+              class="page-link"
+              href="#"
+              aria-label="gap"
+              id="decisions-pagination-last-gap"
+            >
+              <span aria-hidden="true">..</span>
+            </a>
+          </li>
+
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="#"
+              id="decisions-pagination-last"
+              onclick="loadDecisionsLast();"
+              >5</a
+            >
+          </li>
+
+          <li class="page-item" id="decisions-pagination-next-button">
+            <a class="page-link" href="#" onclick="loadDecisionsNext();"
+              >Next</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

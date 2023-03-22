@@ -494,6 +494,29 @@ const parentInstanceByProcessInstanceQuery = `query ParentInstanceOfProcessInsta
     }
   }`;
 
+const decisionEvaluationsByProcessInstanceQuery = `query DecisionEvaluationsOfProcessInstance($key: ID!) {  
+    processInstance(key: $key) {    
+      decisionEvaluations(perPage: 100) {
+        totalCount
+        nodes {
+          key
+          state
+          decision {
+            decisionName
+          }        
+          elementInstance {
+            key
+            element {
+              elementId
+              elementName
+              bpmnElementType
+            }
+          }
+        }
+      }
+    }
+  }`;
+
 const incidentsQuery = `query Incidents($perPage: Int!, $page: Int!, $zoneId: String!) {  
   
   createdIncidents: incidents(stateIn:[CREATED]) { totalCount }
@@ -556,6 +579,127 @@ const variablesByUserTaskQuery = `query VariablesOfUserTask($key: ID!) {
     }
   }
 }`;
+
+const decisionsQuery = `query Decisions($perPage: Int!, $page: Int!, $zoneId: String!) {  
+    decisions(perPage: $perPage, page: $page) {
+      totalCount
+      nodes {
+        key
+        decisionId
+        decisionName
+        version
+        decisionRequirements {
+          decisionRequirementsId
+          decisionRequirementsName
+          deployTime(zoneId: $zoneId)
+        }
+        
+        successfulEvaluations: evaluations(stateIn: [EVALUATED]) { totalCount }
+        failedEvaluations: evaluations(stateIn: [FAILED]) { totalCount }
+      }
+    }
+  }`;
+
+const decisionQuery = `query Decision($key: ID!, $zoneId: String!) {  
+    decision(key: $key) {
+      decisionId
+      decisionName
+      decisionRequirements {
+        key
+        decisionRequirementsId
+        decisionRequirementsName
+        deployTime(zoneId: $zoneId)
+        dmnXML        
+        decisions {
+          key
+          decisionId
+          decisionName
+          version
+          successfulEvaluations: evaluations(stateIn: [EVALUATED]) { totalCount }
+          failedEvaluations: evaluations(stateIn: [FAILED]) { totalCount }
+        }
+      }      
+    }
+  }`;
+
+const evaluationsByDecisionQuery = `query EvaluationsByDecision($key: ID!, $perPage: Int!, $page: Int!, $zoneId: String!) {  
+    decision(key: $key) {
+    
+      successfulEvaluations: evaluations(stateIn: [EVALUATED]) { totalCount }
+      failedEvaluations: evaluations(stateIn: [FAILED]) { totalCount }
+    
+      evaluations(perPage: $perPage, page: $page) {
+        totalCount
+        nodes {
+          key
+          decisionOutput
+          evaluationTime(zoneId: $zoneId)
+          state
+          processInstance { 
+            key
+            process {
+              bpmnProcessId
+            }
+          }
+        }
+      }
+    }
+  }`;
+
+const decisionEvaluationQuery = `query DecisionEvaluation($key: ID!, $zoneId: String!) {  
+    decisionEvaluation(key: $key) {    
+      state
+      evaluationTime(zoneId: $zoneId)
+      decision {
+        key
+        decisionId
+        decisionName              
+        decisionRequirements {
+          dmnXML
+          key
+          decisionRequirementsId
+          decisionRequirementsName
+          version
+          decisions {
+            key
+            decisionId
+            decisionName
+            version
+          }
+        }
+      }
+      failedDecision {
+        decisionId
+      }
+      evaluationFailureMessage
+      processInstance { 
+        key
+        process {
+          bpmnProcessId
+        }
+      }
+      evaluatedDecisions {
+        decision { 
+          key
+          decisionId
+          decisionName
+          version
+        }
+        decisionOutput
+        inputs {
+          inputName
+          value
+        }
+        matchedRules {
+          ruleIndex
+          outputs {
+            outputName
+            value
+          }
+        }
+      }
+    }
+  }`;
 
 function fetchData(query, variables) {
   return $.ajax({
@@ -718,6 +862,12 @@ function queryParentInstanceByProcessInstance(processInstanceKey) {
   });
 }
 
+function queryDecisionInstancesByProcessInstance(processInstanceKey) {
+  return fetchData(decisionEvaluationsByProcessInstanceQuery, {
+    key: processInstanceKey,
+  });
+}
+
 function queryElementInfosByProcessInstance(processInstanceKey) {
   return fetchData(elementsInfoByProcessInstanceQuery, {
     key: processInstanceKey,
@@ -803,4 +953,49 @@ function subscribeToProcessUpdates(handler) {
         key
       }`;
   openSubscription(subscription, handler);
+}
+
+function subscribeToDecisionUpdates(handler) {
+  let subscription = `decisionUpdates{
+        key
+      }`;
+  openSubscription(subscription, handler);
+}
+
+function subscribeToDecisionEvaluationUpdates(handler, filter = "{}") {
+  let subscription = `decisionEvaluationUpdates(filter: ${filter}) {
+        key
+      }`;
+  openSubscription(subscription, handler);
+}
+
+function queryDecisions(perPage, page) {
+  return fetchData(decisionsQuery, {
+    perPage: perPage,
+    page: page,
+    zoneId: getTimeZone(),
+  });
+}
+
+function queryDecision(key) {
+  return fetchData(decisionQuery, {
+    key: key,
+    zoneId: getTimeZone(),
+  });
+}
+
+function queryEvaluationsByDecision(decisionKey, perPage, page) {
+  return fetchData(evaluationsByDecisionQuery, {
+    key: decisionKey,
+    perPage: perPage,
+    page: page,
+    zoneId: getTimeZone(),
+  });
+}
+
+function queryDecisionEvaluation(decisionEvaluationKey) {
+  return fetchData(decisionEvaluationQuery, {
+    key: decisionEvaluationKey,
+    zoneId: getTimeZone(),
+  });
 }
