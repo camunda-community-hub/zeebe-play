@@ -885,3 +885,43 @@ function getTaskNameByJobKey(jobKey) {
 
   return jobKey;
 }
+
+// make tabs resizable
+const resizeHandle = document.getElementById("tab-resize-handle");
+if (resizeHandle) {
+  const contentElement = document.querySelector(".tab-content");
+  const previousHeight = localStorage.getItem("tab-container-height") || 185;
+
+  contentElement.style.height = previousHeight + "px";
+
+  // setting the display style here prevents height flickering on page load
+  contentElement.style.display = "block";
+
+  resizeHandle.addEventListener("mousedown", (initialEvent) => {
+    initialEvent.preventDefault();
+    const initialContainerHeight = contentElement.clientHeight;
+
+    const maxHeight = document.body.clientHeight - 314;
+
+    const moveHandler = (evt) => {
+      const delta = initialEvent.pageY - evt.pageY;
+
+      contentElement.style.height =
+        Math.min(initialContainerHeight + delta, maxHeight) + "px";
+    };
+
+    const stopHandler = () => {
+      document.body.removeEventListener("mousemove", moveHandler, {
+        capture: true,
+      });
+
+      localStorage.setItem("tab-container-height", contentElement.clientHeight);
+    };
+
+    document.body.addEventListener("mousemove", moveHandler, { capture: true });
+    document.body.addEventListener("mouseup", stopHandler, {
+      capture: true,
+      once: true,
+    });
+  });
+}
