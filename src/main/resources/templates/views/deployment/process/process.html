@@ -39,9 +39,9 @@
       <div class="row canvas-container">
         <div class="col-12" style="position: relative">
           <div id="diagram-actions">
-            <div id="info-container">
+            <div class="info-container">
               <button
-                onclick="toggleDetailInfo()"
+                onclick="toggleDetailInfo(event)"
                 data-bs-toggle="tooltip"
                 data-bs-placement="right"
                 data-bs-trigger="hover"
@@ -49,7 +49,7 @@
               >
                 <img src="/img/Info.svg" />
               </button>
-              <div id="detail-info" class="hidden">
+              <div class="detail-info hidden">
                 <div class="detail-entry">
                   <b>Process Key</b>
                   <span id="process-page-key" th:text="${processKey}"></span>

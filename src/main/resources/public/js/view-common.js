@@ -864,8 +864,23 @@ document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
   });
 });
 
-function toggleDetailInfo() {
-  document.getElementById("detail-info").classList.toggle("hidden");
+function toggleDetailInfo(evt) {
+  const infoContainer = evt.target
+    .closest(".info-container")
+    .querySelector(".detail-info");
+
+  if (infoContainer.classList.contains("hidden")) {
+    // show the info container
+    // first, close all other currently open info containers
+    document.body
+      .querySelectorAll(".detail-info")
+      .forEach((container) => container.classList.add("hidden"));
+
+    infoContainer.classList.remove("hidden");
+  } else {
+    // close the info container
+    infoContainer.classList.add("hidden");
+  }
 }
 
 function formatTime(time) {

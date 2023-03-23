@@ -20,8 +20,8 @@ function loadDecisionView() {
 
     $("#nav-decision").text(decision.decisionName);
 
-    $("#details-deployment-time").text(
-      decision.decisionRequirements?.deployTime
+    $("#details-deployment-time").html(
+      formatTime(decision.decisionRequirements?.deployTime)
     );
 
     if (!dmnViewIsLoaded) {
