@@ -131,6 +131,11 @@
   background: rgba(0, 125, 255, 0.2);
 }
 
+#decision-evaluation-message .alert-info {
+  background: #d4e5ff;
+  border-color: #7fb4bf;
+}
+
 .breadcrumb {
   font-size: 13px;
   margin-bottom: 8px;
