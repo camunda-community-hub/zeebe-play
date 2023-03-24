@@ -142,3 +142,7 @@ function sendExecuteConnectorRequest(jobType, jobKey) {
 function sendStatusRequest() {
   return sendGetRequest("status");
 }
+
+function sendEvaluateDecisionRequest(decisionKey, variables) {
+  return sendPostRequest(`decisions/${decisionKey}`, variables);
+}

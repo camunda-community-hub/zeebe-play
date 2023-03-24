@@ -107,8 +107,10 @@ function onDecisionViewChanged(event) {
 
     // show decision evaluations tab
     $("#decision-evaluations-tab").removeClass("visually-hidden");
+    // show decision evaluation action
+    $("#evaluate-decision-button").removeClass("visually-hidden");
 
-    // update decisionevaluations
+    // update decision evaluations
     currentDecisionKey = activeDecision.key;
     loadEvaluationsOfDecisionFirst();
   }
@@ -137,6 +139,8 @@ function onDecisionViewChanged(event) {
 
     // hide decision evaluations tab
     $("#decision-evaluations-tab").addClass("visually-hidden");
+    // hide decision evaluation action
+    $("#evaluate-decision-button").addClass("visually-hidden");
 
     // hide DRD box
     $(".dmn-definitions").each(function () {
@@ -169,4 +173,45 @@ function loadEvaluationsOfDecisionNext() {
 function loadEvaluationsOfDecisionLast() {
   let last = $("#evaluations-of-decision-pagination-last").text() - 1;
   loadEvaluationsOfDecision(last);
+}
+
+function openDecisionEvaluationModal() {
+  const decisionId = drgOfDecision.decisions.find(
+    (decision) => decision.key === currentDecisionKey
+  )?.decisionId;
+
+  const cachedResponseKey = "decision-evaluation- " + decisionId;
+  const cachedResponse = localStorage.getItem(cachedResponseKey) || "";
+
+  $("#evaluate-decision-variables").val(cachedResponse);
+  $("#evaluate-decision-modal").modal("show");
+}
+
+function evaluateDecision() {
+  const decision = drgOfDecision.decisions.find(
+    (decision) => decision.key === currentDecisionKey
+  );
+  const variables = $("#evaluate-decision-variables").val() || "{}";
+  const jsonVariables = JSON.parse(variables);
+
+  const cachedResponseKey = "decision-evaluation- " + decision?.decisionId;
+  localStorage.setItem(cachedResponseKey, variables);
+
+  const toastId = "decision-evaluation-" + currentDecisionKey;
+  sendEvaluateDecisionRequest(currentDecisionKey, jsonVariables)
+    .done((key) => {
+      const evaluationUrl = "/view/decision-evaluation/" + key;
+
+      showNotificationSuccess(
+        toastId,
+        `Decision 
+        <a id="new-instance-toast-link" href="${evaluationUrl}">
+          ${decision?.decisionName}
+        </a> evaluated.`
+      );
+
+      // jump to decision evaluation page
+      window.location.href = evaluationUrl;
+    })
+    .fail(showFailure(toastId, `Failed to evaluate decision '${decisionId}'.`));
 }
