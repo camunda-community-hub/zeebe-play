@@ -6,6 +6,8 @@ var dmnViewIsLoaded = false;
 let drgOfDecision;
 let currentDecisionKey;
 
+let decisionSubscriptionOpened = false;
+
 function getDecisionKey() {
   return $("#decision-page-key").text();
 }
@@ -38,6 +40,15 @@ function loadDecisionView() {
     }
 
     loadEvaluationsOfDecision(evaluationsOfDecisionCurrentPage);
+
+    if (!decisionSubscriptionOpened) {
+      decisionSubscriptionOpened = true;
+      // reload to show the new decision evaluation
+      subscribeToDecisionEvaluationUpdates(
+        () => loadEvaluationsOfDecision(evaluationsOfDecisionCurrentPage),
+        `{decisionRequirementsKey: ${drgOfDecision.key}}`
+      );
+    }
   });
 }
 
