@@ -554,11 +554,9 @@ function showElementInfo(elementId, bpmnElementType, info) {
 }
 
 function toggleDetailsCollapse() {
-  let canvasElement = $("#canvas");
   let button = $("#details-collapse-button");
   let buttonImage = $("#details-collapse-button > svg > use");
 
-  let canvasHeight;
   if (detailsCollapsed) {
     // initial state on loading
     button.attr("title", "collapse");

@@ -120,6 +120,13 @@
   margin-top: 1em;
 }
 
+.decision-canvas-container {
+  padding-left: 50px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .dmn-decision-table-container tbody .dmn-row-highlighted td {
   background: rgba(0, 125, 255, 0.2);
 }

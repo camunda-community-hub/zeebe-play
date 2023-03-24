@@ -914,6 +914,15 @@ if (resizeHandle) {
 
   resizeHandle.addEventListener("mousedown", (initialEvent) => {
     initialEvent.preventDefault();
+
+    if (contentElement.classList.contains("collapsed")) {
+      // if its collapsed when we start grabbing it, we set it to uncollapsed and its height to 0.
+      // Otherwise, the resize handle would be unresponsive;
+
+      contentElement.style.height = "0px";
+      toggleDetailsCollapse();
+    }
+
     const initialContainerHeight = contentElement.clientHeight;
 
     const maxHeight = document.body.clientHeight - 314;
