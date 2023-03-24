@@ -146,3 +146,7 @@ function sendStatusRequest() {
 function sendEvaluateDecisionRequest(decisionKey, variables) {
   return sendPostRequest(`decisions/${decisionKey}`, variables);
 }
+
+function sendGetDecisionInputsRequest(decisionKey) {
+  return sendGetRequest(`decisions/${decisionKey}/inputs`);
+}

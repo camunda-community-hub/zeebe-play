@@ -28,28 +28,37 @@
               <textarea
                 class="form-control"
                 id="evaluate-decision-variables"
-                rows="3"
+                rows="5"
                 placeholder='{"variableName": "variableValue"}'
               ></textarea>
             </div>
           </form>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer justify-content-between">
           <button
             type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
+            class="btn btn-light"
+            onclick="resetDecisionEvaluationModal();"
           >
-            Close
+            Reset
           </button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            data-bs-dismiss="modal"
-            onclick="evaluateDecision();"
-          >
-            Evaluate
-          </button>
+          <div>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+              onclick="evaluateDecision();"
+            >
+              Evaluate
+            </button>
+          </div>
         </div>
       </div>
     </div>

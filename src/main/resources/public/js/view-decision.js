@@ -186,16 +186,39 @@ function loadEvaluationsOfDecisionLast() {
   loadEvaluationsOfDecision(last);
 }
 
-function openDecisionEvaluationModal() {
+async function openDecisionEvaluationModal() {
   const decisionId = drgOfDecision.decisions.find(
     (decision) => decision.key === currentDecisionKey
   )?.decisionId;
 
   const cachedResponseKey = "decision-evaluation- " + decisionId;
-  const cachedResponse = localStorage.getItem(cachedResponseKey) || "";
+  let variables = localStorage.getItem(cachedResponseKey);
+  if (!variables) {
+    const decisionInputs = await getDecisionInputs();
+    if (decisionInputs.length >= 1) {
+      variables = decisionInputs;
+    } else {
+      variables = "";
+    }
+  }
 
-  $("#evaluate-decision-variables").val(cachedResponse);
+  $("#evaluate-decision-variables").val(variables);
   $("#evaluate-decision-modal").modal("show");
+}
+
+async function getDecisionInputs() {
+  let decisionInputs = {};
+  let response = await sendGetDecisionInputsRequest(currentDecisionKey);
+  response.inputs.forEach((input) => {
+    decisionInputs[input.name] = null;
+  });
+
+  return JSON.stringify(decisionInputs, null, 2);
+}
+
+async function resetDecisionEvaluationModal() {
+  let inputs = await getDecisionInputs();
+  $("#evaluate-decision-variables").val(inputs);
 }
 
 function evaluateDecision() {
