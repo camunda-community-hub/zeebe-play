@@ -18,7 +18,7 @@
       th:replace="views/modals/error-detail-modal.html :: #error-detail-modal"
     ></div>
 
-    <div class="container-fluid">
+    <div class="container-fluid fill-height">
       <div class="row justify-content-between">
         <div class="col">
           <nav aria-label="breadcrumb">
@@ -34,103 +34,95 @@
             </ol>
           </nav>
         </div>
+      </div>
 
-        <div class="col-auto">
-          <div class="btn-group">
+      <div class="row canvas-container">
+        <div class="col-12" style="position: relative">
+          <div id="diagram-actions">
+            <div class="info-container">
+              <button
+                onclick="toggleDetailInfo(event)"
+                data-bs-toggle="tooltip"
+                data-bs-placement="right"
+                data-bs-trigger="hover"
+                title="Show process details"
+              >
+                <img src="/img/Info.svg" />
+              </button>
+              <div class="detail-info hidden">
+                <div class="detail-entry">
+                  <b>Process Key</b>
+                  <span id="process-page-key" th:text="${processKey}"></span>
+                </div>
+                <div class="detail-entry hidden">
+                  <b>BPMN Process Id</b>
+                  <span id="bpmnProcessId"></span>
+                </div>
+                <div class="detail-entry">
+                  <b>Version</b>
+                  <span id="process-version"></span>
+                </div>
+                <div class="detail-entry">
+                  <b>Deployment Time</b>
+                  <span id="process-deployment-time"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="canvas-controls">
             <button
-              type="button"
-              class="btn btn-sm btn-primary overlay-button"
-              data-bs-toggle="modal"
-              data-bs-target="#new-instance-modal"
+              id="toggleFullscreenButton"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-trigger="hover"
+              title="Enable fullscreen"
+              onclick="enterFullscreen()"
             >
-              <svg class="bi" width="18" height="18" fill="white">
-                <use xlink:href="/img/bootstrap-icons.svg#play" />
-              </svg>
-              New Instance
+              <img src="/img/EnableFullscreen.svg" width="14" height="14" />
             </button>
             <button
-              type="button"
-              class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-trigger="hover"
+              title="Reset viewport"
+              onclick="resetViewport()"
             >
-              <span class="visually-hidden">Toggle Dropdown</span>
+              <img src="/img/Target.svg" width="15" height="15" />
             </button>
-            <ul class="dropdown-menu">
-              <li>
-                <a
-                  class="dropdown-item"
-                  data-bs-toggle="modal"
-                  data-bs-target="#publish-message-modal"
-                  href="#"
-                >
-                  <svg class="bi" width="18" height="18">
-                    <use xlink:href="/img/bootstrap-icons.svg#envelope" />
-                  </svg>
-                  Publish Message
-                </a>
-              </li>
-              <li>
-                <a
-                  class="dropdown-item"
-                  data-bs-toggle="modal"
-                  data-bs-target="#time-travel-modal"
-                  href="#"
-                >
-                  <svg class="bi" width="18" height="18">
-                    <use xlink:href="/img/bootstrap-icons.svg#clock" />
-                  </svg>
-                  Time Travel
-                </a>
-              </li>
-            </ul>
+            <button
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-trigger="hover"
+              title="Zoom out"
+              onclick="zoomOut()"
+            >
+              <img src="/img/Minus.svg" width="12" height="12" />
+            </button>
+            <button
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-trigger="hover"
+              title="Zoom in"
+              onclick="zoomIn()"
+            >
+              <img src="/img/Plus.svg" width="20" height="20" />
+            </button>
+          </div>
+          <div id="canvas"></div>
+          <div
+            class="toast-container bottom-0"
+            style="z-index: 101; position: absolute"
+            id="notifications-toast-container"
+          >
+            <!-- notifications -->
           </div>
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-2">
-          <table class="table table-striped border">
-            <tbody>
-              <tr>
-                <th>Process Key</th>
-              </tr>
-              <tr>
-                <td id="process-page-key" th:text="${processKey}"></td>
-              </tr>
-              <tr>
-                <th>BPMN Process Id</th>
-              </tr>
-              <tr>
-                <td id="bpmnProcessId"></td>
-              </tr>
-              <tr>
-                <th>Version</th>
-              </tr>
-              <tr>
-                <td id="process-version"></td>
-              </tr>
-              <tr>
-                <th>Deployment Time</th>
-              </tr>
-              <tr>
-                <td id="process-deployment-time"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="col-10">
-          <div id="canvas" style="height: 400px"></div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <div
-            th:replace="views/deployment/process/process-details.html :: process-details"
-          ></div>
-        </div>
+      <div class="col details-container">
+        <div
+          th:replace="views/deployment/process/process-details.html :: process-details"
+        ></div>
       </div>
     </div>
 

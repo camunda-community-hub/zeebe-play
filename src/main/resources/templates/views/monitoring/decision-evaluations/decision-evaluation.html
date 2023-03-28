@@ -4,7 +4,7 @@
   <body onload="loadDecisionEvaluationView();">
     <div th:replace="fragments/navbar :: navbar"></div>
 
-    <div class="container-fluid">
+    <div class="container-fluid fill-height">
       <div class="row justify-content-between">
         <div class="col-auto">
           <nav id="decision-evaluation-breadcrumb" aria-label="breadcrumb">
@@ -20,134 +20,90 @@
                 id="decision-evaluation-page-key"
                 th:text="${decisionEvaluationKey}"
               ></li>
+              <li id="details-state"></li>
             </ol>
           </nav>
         </div>
-        <div class="col">
-          <div id="details-state"></div>
-        </div>
       </div>
 
-      <div class="row">
-        <div class="col-auto">
-          <div class="row row-cols-1 g-1">
-            <div class="col">
+      <div class="row canvas-container">
+        <div class="col-12" style="position: relative">
+          <div id="diagram-actions">
+            <div class="info-container">
               <button
-                class="btn btn-sm btn-light"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapse-decision-details"
-                aria-expanded="false"
-                aria-controls="decision-details"
-                title="Show/hide details"
+                onclick="toggleDetailInfo(event)"
+                data-bs-toggle="tooltip"
+                data-bs-placement="right"
+                data-bs-trigger="hover"
+                title="Show decision details"
               >
-                <svg class="bi" width="18" height="18">
-                  <use xlink:href="/img/bootstrap-icons.svg#list" />
-                </svg>
+                <img src="/img/Info.svg" />
               </button>
-
-              <div class="collapse" id="collapse-decision-details">
-                <div class="card card-body">
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                      <h6 id="details-decision-label-key">Decision Key</h6>
-                      <div id="details-decision-key"></div>
-                    </li>
-                    <li class="list-group-item">
-                      <h6 id="details-decision-label-id">Decision Id</h6>
-                      <div id="details-decision-id"></div>
-                    </li>
-                    <li class="list-group-item">
-                      <h6 id="details-decision-label-name">Decision Name</h6>
-                      <div id="details-decision-name"></div>
-                    </li>
-                    <li class="list-group-item">
-                      <h6 id="details-decision-label-version">
-                        Decision Version
-                      </h6>
-                      <div id="details-decision-version"></div>
-                    </li>
-                    <li class="list-group-item">
-                      <h6>Evaluation Time</h6>
-                      <div id="details-evaluation-time"></div>
-                    </li>
-                  </ul>
+              <div class="detail-info hidden">
+                <div class="detail-entry">
+                  <b id="details-decision-label-key">Decision Key</b>
+                  <span id="details-decision-key"></span>
+                </div>
+                <div class="detail-entry">
+                  <b id="details-decision-label-id">Decision Id</b>
+                  <span id="details-decision-id"></span>
+                </div>
+                <div class="detail-entry hidden">
+                  <b id="details-decision-label-name">Decision Name</b>
+                  <span id="details-decision-name"></span>
+                </div>
+                <div class="detail-entry">
+                  <b id="details-decision-label-version">Decision Version</b>
+                  <span id="details-decision-version"></span>
+                </div>
+                <div class="detail-entry">
+                  <b>Evaluation Time</b>
+                  <span id="details-evaluation-time"></span>
                 </div>
               </div>
             </div>
 
-            <div class="col">
+            <div class="info-container" id="button-decision-inputs">
               <button
-                id="button-decision-inputs"
-                class="btn btn-sm btn-light"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapse-decision-inputs"
-                aria-expanded="false"
-                aria-controls="decision-inputs"
-                title="Show/hide inputs"
+                onclick="toggleDetailInfo(event)"
+                data-bs-toggle="tooltip"
+                data-bs-placement="right"
+                data-bs-trigger="hover"
+                title="Show inputs"
               >
-                <svg class="bi" width="18" height="18">
+                <svg class="bi" width="16" height="16">
                   <use
                     xlink:href="/img/bootstrap-icons.svg#box-arrow-in-right"
                   />
                 </svg>
               </button>
-
-              <div class="collapse" id="collapse-decision-inputs">
-                <div class="card card-body">
-                  <h6>Inputs</h6>
-                  <table
-                    class="table table-striped table-hover caption-top"
-                    id="decision-input-table"
-                  >
-                    <thead>
-                      <tr>
-                        <th scope="col">Input Name</th>
-                        <th scope="col">Input Value</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>-</td>
-                        <td>-</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <div class="detail-info hidden" id="decision-inputs"></div>
             </div>
 
-            <div class="col">
+            <div class="info-container" id="button-decision-output">
               <button
-                id="button-decision-output"
-                class="btn btn-sm btn-light"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapse-decision-output"
-                aria-expanded="false"
-                aria-controls="decision-output"
-                title="Show/hide decision ouput"
+                onclick="toggleDetailInfo(event)"
+                data-bs-toggle="tooltip"
+                data-bs-placement="right"
+                data-bs-trigger="hover"
+                title="Show decision output"
               >
-                <svg class="bi" width="18" height="18">
+                <svg class="bi" width="16" height="16">
                   <use xlink:href="/img/bootstrap-icons.svg#box-arrow-right" />
                 </svg>
               </button>
-
-              <div class="collapse" id="collapse-decision-output">
-                <div class="card card-body">
-                  <h6>Decision Output</h6>
-                  <code>
-                    <div id="decision-output"></div>
-                  </code>
+              <div class="detail-info hidden">
+                <div class="detail-entry">
+                  <b>Output</b>
+                  <span id="decision-output"></span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="col-auto" style="flex: 1">
-          <div id="decision-evaluation-failure-message"></div>
-          <div id="canvas" style="height: 80vh"></div>
+          <div class="decision-canvas-container">
+            <div id="decision-evaluation-failure-message"></div>
+            <div id="canvas"></div>
+          </div>
         </div>
       </div>
     </div>

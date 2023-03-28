@@ -58,14 +58,16 @@ function loadProcessInstanceView() {
     currentProcessKey = process.key;
 
     $("#process-instance-key").text(processInstance.key);
-    $("#process-instance-start-time").text(processInstance.startTime);
+    $("#process-instance-start-time").html(
+      formatTime(processInstance.startTime)
+    );
 
     let endTime = "-";
     if (processInstance.endTime) {
-      endTime = processInstance.endTime;
+      endTime = formatTime(processInstance.endTime);
     }
 
-    $("#process-instance-end-time").text(endTime);
+    $("#process-instance-end-time").html(endTime);
 
     let state = formatProcessInstanceState(processInstance);
 
@@ -297,9 +299,8 @@ async function rewind(task) {
       document.body.removeChild(blocker);
       showNotificationFailure(
         "rewind-failure",
-        "Could not rewind this process instance." +
-          "<br /><br />" +
-          '<a href="https://github.com/camunda-community-hub/zeebe-play/issues/new?assignees=&labels=bug&template=bug_report.md&title=">' +
+        "Could not rewind this process instance",
+        '<a class="cta" href="https://github.com/camunda-community-hub/zeebe-play/issues/new?assignees=&labels=bug&template=bug_report.md&title=">' +
           "Please file a bug report!" +
           "</a>"
       );
@@ -669,7 +670,8 @@ function setVariablesModal() {
       const toastId = "set-variables-" + key;
       showNotificationSuccess(
         toastId,
-        "Set variables <code>" + variables + "</code>."
+        "Variables set successfully",
+        "<code>" + variables + "</code>."
       );
 
       loadVariablesOfProcessInstance();
@@ -687,7 +689,11 @@ function cancelProcessInstance() {
   sendCancelProcessInstanceRequest(processInstanceKey)
     .done((key) => {
       const toastId = "cancel-process-instance-" + processInstanceKey;
-      showNotificationSuccess(toastId, "Cancelled process instance.");
+      showNotificationSuccess(
+        toastId,
+        "Cancelled process instance",
+        "Instance key " + processInstanceKey
+      );
     })
     .fail(
       showFailure(
@@ -1235,7 +1241,8 @@ function loadIncidentsOfProcessInstance() {
       // a new incident occured, let's inform the user about it
       showNotificationFailure(
         "new-incident",
-        `<a href="#" onclick="switchToIncidentsTab(event)">A new incident occured!</a>`
+        "A new incident occured",
+        `<a href="#" class="cta" onclick="switchToIncidentsTab(event)">Click to see incidents</a>`
       );
     }
     previousNumberOfIncidents = totalCount;

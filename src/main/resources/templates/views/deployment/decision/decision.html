@@ -1,122 +1,124 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head"></head>
-<body onload="loadDecisionView();">
-<div th:replace="fragments/navbar :: navbar"></div>
+  <head th:replace="fragments/header :: head"></head>
+  <body onload="loadDecisionView();">
+    <div th:replace="fragments/navbar :: navbar"></div>
 
-<div id="decision-page-key" th:text="${decisionKey}" hidden></div>
+    <div id="decision-page-key" th:text="${decisionKey}" hidden></div>
 
-<div class="container-fluid">
-  <div class="row justify-content-between">
-    <div class="col">
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item">
-            <a href="/view/deployment">Decision</a>
-          </li>
-          <li
-              class="breadcrumb-item active"
-              aria-current="page"
-              id="nav-decision"
-          ></li>
-        </ol>
-      </nav>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-auto">
-      <div class="row row-cols-1 g-1">
+    <div class="container-fluid fill-height">
+      <div class="row justify-content-between">
         <div class="col">
-          <button
-              class="btn btn-sm btn-light"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#decision-details"
-              aria-expanded="false"
-              aria-controls="decision-details"
-          >
-            <svg class="bi" width="18" height="18">
-              <use xlink:href="/img/bootstrap-icons.svg#list"/>
-            </svg>
-          </button>
-          <div class="collapse" id="decision-details">
-            <div class="card card-body">
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item">
-                  <h6 id="details-decision-label-key">Decision Key</h6>
-                  <div id="details-decision-key"></div>
-                </li>
-                <li class="list-group-item">
-                  <h6 id="details-decision-label-id">Decision Id</h6>
-                  <div id="details-decision-id"></div>
-                </li>
-                <li class="list-group-item">
-                  <h6 id="details-decision-label-name">Decision Name</h6>
-                  <div id="details-decision-name"></div>
-                </li>
-                <li class="list-group-item">
-                  <h6 id="details-decision-label-version">
-                    Decision Version
-                  </h6>
-                  <div id="details-decision-version"></div>
-                </li>
-                <li class="list-group-item">
-                  <h6>Deployment Time</h6>
-                  <div id="details-deployment-time"></div>
-                </li>
-              </ul>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item">
+                <a href="/view/deployment">Decision</a>
+              </li>
+              <li
+                class="breadcrumb-item active"
+                aria-current="page"
+                id="nav-decision"
+              ></li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+
+      <div class="row canvas-container">
+        <div class="col-12" style="position: relative; height: 100%">
+          <div id="diagram-actions">
+            <div class="info-container">
+              <button
+                onclick="toggleDetailInfo(event)"
+                data-bs-toggle="tooltip"
+                data-bs-placement="right"
+                data-bs-trigger="hover"
+                title="Show decision details"
+              >
+                <img src="/img/Info.svg" />
+              </button>
+              <div class="detail-info hidden">
+                <div class="detail-entry">
+                  <b id="details-decision-label-key">Decision Key</b>
+                  <span id="details-decision-key"></span>
+                </div>
+                <div class="detail-entry">
+                  <b id="details-decision-label-id">Decision Id</b>
+                  <span id="details-decision-id"></span>
+                </div>
+                <div class="detail-entry hidden">
+                  <b id="details-decision-label-name">Decision Name</b>
+                  <span id="details-decision-name"></span>
+                </div>
+                <div class="detail-entry">
+                  <b id="details-decision-label-version">Decision Version</b>
+                  <span id="details-decision-version"></span>
+                </div>
+                <div class="detail-entry">
+                  <b>Deployment Time</b>
+                  <span id="details-deployment-time"></span>
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="decision-canvas-container">
+            <div id="canvas"></div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="col-auto" style="flex: 1">
-      <div id="canvas" style="height: 50vh"></div>
-    </div>
-  </div>
 
-  <div class="row">
-    <div id="decision-evaluations-tab" class="col">
-      <ul class="nav nav-tabs" id="decision-tabs" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button
-              class="nav-link active"
-              id="evaluations-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#evaluations"
+      <div id="decision-evaluations-tab" class="col details-container">
+        <div class="row justify-content-between tab-container resizable-tabs">
+          <div id="tab-resize-handle"></div>
+          <div class="col">
+            <ul class="nav nav-tabs" id="decision-tabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active"
+                  id="evaluations-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#evaluations"
+                  type="button"
+                  role="tab"
+                  aria-controls="evaluations"
+                  aria-selected="true"
+                >
+                  Evaluations
+                  <span class="badge" id="evaluations-total-count">0</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+          <div class="col-auto">
+            <button
+              id="details-collapse-button"
               type="button"
-              role="tab"
-              aria-controls="evaluations"
-              aria-selected="true"
-          >
-            Evaluations
-            <span
-                class="badge bg-light text-dark"
-                id="evaluations-total-count"
-            >0</span
+              class="btn btn-sm btn-light"
+              title="collapse"
+              onclick="toggleDetailsCollapse();"
             >
-          </button>
-        </li>
-      </ul>
+              <svg class="bi" width="18" height="18">
+                <use xlink:href="/img/bootstrap-icons.svg#chevron-down" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-      <div class="container-fluid">
-        <div class="tab-content" id="decisionTabContent">
+        <div class="tab-content row" id="decisionTabContent">
           <div
-              class="tab-pane fade show active"
-              id="evaluations"
-              role="tabpanel"
-              aria-labelledby="evaluations-tab"
+            class="tab-pane fade show active"
+            id="evaluations"
+            role="tabpanel"
+            aria-labelledby="evaluations-tab"
           >
             <div
-                th:replace="views/deployment/decision/decision-details-evaluations.html :: decision-details-evaluations"
+              th:replace="views/deployment/decision/decision-details-evaluations.html :: decision-details-evaluations"
             ></div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <footer th:replace="fragments/footer :: footer"></footer>
-</body>
+    <footer th:replace="fragments/footer :: footer"></footer>
+  </body>
 </html>

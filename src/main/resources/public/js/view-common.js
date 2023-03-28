@@ -62,18 +62,21 @@ function updatePagination(prefix, perPage, currentPage, totalCount) {
   }
 }
 
-function showNotificationSuccess(id, content) {
+function showNotificationSuccess(id, header, content = "") {
   const toastId = "new-toast-" + id;
 
   const newNotificationToast =
     '<div id="' +
     toastId +
-    '" class="toast" role="status" aria-live="polite" aria-atomic="true">' +
-    '<div class="toast-header bg-success text-white">' +
-    '<strong class="me-auto">Success</strong>' +
-    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>' +
+    '" class="toast notification" role="alert" aria-live="polite" aria-atomic="true">' +
+    '<button type="button" class="btn-close btn-close-black" data-bs-dismiss="toast" aria-label="Close"></button>' +
+    `<svg class="bi" width="14" height="14" fill="#000000">
+      <use xlink:href="/img/bootstrap-icons.svg#check-circle-fill" />
+    </svg>` +
+    '<div class="notification-header">' +
+    header +
     "</div>" +
-    '<div class="toast-body">' +
+    '<div class="notification-body">' +
     content +
     "</div>" +
     "</div>";
@@ -87,44 +90,24 @@ function showNotificationSuccess(id, content) {
   toast.show();
 }
 
-function showNotificationFailure(id, content) {
+function showNotificationFailure(id, header, content = "") {
   const toastId = "new-toast-" + id;
 
   const newNotificationToast =
     '<div id="' +
     toastId +
-    '" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">' +
-    '<div class="toast-header bg-danger text-white">' +
-    '<strong class="me-auto">Failure</strong>' +
-    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>' +
+    '" class="toast notification" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">' +
+    '<button type="button" class="btn-close btn-close-black" data-bs-dismiss="toast" aria-label="Close"></button>' +
+    `<svg class="bi" width="14" height="14" fill="#000000">
+      <use xlink:href="/img/bootstrap-icons.svg#exclamation-triangle-fill" />
+    </svg>` +
+    '<div class="notification-header">' +
+    header +
     "</div>" +
-    '<div class="toast-body">' +
+    '<div class="notification-body">' +
     content +
     "</div>" +
     "</div>";
-
-  let notificationToastContainer = $("#notifications-toast-container");
-
-  notificationToastContainer.append(newNotificationToast);
-
-  let newInstanceToast = $("#" + toastId);
-  let toast = new bootstrap.Toast(newInstanceToast);
-  toast.show();
-}
-
-function showNotificationWarning(id, content) {
-  const toastId = "new-toast-" + id;
-
-  const newNotificationToast = `
-    <div id="${toastId}" class="toast" role="warning" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
-      <div class="toast-header bg-warning text-white">
-        <strong class="me-auto">Warning</strong>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        ${content}
-      </div>
-    </div>`;
 
   let notificationToastContainer = $("#notifications-toast-container");
 
@@ -159,9 +142,7 @@ function showFailure(actionId, message) {
       }
     }
 
-    const content = message + " " + failureMessage;
-
-    showNotificationFailure(toastId, content);
+    showNotificationFailure(toastId, message, failureMessage);
   };
 }
 
@@ -195,24 +176,24 @@ function loadViewDebounced(delay = 150) {
 // ----------------------------------------
 
 function formatProcessInstanceState(processInstance) {
-  let state = "";
+  let state = "<div class='process-instance-state'>";
   switch (processInstance.state) {
     case "ACTIVATED":
-      state = '<span class="badge bg-primary">active</span>';
+      state += '<span class="badge bg-primary">Active</span>';
       break;
     case "COMPLETED":
-      state = '<span class="badge bg-secondary">completed</span>';
+      state += '<span class="badge bg-secondary">Completed</span>';
       break;
     case "TERMINATED":
-      state = '<span class="badge bg-dark">terminated</span>';
+      state += '<span class="badge bg-dark">Terminated</span>';
       break;
     default:
-      state = "?";
+      state += "?";
   }
 
   const incidents = processInstance.incidents;
   if (incidents && incidents.length > 0) {
-    state += ' <span class="badge bg-danger">incidents</span>';
+    state += ' <span class="badge bg-danger">Incidents</span>';
   }
 
   const error = processInstance.error;
@@ -220,13 +201,14 @@ function formatProcessInstanceState(processInstance) {
     const fillErrorModalAction =
       "fillErrorDetailsModal('" + processInstance.key + "');";
     state +=
-      ' <span class="badge bg-warning">error</span>' +
+      ' <span class="badge bg-warning">Error</span>' +
       ' <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#error-detail-modal" title="Show error details" onclick="' +
       fillErrorModalAction +
       '">' +
       '<svg class="bi" width="18" height="18" fill="black"><use xlink:href="/img/bootstrap-icons.svg#eye"/></svg>' +
       "</button>";
   }
+  state += "</div>";
 
   return state;
 }
@@ -487,8 +469,11 @@ function publishMessage(messageName, messageCorrelationKey) {
   sendPublishMessageRequest(messageName, messageCorrelationKey)
     .done((messageKey) => {
       const toastId = "message-published-" + messageKey;
-      const content = "New message <code>" + messageKey + "</code> published.";
-      showNotificationSuccess(toastId, content);
+      showNotificationSuccess(
+        toastId,
+        "New message published",
+        "<code>" + messageKey + "</code>"
+      );
     })
     .fail(
       showFailure(
@@ -532,8 +517,11 @@ function publishMessageModal() {
   )
     .done((messageKey) => {
       const toastId = "message-published-" + messageKey;
-      const content = "New message <code>" + messageKey + "</code> published.";
-      showNotificationSuccess(toastId, content);
+      showNotificationSuccess(
+        toastId,
+        "New message published",
+        "<code>" + messageKey + "</code>"
+      );
     })
     .fail(showFailure("publish-message-failed", "Failed to publish message"));
 }
@@ -551,18 +539,39 @@ function timeTravel(timeDefinition, elementId) {
     let duration = timeDefinition.substring(index);
     request = sendTimeTravelRequestWithDuration(duration);
 
-    successMessage = "Time travel by <code>" + duration + "</code>.";
+    successMessage = "Time travel by " + duration + "";
   } else {
     let dateTime = timeDefinition;
     request = sendTimeTravelRequestWithDateTime(dateTime);
 
-    successMessage = "Time travel to <code>" + dateTime + "</code>.";
+    const date = new Date(dateTime);
+    const formattedDate = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+      hour12: false,
+      timeZoneName: "short",
+    })
+      .formatToParts(date)
+      .reduce((acc, curr) => {
+        acc[curr.type] = curr.value;
+        return acc;
+      }, {});
+
+    successMessage = `Time travel to ${formattedDate.day} ${formattedDate.month} ${formattedDate.year}<br />${formattedDate.hour}:${formattedDate.minute}:${formattedDate.second} (${formattedDate.timeZoneName})`;
   }
 
   request
     .done((newTime) => {
       const toastId = "time-travel-" + newTime;
-      showNotificationSuccess(toastId, successMessage);
+      showNotificationSuccess(
+        toastId,
+        "Time travel successful",
+        successMessage
+      );
     })
     .fail(showFailure("time-travel-failed", "Failed to time travel"));
 }
@@ -613,17 +622,15 @@ function completeJob(jobKey, variables) {
   refreshHistory();
 
   sendCompleteJobRequest(jobKey, variables)
-    .done((key) => {
+    .done(() => {
       showNotificationSuccess(
         toastId,
-        "Job <code>" + jobKey + "</code> completed."
+        "Job completed successfully",
+        getTaskNameByJobKey(jobKey)
       );
     })
     .fail(
-      showFailure(
-        toastId,
-        "Failed to complete job <code>" + jobKey + "</code>."
-      )
+      showFailure(toastId, "Failed to complete " + getTaskNameByJobKey(jobKey))
     );
 }
 
@@ -635,14 +642,15 @@ function failJob(jobKey, retries, errorMessage) {
   refreshHistory();
 
   sendFailJobRequest(jobKey, retries, errorMessage)
-    .done((key) => {
+    .done(() => {
       showNotificationSuccess(
         toastId,
-        "Job <code>" + jobKey + "</code> failed."
+        "Job failed successfully",
+        getTaskNameByJobKey(jobKey)
       );
     })
     .fail(
-      showFailure(toastId, "Failed to fail job <code>" + jobKey + "</code>.")
+      showFailure(toastId, "Failed to fail " + getTaskNameByJobKey(jobKey))
     );
 }
 
@@ -654,20 +662,21 @@ function throwErrorJob(jobKey, errorCode, errorMessage) {
   refreshHistory();
 
   sendThrowErrorJobRequest(jobKey, errorCode, errorMessage)
-    .done((key) => {
+    .done(() => {
       showNotificationSuccess(
         toastId,
-        "An error <code>" +
+        "Error thrown successfully",
+        "<code>" +
           errorCode +
-          "</code> was thrown for the job <code>" +
-          jobKey +
-          "</code>."
+          "</code> was thrown for " +
+          getTaskNameByJobKey(jobKey) +
+          "."
       );
     })
     .fail(
       showFailure(
         toastId,
-        "Failed to throw error for the job <code>" + jobKey + "</code>."
+        "Failed to throw error for " + getTaskNameByJobKey(jobKey) + "."
       )
     );
 }
@@ -676,9 +685,10 @@ function executeConnectorJob(jobType, jobKey) {
   const toastId = "connector-job-" + jobKey;
 
   sendExecuteConnectorRequest(jobType, jobKey)
-    .done((key) => {
+    .done(() => {
       showNotificationSuccess(
         toastId,
+        "Connector invoked successfully",
         `Connector of type <code>${jobType}</code> invoked.`
       );
     })
@@ -752,7 +762,8 @@ function resolveIncident(incidentKey, jobKey) {
       .done((key) => {
         showNotificationSuccess(
           toastId,
-          "Retries of job <code>" + jobKey + "</code> increased."
+          "Retries increased successfully",
+          "Retries of " + getTaskNameByJobKey(jobKey) + " increased."
         );
 
         resolveIncidentByKey(incidentKey);
@@ -760,7 +771,7 @@ function resolveIncident(incidentKey, jobKey) {
       .fail(
         showFailure(
           toastId,
-          "Failed to update retries of the job <code>" + jobKey + "</code>."
+          "Failed to update retries of " + getTaskNameByJobKey(jobKey) + "."
         )
       );
   } else {
@@ -774,6 +785,7 @@ function resolveIncidentByKey(incidentKey) {
     .done((key) => {
       showNotificationSuccess(
         toastId,
+        "Incident resolved successfully",
         "Incident <code>" + incidentKey + "</code> resolved."
       );
     })
@@ -822,12 +834,11 @@ function checkForMissingConnectorSecrets(processKey) {
     if (connectorSecretNames.length > 0) {
       let buttonId = "add-missing-connector-secrets";
 
-      showNotificationWarning(
+      showNotificationFailure(
         "connector-secrets-missing",
-        `Connector secrets are missing. The process references secrets that are not set yet.
-                <div class="mt-2 pt-2 border-top">
-                  <button id="${buttonId}" type="button" class="btn btn-outline-primary btn-sm">Add missing secrets</button>
-                </div>`
+        "Connector secrets are missing",
+        `The process references secrets that are not set yet.<br/>
+          <button id="${buttonId}" type="button" class="cta">Add missing secrets</button>`
       );
 
       $("#" + buttonId).click(function () {
@@ -844,5 +855,97 @@ function checkForMissingConnectorSecrets(processKey) {
         });
       });
     }
+  });
+}
+
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
+  new bootstrap.Tooltip(element, {
+    boundary: document.body,
+  });
+});
+
+function toggleDetailInfo(evt) {
+  const infoContainer = evt.target
+    .closest(".info-container")
+    .querySelector(".detail-info");
+
+  if (infoContainer.classList.contains("hidden")) {
+    // show the info container
+    // first, close all other currently open info containers
+    document.body
+      .querySelectorAll(".detail-info")
+      .forEach((container) => container.classList.add("hidden"));
+
+    infoContainer.classList.remove("hidden");
+  } else {
+    // close the info container
+    infoContainer.classList.add("hidden");
+  }
+}
+
+function formatTime(time) {
+  const parsed = /([^T]+)T([^\.]+)[^+]+(.+)/gm.exec(time);
+  return `${parsed[1]}<br />${parsed[2]} (${parsed[3]})`;
+}
+
+function getTaskNameByJobKey(jobKey) {
+  const task = jobKeyToElementIdMapping[jobKey];
+
+  if (task) {
+    const element = bpmnViewer.get("elementRegistry").get(task);
+    const businessObject = element?.businessObject ?? element;
+
+    return businessObject?.name ?? task;
+  }
+
+  return jobKey;
+}
+
+// make tabs resizable
+const resizeHandle = document.getElementById("tab-resize-handle");
+if (resizeHandle) {
+  const contentElement = document.querySelector(".tab-content");
+  const previousHeight = localStorage.getItem("tab-container-height") || 185;
+
+  contentElement.style.height = previousHeight + "px";
+
+  // setting the display style here prevents height flickering on page load
+  contentElement.style.display = "block";
+
+  resizeHandle.addEventListener("mousedown", (initialEvent) => {
+    initialEvent.preventDefault();
+
+    if (contentElement.classList.contains("collapsed")) {
+      // if its collapsed when we start grabbing it, we set it to uncollapsed and its height to 0.
+      // Otherwise, the resize handle would be unresponsive;
+
+      contentElement.style.height = "0px";
+      toggleDetailsCollapse();
+    }
+
+    const initialContainerHeight = contentElement.clientHeight;
+
+    const maxHeight = document.body.clientHeight - 314;
+
+    const moveHandler = (evt) => {
+      const delta = initialEvent.pageY - evt.pageY;
+
+      contentElement.style.height =
+        Math.min(initialContainerHeight + delta, maxHeight) + "px";
+    };
+
+    const stopHandler = () => {
+      document.body.removeEventListener("mousemove", moveHandler, {
+        capture: true,
+      });
+
+      localStorage.setItem("tab-container-height", contentElement.clientHeight);
+    };
+
+    document.body.addEventListener("mousemove", moveHandler, { capture: true });
+    document.body.addEventListener("mouseup", stopHandler, {
+      capture: true,
+      once: true,
+    });
   });
 }

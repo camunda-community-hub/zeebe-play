@@ -25,7 +25,9 @@ function loadDecisionEvaluationView() {
     $("#details-state").html(formatDecisionEvaluationState(decisionEvaluation));
 
     updateDecisionEvaluationDetails(rootDecision);
-    $("#details-evaluation-time").text(decisionEvaluation.evaluationTime);
+    $("#details-evaluation-time").html(
+      formatTime(decisionEvaluation.evaluationTime)
+    );
 
     if (decisionEvaluation.processInstance) {
       const processInstance = decisionEvaluation.processInstance;
@@ -68,7 +70,7 @@ function loadDecisionEvaluationView() {
 function onDecisionEvaluationViewChanged(event) {
   // reset data
   $("#decision-output").text("");
-  $("#decision-input-table tbody").empty();
+  $("#decision-inputs").empty();
   $(".dmn-row-highlighted").each(function () {
     $(this).removeClass("dmn-row-highlighted");
   });
@@ -93,13 +95,11 @@ function onDecisionEvaluationViewChanged(event) {
 
     // update decision input
     currentEvaluatedDecision.inputs?.forEach((input) => {
-      $("#decision-input-table tbody:last-child").append(`
-        <tr>
-          <td>${input.inputName}</td>
-          <td>
-            <code>${input.value}</code>
-          </td>
-        </tr>`);
+      $("#decision-inputs").append(`
+        <div class="detail-entry">
+          <b>${input.inputName}</b>
+          <span>${input.value}</span>
+        </div>`);
     });
 
     // mark matched rules
