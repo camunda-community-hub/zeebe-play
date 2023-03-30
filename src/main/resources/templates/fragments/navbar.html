@@ -3,7 +3,11 @@
   th:fragment="navbar"
 >
   <div class="container-fluid">
-    <a class="navbar-brand" href="/view/home">
+    <a
+      th:unless="${#httpServletRequest.requestURL.toString().contains('play.camunda.io')}"
+      class="navbar-brand"
+      href="/view/home"
+    >
       <img
         src="/img/logo.png"
         alt=""
@@ -15,6 +19,13 @@
       <svg class="bi" width="24" height="24" fill="cornflowerblue">
         <use xlink:href="/img/bootstrap-icons.svg#play" />
       </svg>
+    </a>
+    <a
+      th:if="${#httpServletRequest.requestURL.toString().contains('play.camunda.io')}"
+      class="navbar-brand"
+      href="/view/home"
+    >
+      Play
     </a>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">

@@ -23,5 +23,14 @@
 
   <link rel="icon" href="/img/favicon.ico" />
 
-  <title>Zeebe Play</title>
+  <title
+    th:unless="${#httpServletRequest.requestURL.toString().contains('play.camunda.io')}"
+  >
+    Zeebe Play
+  </title>
+  <title
+    th:if="${#httpServletRequest.requestURL.toString().contains('play.camunda.io')}"
+  >
+    Play
+  </title>
 </head>

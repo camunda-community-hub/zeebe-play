@@ -10,7 +10,16 @@
 
     <link rel="icon" href="/img/favicon.ico" />
 
-    <title>Zeebe Play</title>
+    <title
+      th:unless="${#httpServletRequest.requestURL.toString().contains('play.camunda.io')}"
+    >
+      Zeebe Play
+    </title>
+    <title
+      th:if="${#httpServletRequest.requestURL.toString().contains('play.camunda.io')}"
+    >
+      Play
+    </title>
   </head>
 
   <body>
@@ -19,7 +28,11 @@
       th:fragment="navbar"
     >
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a
+          th:unless="${#httpServletRequest.requestURL.toString().contains('play.camunda.io')}"
+          class="navbar-brand"
+          href="#"
+        >
           <img
             src="/img/logo.png"
             alt=""
@@ -28,6 +41,13 @@
             class="d-inline-block align-text-top"
           />
           Zeebe Play
+        </a>
+        <a
+          th:if="${#httpServletRequest.requestURL.toString().contains('play.camunda.io')}"
+          class="navbar-brand"
+          href="#"
+        >
+          Play
         </a>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
