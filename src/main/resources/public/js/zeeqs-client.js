@@ -167,6 +167,13 @@ const processInstanceQuery = `query ProcessInstance($key: ID!, $zoneId: String!)
         key
         bpmnProcessId
         bpmnXML
+        
+        elements(elementTypeIn: [BOUNDARY_EVENT])  {
+          elementId
+          metadata {
+            errorCode
+          }
+        }
       }
       
       incidents(stateIn: [CREATED]) {

@@ -715,6 +715,15 @@ function showJobCompleteModal(jobKey, type, variables) {
   $("#complete-job-modal").modal("show");
 }
 
+function showThrowErrorModal(jobKey, errorCode) {
+  resetJobModal();
+
+  $("#jobKey-throw-error").val(jobKey);
+  $("#jobErrorCode").val(errorCode);
+
+  $("#throw-error-job-modal").modal("show");
+}
+
 function completeJobModal() {
   const jobKey = $("#jobKey-complete").val();
   const jobVariables = $("#jobVariables").val();

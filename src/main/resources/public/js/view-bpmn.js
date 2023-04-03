@@ -280,20 +280,12 @@ function makeTaskPlayable(elementId, jobKey, { isUserTask, taskForm } = {}) {
   }
 
   if (!isUserTask) {
-    actions.push(
-      {
-        icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>',
-        text: "Fail",
-        modalTarget: "#fail-job-modal",
-        action: fillModalAction("fail"),
-      },
-      {
-        icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#lightning"/></svg>',
-        text: "Throw Error",
-        modalTarget: "#throw-error-job-modal",
-        action: fillModalAction("throw-error"),
-      }
-    );
+    actions.push({
+      icon: '<svg class="bi" width="18" height="18"><use xlink:href="/img/bootstrap-icons.svg#x"/></svg>',
+      text: "Fail",
+      modalTarget: "#fail-job-modal",
+      action: fillModalAction("fail"),
+    });
   }
 
   let buttonId = `complete-job-button-${jobKey}`;
@@ -416,6 +408,37 @@ function makeConnectorTaskPlayable(elementId, jobKey, jobType) {
   });
 }
 
+function makeErrorEventPlayable(elementId, jobKey, errorCode) {
+  let buttonId = `throw-error-${jobKey}-${errorCode}`;
+
+  let content = `
+    <button id="${buttonId}" type="button"
+              class="btn btn-sm btn-primary" title="Throw error">
+        <svg class="bi" width="18" height="18" fill="white">
+          <use xlink:href="/img/bootstrap-icons.svg#lightning"/>
+        </svg>
+      </button>`;
+
+  overlays.add(elementId, "error-event-action", {
+    position: {
+      top: -20,
+      left: -20,
+    },
+    html: content,
+  });
+
+  const buttonElement = $("#" + buttonId);
+  buttonElement.click(function () {
+    showThrowErrorModal(jobKey, errorCode);
+  });
+
+  buttonElement.tooltip();
+
+  buttonElement.on("click", () => {
+    $(`[data-bs-toggle="tooltip"]`).tooltip("hide");
+  });
+}
+
 function removeAllUserTaskActionMarkers() {
   overlays.remove({ type: "user-task-action" });
 }
@@ -426,6 +449,10 @@ function removeAllJobActionMarkers() {
 
 function removeAllConnectorActionMarkers() {
   overlays.remove({ type: "connector-action" });
+}
+
+function removeAllThrowErrorActionMarkers() {
+  overlays.remove({ type: "error-event-action" });
 }
 
 function addResolveIncidentButton(elementId, action) {
@@ -579,9 +606,11 @@ function toggleDetailsCollapse() {
 function zoomIn() {
   bpmnViewer.get("zoomScroll").stepZoom(0.1);
 }
+
 function zoomOut() {
   bpmnViewer.get("zoomScroll").stepZoom(-0.1);
 }
+
 function resetViewport() {
   const outerViewbox = canvas.viewbox().outer;
   canvas.viewbox({
@@ -591,6 +620,7 @@ function resetViewport() {
     height: outerViewbox.height,
   });
 }
+
 function enterFullscreen() {
   const button = document.querySelector("#toggleFullscreenButton");
 
@@ -607,6 +637,7 @@ function enterFullscreen() {
 
   document.documentElement.requestFullscreen();
 }
+
 function exitFullscreen() {
   const button = document.querySelector("#toggleFullscreenButton");
 

@@ -8,6 +8,8 @@ const incidentKeyToElementIdMapping = {};
 
 let processInstance;
 
+var errorEvents = {};
+
 function getProcessInstanceKey() {
   return $("#process-instance-page-key").text();
 }
@@ -81,6 +83,13 @@ function loadProcessInstanceView() {
         "</a>"
     );
 
+    // store info about error events
+    process.elements
+      .filter((element) => element.metadata?.errorCode)
+      .forEach((element) => {
+        errorEvents[element.elementId] = element.metadata.errorCode;
+      });
+
     if (!isProcessInstanceActive(processInstance)) {
       disableProcessInstanceActionButtons();
     }
@@ -103,11 +112,11 @@ function loadProcessInstanceView() {
 
       bpmnViewIsLoaded = true;
     }
-  });
 
-  if (bpmnViewIsLoaded) {
-    loadProcessInstanceDetailsViews();
-  }
+    if (bpmnViewIsLoaded) {
+      loadProcessInstanceDetailsViews();
+    }
+  });
 }
 
 function loadProcessInstanceDetailsViews() {
@@ -996,6 +1005,7 @@ function loadJobsOfProcessInstance() {
     // first, remove all task markers on the BPMN
     removeAllJobActionMarkers();
     removeAllConnectorActionMarkers();
+    removeAllThrowErrorActionMarkers();
 
     jobs.forEach((job, index) => {
       const bpmnElement = job.elementInstance.element;
@@ -1096,12 +1106,10 @@ function loadJobsOfProcessInstance() {
             fillJobModal(job.key, "fail");
           });
 
-          $("#" + jobThrowErrorButtonId).click(function () {
-            fillJobModal(job.key, "throw-error");
-          });
-
           makeTaskPlayable(elementId, job.key);
         }
+
+        showThrowErrorActionForJob(elementId, job);
       }
     });
   });
@@ -1110,6 +1118,17 @@ function loadJobsOfProcessInstance() {
 function isConnectorJob(job) {
   // assuming that a job for a connector starts with this prefix
   return job.jobType.startsWith("io.camunda:");
+}
+
+function showThrowErrorActionForJob(elementId, job) {
+  elementRegistry
+    .get(elementId)
+    ?.attachers.map((element) => element.id)
+    .filter((elementId) => errorEvents[elementId])
+    .forEach((elementId) => {
+      const errorCode = errorEvents[elementId];
+      makeErrorEventPlayable(elementId, job.key, errorCode);
+    });
 }
 
 function loadUserTasksOfProcessInstance() {
