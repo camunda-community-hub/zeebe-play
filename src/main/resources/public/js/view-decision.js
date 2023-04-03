@@ -6,6 +6,8 @@ var dmnViewIsLoaded = false;
 let drgOfDecision;
 let currentDecisionKey;
 
+let decisionSubscriptionOpened = false;
+
 function getDecisionKey() {
   return $("#decision-page-key").text();
 }
@@ -38,6 +40,15 @@ function loadDecisionView() {
     }
 
     loadEvaluationsOfDecision(evaluationsOfDecisionCurrentPage);
+
+    if (!decisionSubscriptionOpened) {
+      decisionSubscriptionOpened = true;
+      // reload to show the new decision evaluation
+      subscribeToDecisionEvaluationUpdates(
+        () => loadEvaluationsOfDecision(evaluationsOfDecisionCurrentPage),
+        `{decisionRequirementsKey: ${drgOfDecision.key}}`
+      );
+    }
   });
 }
 
@@ -107,8 +118,10 @@ function onDecisionViewChanged(event) {
 
     // show decision evaluations tab
     $("#decision-evaluations-tab").removeClass("visually-hidden");
+    // show decision evaluation action
+    $("#evaluate-decision-button").removeClass("visually-hidden");
 
-    // update decisionevaluations
+    // update decision evaluations
     currentDecisionKey = activeDecision.key;
     loadEvaluationsOfDecisionFirst();
   }
@@ -137,6 +150,8 @@ function onDecisionViewChanged(event) {
 
     // hide decision evaluations tab
     $("#decision-evaluations-tab").addClass("visually-hidden");
+    // hide decision evaluation action
+    $("#evaluate-decision-button").addClass("visually-hidden");
 
     // hide DRD box
     $(".dmn-definitions").each(function () {
@@ -169,4 +184,68 @@ function loadEvaluationsOfDecisionNext() {
 function loadEvaluationsOfDecisionLast() {
   let last = $("#evaluations-of-decision-pagination-last").text() - 1;
   loadEvaluationsOfDecision(last);
+}
+
+async function openDecisionEvaluationModal() {
+  const decisionId = drgOfDecision.decisions.find(
+    (decision) => decision.key === currentDecisionKey
+  )?.decisionId;
+
+  const cachedResponseKey = "decision-evaluation- " + decisionId;
+  let variables = localStorage.getItem(cachedResponseKey);
+  if (!variables) {
+    const decisionInputs = await getDecisionInputs();
+    if (decisionInputs.length >= 1) {
+      variables = decisionInputs;
+    } else {
+      variables = "";
+    }
+  }
+
+  $("#evaluate-decision-variables").val(variables);
+  $("#evaluate-decision-modal").modal("show");
+}
+
+async function getDecisionInputs() {
+  let decisionInputs = {};
+  let response = await sendGetDecisionInputsRequest(currentDecisionKey);
+  response.inputs.forEach((input) => {
+    decisionInputs[input.name] = null;
+  });
+
+  return JSON.stringify(decisionInputs, null, 2);
+}
+
+async function resetDecisionEvaluationModal() {
+  let inputs = await getDecisionInputs();
+  $("#evaluate-decision-variables").val(inputs);
+}
+
+function evaluateDecision() {
+  const decision = drgOfDecision.decisions.find(
+    (decision) => decision.key === currentDecisionKey
+  );
+  const variables = $("#evaluate-decision-variables").val() || "{}";
+  const jsonVariables = JSON.parse(variables);
+
+  const cachedResponseKey = "decision-evaluation- " + decision?.decisionId;
+  localStorage.setItem(cachedResponseKey, variables);
+
+  const toastId = "decision-evaluation-" + currentDecisionKey;
+  sendEvaluateDecisionRequest(currentDecisionKey, jsonVariables)
+    .done((key) => {
+      const evaluationUrl = "/view/decision-evaluation/" + key;
+
+      showNotificationSuccess(
+        toastId,
+        `Decision 
+        <a id="new-instance-toast-link" href="${evaluationUrl}">
+          ${decision?.decisionName}
+        </a> evaluated.`
+      );
+
+      // jump to decision evaluation page
+      window.location.href = evaluationUrl;
+    })
+    .fail(showFailure(toastId, `Failed to evaluate decision '${decisionId}'.`));
 }

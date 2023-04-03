@@ -44,7 +44,7 @@ function loadDecisionEvaluationView() {
     }
 
     if (decisionEvaluation.evaluationFailureMessage) {
-      $("#decision-evaluation-failure-message").html(`
+      $("#decision-evaluation-message").html(`
         <div class="alert alert-danger" role="alert">
           ${decisionEvaluation.evaluationFailureMessage}
         </div>`);
@@ -74,6 +74,9 @@ function onDecisionEvaluationViewChanged(event) {
   $(".dmn-row-highlighted").each(function () {
     $(this).removeClass("dmn-row-highlighted");
   });
+  if (!decisionEvaluation.failedDecision) {
+    $("#decision-evaluation-message").html("");
+  }
 
   // update the diagram based on the active view
   let id = event.activeView.id;
@@ -107,6 +110,16 @@ function onDecisionEvaluationViewChanged(event) {
       let ruleIndex = rule.ruleIndex - 1;
       $(".tjs-table tbody tr")[ruleIndex].classList.add("dmn-row-highlighted");
     });
+
+    if (
+      currentEvaluatedDecision.matchedRules?.length === 0 &&
+      !decisionEvaluation.failedDecision
+    ) {
+      $("#decision-evaluation-message").html(`
+        <div class="alert alert-info" role="alert">
+          No rule of the decision table matched the given input.
+        </div>`);
+    }
   }
 
   if (event.activeView.type === "decisionTable") {
