@@ -131,6 +131,10 @@
   background: rgba(0, 125, 255, 0.2);
 }
 
+#evaluate-decision-button {
+  background-color: #0d6efd !important;
+}
+
 #decision-evaluation-message .alert-info {
   background: #d4e5ff;
   border-color: #7fb4bf;
@@ -152,6 +156,7 @@
 .breadcrumb-item + .breadcrumb-item::before {
   padding-right: 3px;
 }
+
 .breadcrumb-item + .breadcrumb-item {
   padding-left: 3px;
 }

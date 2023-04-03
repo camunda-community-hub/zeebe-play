@@ -4,9 +4,9 @@
   <body onload="loadDecisionView();">
     <div th:replace="fragments/navbar :: navbar"></div>
 
-<div
-    th:replace="views/deployment/decision/evaluate-decision-modal.html :: #evaluate-decision-modal"
-></div>
+    <div
+      th:replace="views/deployment/decision/evaluate-decision-modal.html :: #evaluate-decision-modal"
+    ></div>
 
     <div id="decision-page-key" th:text="${decisionKey}" hidden></div>
 
@@ -64,19 +64,20 @@
                 </div>
               </div>
             </div>
-            <div class="col">
-              <button
-                  id="evaluate-decision-button"
-                  type="button"
-                  class="btn btn-sm btn-primary"
-                  title="Evaluate decision"
-                  onclick="openDecisionEvaluationModal();"
-              >
-                <svg class="bi" width="18" height="18" fill="white">
-                  <use xlink:href="/img/bootstrap-icons.svg#play"/>
-                </svg>
-              </button>
-            </div>
+            <button
+              id="evaluate-decision-button"
+              type="button"
+              class="btn btn-sm btn-primary"
+              data-bs-toggle="tooltip"
+              data-bs-placement="right"
+              data-bs-trigger="hover"
+              title="Evaluate decision"
+              onclick="openDecisionEvaluationModal();"
+            >
+              <svg class="bi" width="16" height="16" fill="white">
+                <use xlink:href="/img/bootstrap-icons.svg#play" />
+              </svg>
+            </button>
           </div>
           <div class="decision-canvas-container">
             <div id="canvas"></div>
