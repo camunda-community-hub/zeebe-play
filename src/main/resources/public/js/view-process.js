@@ -142,7 +142,7 @@ function loadInstancesOfProcessLast() {
 }
 
 function createNewProcessInstance() {
-  track("zeebePlay:bpmnelement:completed", {
+  track?.("zeebePlay:bpmnelement:completed", {
     element_type: "START_EVENT",
     From: "processPage",
     process_id: getProcessId(),
@@ -153,7 +153,7 @@ function createNewProcessInstance() {
 }
 
 function createNewProcessInstanceWithVariables() {
-  track("zeebePlay:bpmnelement:completed", {
+  track?.("zeebePlay:bpmnelement:completed", {
     element_type: "START_EVENT",
     From: "processPage",
     process_id: getProcessId(),
@@ -245,7 +245,7 @@ function loadMessageSubscriptionsOfProcess() {
           "</tr>"
       );
 
-      const clickAction = `track('zeebePlay:bpmnelement:completed', {
+      const clickAction = `track?.('zeebePlay:bpmnelement:completed', {
           element_type: 'START_EVENT',
           From: 'processPage',
           process_id: getProcessId()
@@ -322,7 +322,7 @@ function loadTimersOfProcess() {
       );
 
       const action =
-        `track('zeebePlay:bpmnelement:completed', {
+        `track?.('zeebePlay:bpmnelement:completed', {
           element_type: 'START_EVENT',
           From: 'processPage',
           process_id: getProcessId()

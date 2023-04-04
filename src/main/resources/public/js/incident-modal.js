@@ -91,7 +91,7 @@ async function confirmResolveIncidentModal() {
   }
 
   if (!hasVariables) {
-    track("zeebePlay:single-operation", {
+    track?.("zeebePlay:single-operation", {
       operationType: "RESOLVE_INCIDENT",
       process_id: getBpmnProcessId(),
     });
@@ -117,7 +117,7 @@ async function confirmResolveIncidentModal() {
         "<code>" + variables + "</code>"
       );
 
-      track("zeebePlay:single-operation", {
+      track?.("zeebePlay:single-operation", {
         operationType: "RESOLVE_INCIDENT",
         process_id: getBpmnProcessId(),
       });

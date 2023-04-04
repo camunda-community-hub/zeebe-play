@@ -35,9 +35,9 @@ if (trackingSetting.token) {
     orgOwner: trackingSetting.orgOwner,
   });
 
-  window.track = (...args) => mixpanel.track(...args);
+  window.track = (...args) => mixpanel.track?.(...args);
 
-  window.track("zeebePlay:view:page", {
+  window.track?.("zeebePlay:view:page", {
     view: getViewName(),
     url: location.href,
   });
@@ -81,7 +81,7 @@ function trackElementInstanceCompletion(elementInstance) {
     bpmnElementType === "PROCESS" &&
     !elementInstanceTrackingState[bpmnElementType + ":" + elementInstance.key]
   ) {
-    track("zeebePlay:bpmnelement:completed", {
+    track?.("zeebePlay:bpmnelement:completed", {
       element_type: "PROCESS",
       process_id: bpmnId,
     });
@@ -93,7 +93,7 @@ function trackElementInstanceCompletion(elementInstance) {
 
   // track element completion
   if (!elementInstanceTrackingState[connectorOrElementType]) {
-    track("zeebePlay:bpmnelement:completed", {
+    track?.("zeebePlay:bpmnelement:completed", {
       [hasConnector ? "connector_type" : "element_type"]:
         connectorOrElementType,
       process_id: bpmnId,
@@ -121,7 +121,7 @@ function trackIncident(incident) {
 
   if (incidentTrackingState[incident.key]) return;
 
-  track("zeebePlay:incident:trigger", {
+  track?.("zeebePlay:incident:trigger", {
     error: incident.errorMessage,
     process_id: getBpmnProcessId(),
   });
