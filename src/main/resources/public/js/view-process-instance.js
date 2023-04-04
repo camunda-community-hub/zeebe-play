@@ -202,7 +202,7 @@ async function rewind(task) {
       newId = await createNewInstanceFromTimerStartEvent(startEvent);
     }
 
-    track("zeebePlay:bpmnelement:completed", {
+    track?.("zeebePlay:bpmnelement:completed", {
       element_type: "START_EVENT",
       From: "rewind",
       process_id: getBpmnProcessId(),
