@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import java.time.Duration
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @RestController
 @RequestMapping("/rest/connectors")
@@ -42,6 +45,10 @@ class ConnectorsResource(
     companion object {
         private val objectMapper = ObjectMapper()
     }
+
+    private val executor = Executors.newSingleThreadScheduledExecutor()
+
+    private val keysOfPendingJobs = CopyOnWriteArrayList<Long>()
 
     @RequestMapping(method = [RequestMethod.GET])
     fun getAvailableConnectors(): ConnectorsDto {
@@ -61,9 +68,8 @@ class ConnectorsResource(
         val connector = ConnectorHelper.instantiateConnector(connectorConfig.connectorClass)
         val jobHandler = ConnectorJobHandler(connector, connectorsSecretProvider)
 
-        // a job may be invoked more than once
         jobRepository.findByIdOrNull(jobKey)
-            ?.takeIf { it.state == JobState.ACTIVATABLE }
+            ?.takeIf { it.state == JobState.ACTIVATABLE && !keysOfPendingJobs.contains(jobKey) }
             ?.let { job ->
                 FakeActivatedJob(
                     job = job,
@@ -72,7 +78,16 @@ class ConnectorsResource(
                     variables = getJobVariables(job, connectorConfig)
                 )
             }
-            ?.let { jobHandler.handle(zeebeClient, it) }
+            ?.let {
+                // block the invocation of this job for the next 10 seconds
+                keysOfPendingJobs.add(jobKey)
+
+                jobHandler.handle(zeebeClient, it)
+
+                executor.schedule({
+                    keysOfPendingJobs.remove(jobKey)
+                }, 10, TimeUnit.SECONDS)
+            }
             ?: throw RuntimeException("No job found with key '$jobKey'.")
     }
 
