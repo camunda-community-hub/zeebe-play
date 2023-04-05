@@ -167,23 +167,10 @@ function loadView() {
 }
 
 let timer;
-let timerIterations = 0;
 
 function loadViewDebounced(delay = 150) {
   clearTimeout(timer);
-
-  // max. wait time 450ms
-  if (timerIterations < 3) {
-    timerIterations += 1;
-
-    timer = setTimeout(() => {
-      timerIterations = 0;
-      loadView();
-    }, delay);
-  } else {
-    timerIterations = 0;
-    loadView();
-  }
+  timer = setTimeout(loadView, delay);
 }
 
 // ----------------------------------------
