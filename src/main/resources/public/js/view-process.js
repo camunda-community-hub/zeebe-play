@@ -47,6 +47,7 @@ function loadProcessView() {
 
   loadInstancesOfProcess(instancesOfProcessCurrentPage);
   loadMessageSubscriptionsOfProcess();
+  loadSignalSubscriptionsOfProcess();
   loadTimersOfProcess();
 }
 
@@ -333,6 +334,68 @@ function loadTimersOfProcess() {
         timer.element.elementId +
         "');";
       addTimeTravelButton(timer.element.elementId, action, fillModalAction);
+    });
+  });
+}
+
+function loadSignalSubscriptionsOfProcess() {
+  const processKey = getProcessKey();
+
+  querySignalSubscriptionsByProcess(processKey).done(function (response) {
+    let process = response.data.process;
+
+    let signalSubscriptions = process.signalSubscriptions;
+    let totalCount = signalSubscriptions.length;
+
+    $("#signal-subscriptions-total-count").text(totalCount);
+
+    $("#signal-subscriptions-of-process-table tbody").empty();
+
+    removeAllBroadcastSignalButtons();
+
+    const indexOffset = 1;
+
+    signalSubscriptions.forEach((signalSubscription, index) => {
+      const isActive = signalSubscription.state === "CREATED";
+
+      const buttonId = "broadcast-signal-action-" + signalSubscription.key;
+
+      let action = "";
+      if (isActive) {
+        action = `
+          <button id="${buttonId}" type="button" class="btn btn-sm btn-primary" title="Broadcast signal">   
+            <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#triangle"/></svg>  
+             Broadcast signal
+          </button>`;
+      }
+
+      $("#signal-subscriptions-of-process-table > tbody:last-child").append(`
+        <tr>
+          <td>${indexOffset + index}</td>
+          <td>${signalSubscription.key}</td>
+          <td>${signalSubscription.signalName}</td>
+          <td>${formatBpmnElementInstance(signalSubscription.element)}</td>
+          <td>${action}</td>
+        </tr>`);
+
+      if (isActive) {
+        $("#" + buttonId).click(function () {
+          showBroadcastSignalModal(signalSubscription.signalName);
+        });
+
+        addBroadcastSignalButton(
+          signalSubscription.element.elementId,
+          function () {
+            track?.("zeebePlay:bpmnelement:completed", {
+              element_type: "START_EVENT",
+              From: "processPage",
+              process_id: getProcessId(),
+            });
+
+            showBroadcastSignalModal(signalSubscription.signalName);
+          }
+        );
+      }
     });
   });
 }

@@ -1,0 +1,66 @@
+<div th:fragment="broadcast-signal-modal">
+  <div
+    class="modal fade"
+    id="broadcast-signal-modal"
+    tabindex="-1"
+    aria-labelledby="broadcastSignalModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="publishMessageModal">Broadcast Signal</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="broadcast-signal-name" class="form-label"
+                >Signal Name</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="broadcast-signal-name"
+                placeholder="policy changed"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="broadcast-signal-variables" class="form-label"
+                >Variables (JSON)</label
+              >
+              <textarea
+                class="form-control"
+                id="broadcast-signal-variables"
+                rows="3"
+                placeholder='{"variableName": "variableValue"}'
+              ></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-dismiss="modal"
+            onclick="broadcastSignalFromModal();"
+          >
+            Broadcast
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

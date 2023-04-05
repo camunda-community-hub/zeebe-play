@@ -150,3 +150,10 @@ function sendEvaluateDecisionRequest(decisionKey, variables) {
 function sendGetDecisionInputsRequest(decisionKey) {
   return sendGetRequest(`decisions/${decisionKey}/inputs`);
 }
+
+function sendBroadcastSignalRequest(signalName, variables) {
+  return sendPostRequest("signals", {
+    signalName: signalName,
+    variables: variables,
+  });
+}

@@ -116,6 +116,28 @@ function removePublishMessageButton(elementId) {
   overlays.remove({ element: elementId, type: "publish-message" });
 }
 
+function addBroadcastSignalButton(elementId, clickAction) {
+  const buttonId = "broadcast-signal-diagram-action-" + elementId;
+  const content = `
+    <button id="${buttonId}" type="button" class="btn btn-sm btn-primary" title="Broadcast signal">   
+      <svg class="bi" width="18" height="18" fill="white"><use xlink:href="/img/bootstrap-icons.svg#triangle"/></svg>  
+    </button>`;
+
+  overlays.add(elementId, "broadcast-signal", {
+    position: {
+      top: -20,
+      left: -20,
+    },
+    html: content,
+  });
+
+  $("#" + buttonId).click(clickAction);
+}
+
+function removeAllBroadcastSignalButtons() {
+  overlays.remove({ type: "broadcast-signal" });
+}
+
 function highlightElement(elementId) {
   if (highlightedElementId && highlightedElementId !== elementId) {
     canvas.removeMarker(highlightedElementId, "bpmn-element-selected");
@@ -579,9 +601,11 @@ function toggleDetailsCollapse() {
 function zoomIn() {
   bpmnViewer.get("zoomScroll").stepZoom(0.1);
 }
+
 function zoomOut() {
   bpmnViewer.get("zoomScroll").stepZoom(-0.1);
 }
+
 function resetViewport() {
   const outerViewbox = canvas.viewbox().outer;
   canvas.viewbox({
@@ -591,6 +615,7 @@ function resetViewport() {
     height: outerViewbox.height,
   });
 }
+
 function enterFullscreen() {
   const button = document.querySelector("#toggleFullscreenButton");
 
@@ -607,6 +632,7 @@ function enterFullscreen() {
 
   document.documentElement.requestFullscreen();
 }
+
 function exitFullscreen() {
   const button = document.querySelector("#toggleFullscreenButton");
 

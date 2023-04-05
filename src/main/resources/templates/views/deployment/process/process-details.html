@@ -36,6 +36,21 @@
         <li class="nav-item" role="presentation">
           <button
             class="nav-link"
+            id="signal-subscriptions-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#signal-subscriptions"
+            type="button"
+            role="tab"
+            aria-controls="signal-subscriptions"
+            aria-selected="false"
+          >
+            Signal Subscriptions
+            <span class="badge" id="signal-subscriptions-total-count">0</span>
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
             id="timers-tab"
             data-bs-toggle="tab"
             data-bs-target="#timers"
@@ -86,6 +101,17 @@
     >
       <div
         th:replace="views/deployment/process/process-details-message-subscriptions.html :: process-details-message-subscriptions"
+      ></div>
+    </div>
+
+    <div
+      class="tab-pane fade"
+      id="signal-subscriptions"
+      role="tabpanel"
+      aria-labelledby="signal-subscriptions-tab"
+    >
+      <div
+        th:replace="views/deployment/process/process-details-signal-subscriptions.html :: process-details-signal-subscriptions"
       ></div>
     </div>
 
