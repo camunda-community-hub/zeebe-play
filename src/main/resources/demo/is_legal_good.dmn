@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="illegal_goods" name="Illegal goods" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="5.9.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.1.0">
+  <decision id="is_legal_item" name="Is legal item?">
+    <decisionTable id="DecisionTable_03koq04" hitPolicy="FIRST">
+      <input id="Input_1" label="Item">
+        <inputExpression id="InputExpression_1" typeRef="string">
+          <text>item</text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" label="Is legal" name="is_legal_item" typeRef="boolean" />
+      <rule id="DecisionRule_0w8qwl8">
+        <description></description>
+        <inputEntry id="UnaryTests_1czpnr8">
+          <text>"spice"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_08kd2ye">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_01tkwww">
+        <inputEntry id="UnaryTests_1gzmkl8">
+          <text>"weapons"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0tcsi4t">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0d5ur5g">
+        <inputEntry id="UnaryTests_16trjjx">
+          <text>"chak-root"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1weu2rp">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1v9twx5">
+        <inputEntry id="UnaryTests_0id7fyo">
+          <text>"ancient artifacts"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0luwvbb">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1dsosyr">
+        <inputEntry id="UnaryTests_1124dum">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0d4krsl">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape dmnElementRef="is_legal_item">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
