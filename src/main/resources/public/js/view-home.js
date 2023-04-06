@@ -42,6 +42,9 @@ function enableButtonToCreateInstanceOfDemoProcess(processKey) {
       ship: "Millennium Falcon",
     });
   });
+
+  // disable the button for deploying the demo
+  $("#demo-deploy-button").attr("disabled", true);
 }
 
 function updateStatus() {

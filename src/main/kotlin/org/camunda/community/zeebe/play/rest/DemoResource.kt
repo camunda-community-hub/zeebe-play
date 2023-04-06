@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/rest/demo")
-class DemoResource(private val zeebeClient: ZeebeClient, private val processRepository: ProcessRepository) {
+class DemoResource(
+    private val zeebeClient: ZeebeClient,
+    private val processRepository: ProcessRepository
+) {
 
     @RequestMapping(path = ["/"], method = [RequestMethod.POST])
     fun deployDemoResources(): Long {
@@ -16,6 +19,7 @@ class DemoResource(private val zeebeClient: ZeebeClient, private val processRepo
         val deployCommand = zeebeClient
             .newDeployResourceCommand()
             .addResourceFromClasspath("demo/solos-transport-process.bpmn")
+            .addResourceFromClasspath("demo/is_legal_good.dmn")
 
         return deployCommand
             .send()
@@ -28,7 +32,7 @@ class DemoResource(private val zeebeClient: ZeebeClient, private val processRepo
     @RequestMapping(path = ["/"], method = [RequestMethod.GET])
     fun getDemoProcessKey(): Long? {
         return processRepository.findAll()
-            .filter { it.bpmnProcessId ==  "solos-transport-process"}
+            .filter { it.bpmnProcessId == "solos-transport-process" }
             .map { it.key }
             .firstOrNull()
     }

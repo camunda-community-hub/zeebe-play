@@ -1,35 +1,37 @@
 {
   "components": [
     {
-      "label": "Cargo",
-      "type": "textfield",
-      "id": "Field_0ui6qvs",
-      "key": "item",
-      "validate": {
-        "required": true
-      },
-      "description": "For example: mining tools, spice, etc."
+      "text": "# Load cargo\n\nSelect the cargo items.",
+      "type": "text",
+      "id": "Field_134jf14"
     },
     {
       "values": [
         {
-          "label": "Yes",
-          "value": "true"
+          "label": "passengers",
+          "value": "passengers"
         },
         {
-          "label": "No",
-          "value": "false"
+          "label": "mining tools",
+          "value": "mining tools"
+        },
+        {
+          "label": "water",
+          "value": "water"
+        },
+        {
+          "label": "spice",
+          "value": "spice"
+        },
+        {
+          "label": "weapons",
+          "value": "weapons"
         }
       ],
-      "label": "Is legal?",
-      "type": "radio",
-      "id": "Field_04f37dj",
-      "key": "is_legal",
-      "defaultValue": "true",
-      "validate": {
-        "required": true
-      },
-      "description": "Not all cargo is legal, like spice."
+      "label": "Cargo",
+      "type": "checklist",
+      "id": "Field_1m1bicb",
+      "key": "cargo"
     }
   ],
   "type": "default",
@@ -38,7 +40,7 @@
   "executionPlatformVersion": "8.1.0",
   "exporter": {
     "name": "Camunda Modeler",
-    "version": "5.5.1"
+    "version": "5.9.0"
   },
-  "schemaVersion": 5
+  "schemaVersion": 7
 }
