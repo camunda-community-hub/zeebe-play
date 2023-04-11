@@ -949,3 +949,33 @@ if (resizeHandle) {
     });
   });
 }
+
+function showBroadcastSignalModal(signalName) {
+  $("#broadcast-signal-name").val(signalName);
+  $("#broadcast-signal-variables").val("");
+
+  $("#broadcast-signal-modal").modal("show");
+}
+
+function broadcastSignalFromModal() {
+  const signalName = $("#broadcast-signal-name").val();
+  const variables = $("#broadcast-signal-variables").val();
+
+  history.push({
+    action: "broadcastSignal",
+    signalName,
+    variables,
+  });
+  refreshHistory();
+
+  sendBroadcastSignalRequest(signalName, variables)
+    .done((signalKey) => {
+      const toastId = "signal-broadcasted-" + signalKey;
+      showNotificationSuccess(
+        toastId,
+        "New signal broadcasted",
+        "<code>" + signalName + "</code>"
+      );
+    })
+    .fail(showFailure("broadcast-signal-failed", "Failed to broadcast signal"));
+}

@@ -72,6 +72,23 @@ const messageSubscriptionsByProcessQuery = `query MessageSubscriptionsOfProcess(
     }
   }`;
 
+const signalSubscriptionsByProcessQuery = `query SignalSubscriptionsOfProcess($key: ID!, $zoneId: String!) {  
+    process(key: $key) {
+    
+      signalSubscriptions {
+        key
+        signalName       
+        state
+        timestamp(zoneId: $zoneId)
+        element {
+          elementId
+          elementName
+          bpmnElementType
+        }        
+      }
+    }
+  }`;
+
 const timersByProcessQuery = `query TimersOfProcess($key: ID!, $zoneId: String!) {  
     process(key: $key) {
     
@@ -755,6 +772,13 @@ function queryInstancesByProcess(processKey, perPage, page) {
 
 function queryMessageSubscriptionsByProcess(processKey) {
   return fetchData(messageSubscriptionsByProcessQuery, {
+    key: processKey,
+    zoneId: getTimeZone(),
+  });
+}
+
+function querySignalSubscriptionsByProcess(processKey) {
+  return fetchData(signalSubscriptionsByProcessQuery, {
     key: processKey,
     zoneId: getTimeZone(),
   });

@@ -200,6 +200,11 @@ async function rewind(task) {
     ) {
       // timer start event
       newId = await createNewInstanceFromTimerStartEvent(startEvent);
+    } else if (
+      startEvent.eventDefinitions[0].$type === "bpmn:SignalEventDefinition"
+    ) {
+      // signal start event
+      newId = await createNewInstanceFromSignalStartEvent(startEvent);
     }
 
     track?.("zeebePlay:bpmnelement:completed", {
@@ -413,6 +418,20 @@ function waitForMessageSubscription(id, messageName, correlationKey) {
       });
     }, 250);
   });
+}
+
+async function createNewInstanceFromSignalStartEvent(startEvent) {
+  const signalName = startEvent.eventDefinitions[0].signalRef.name;
+
+  const numberOfCurrentInstances = await getNumberOfCurrentInstancesFor(
+    currentProcessKey
+  );
+  await sendBroadcastSignalRequest(signalName);
+
+  return await waitForNewInstanceFor(
+    currentProcessKey,
+    numberOfCurrentInstances
+  );
 }
 
 function fetchTimerForElement(id, elementId) {
