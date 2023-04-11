@@ -3,10 +3,12 @@ package org.camunda.community.zeebe.play.zeebe
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.camunda.zeebe.spring.client.EnableZeebeClient
+import io.camunda.zeebe.client.ZeebeClient
+import io.camunda.zeebe.spring.client.properties.ZeebeClientConfigurationProperties
 import org.camunda.community.zeebe.play.rest.ZeebeServiceException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.net.URI
@@ -18,7 +20,7 @@ import java.time.Instant
 
 @Configuration
 @ConditionalOnProperty(name = ["zeebe.engine"], havingValue = "remote")
-@EnableZeebeClient
+@EnableConfigurationProperties(ZeebeClientConfigurationProperties::class)
 open class RemoteZeebeConfig {
 
     @Value(value = "\${zeebe.clock.endpoint}")
@@ -27,6 +29,13 @@ open class RemoteZeebeConfig {
     @Bean
     open fun remoteZeebeService(): ZeebeService {
         return RemoteZeebeService(zeebeClockEndpoint)
+    }
+
+    @Bean
+    fun zeebeClient(config: ZeebeClientConfigurationProperties): ZeebeClient {
+        // The Spring-Zeebe client is disabled (configuration issues with embedded engine).
+        // Create the Zeebe client directly using the configuration from Spring-Zeebe.
+        return ZeebeClient.newClient(config)
     }
 
     class RemoteZeebeService(val clockEndpoint: String) : ZeebeService {
@@ -57,7 +66,8 @@ open class RemoteZeebeConfig {
 
         override fun increaseTime(duration: Duration): Long {
             val offsetMilli = duration.toMillis()
-            val requestBody = HttpRequest.BodyPublishers.ofString("""{ "offsetMilli": $offsetMilli }""")
+            val requestBody =
+                HttpRequest.BodyPublishers.ofString("""{ "offsetMilli": $offsetMilli }""")
 
             val clockResponse = sendRequest(
                 request = HttpRequest.newBuilder()

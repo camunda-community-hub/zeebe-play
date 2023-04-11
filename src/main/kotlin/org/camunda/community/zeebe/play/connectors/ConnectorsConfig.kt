@@ -4,7 +4,6 @@ import io.camunda.connector.api.secret.SecretProvider
 import io.camunda.connector.runtime.util.ConnectorHelper
 import io.camunda.connector.runtime.util.outbound.ConnectorJobHandler
 import io.camunda.zeebe.client.ZeebeClient
-import io.camunda.zeebe.spring.client.lifecycle.ZeebeClientLifecycle
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -28,13 +27,6 @@ class ConnectorsConfig(
 
     @PostConstruct
     fun startConnectors() {
-        if (zeebeClient is ZeebeClientLifecycle) {
-            // The connectors are managed by the Spring Zeebe client itself.
-            // Currently, it is not possible to disable the connectors. See
-            // https://github.com/camunda-community-hub/spring-zeebe/issues/325.
-            return
-        }
-
         if (connectorProperties.mode == ConnectorProperties.ConnectorsMode.ACTIVE) {
             // start all connectors
             connectorService
