@@ -12,7 +12,7 @@ class StatusResource(
     private val zeebeClient: ZeebeClient
 ) {
 
-    private val zeebePlayVersion: String = javaClass.`package`.implementationVersion ?: "dev"
+    private val zeebePlayVersion: String = readZeebePlayVersion()
 
     @RequestMapping(method = [RequestMethod.GET])
     fun getStatus(): StatusDto {
@@ -50,6 +50,12 @@ class StatusResource(
             )
         }
 
+    }
+
+    private fun readZeebePlayVersion(): String {
+        return javaClass.getResource("/version.txt")
+                ?.let { String(it.readBytes()) }
+                ?: "?"
     }
 
     data class StatusDto(
