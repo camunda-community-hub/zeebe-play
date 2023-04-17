@@ -491,6 +491,37 @@
         </executions>
       </plugin>
 
+      <!--
+        Write the current version into a file. This file is read to show the current version of the
+        application in the UI. The common way with the manifest file doesn't work because of Jib.
+       -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>copy-version-file</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${build.outputDirectory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/resources/</directory>
+                  <includes>
+                    <include>version.txt</include>
+                  </includes>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
 
   </build>
