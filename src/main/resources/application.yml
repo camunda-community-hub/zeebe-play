@@ -7,9 +7,11 @@ zeebe:
   engine: embedded
 
   client:
-
     broker.gatewayAddress: 127.0.0.1:26500
     security.plaintext: true
+
+    # Disable the Zeebe-Spring client to avoid configuration issues with the embedded engine.
+    enabled: false
 
     worker:
       hazelcast:
