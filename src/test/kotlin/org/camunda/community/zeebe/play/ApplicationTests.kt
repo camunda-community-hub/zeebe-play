@@ -17,7 +17,7 @@ class ApplicationTests(
 
     @Test
     fun `should start application`() {
-        assertThat(mainView).isNotNull();
+        assertThat(mainView).isNotNull()
     }
 
 }

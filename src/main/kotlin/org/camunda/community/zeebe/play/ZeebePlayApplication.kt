@@ -39,9 +39,6 @@ open class ZeebePlayApplication(
 }
 
 fun main(args: Array<String>) {
-    runApplication<ZeebePlayApplication>(*args) {
-        // Disable the Zeebe-Spring client to avoid configuration issues with the embedded engine.
-        setDefaultProperties(mapOf("zeebe.client.enabled" to "false"))
-    }
+    runApplication<ZeebePlayApplication>(*args)
 }
 
