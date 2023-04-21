@@ -49,6 +49,12 @@ class ConnectorServiceTest(
                     )
             }
         )
+        .serviceTask(
+            "D", {
+                it.zeebeJobType("D")
+                    .zeebeInput("secrets.D-1", "d")
+            }
+        )
         .done()
 
     @BeforeEach
@@ -82,7 +88,7 @@ class ConnectorServiceTest(
             connectorService.getReferencedConnectorSecrets(processDefinitionKey)
 
         // then
-        assertThat(secrets).hasSize(3).contains("X", "Y", "Z")
+        assertThat(secrets).hasSize(4).contains("X", "Y", "Z", "D-1")
     }
 
     @Test
@@ -94,7 +100,7 @@ class ConnectorServiceTest(
             connectorService.getMissingConnectorSecrets(processDefinitionKey)
 
         // then
-        assertThat(secrets).hasSize(3).contains("X", "Y", "Z")
+        assertThat(secrets).hasSize(4).contains("X", "Y", "Z", "D-1")
     }
 
     @Test
@@ -104,6 +110,7 @@ class ConnectorServiceTest(
             listOf(
                 ConnectorSecret(name = "X", value = "xxx"),
                 ConnectorSecret(name = "Z", value = "zzz"),
+                ConnectorSecret(name = "D-1", value = "ddd"),
             )
         )
 
@@ -123,6 +130,7 @@ class ConnectorServiceTest(
                 ConnectorSecret(name = "X", value = "xxx"),
                 ConnectorSecret(name = "Y", value = "xxx"),
                 ConnectorSecret(name = "Z", value = "zzz"),
+                ConnectorSecret(name = "D-1", value = "ddd"),
             )
         )
 

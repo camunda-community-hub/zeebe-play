@@ -19,7 +19,7 @@ class ConnectorService(
     // Connector secrets can be references in a string or in placeholder syntax
     // 1) { x: "secrets.MY_API_KEY"}
     // 2) "https://" + baseUrl + "/{{secrets.MY_API_KEY}}"
-    private val secretRegex = Regex(pattern = "[\"|{]?secrets\\.(\\w+)[\"|}]?")
+    private val secretRegex = Regex(pattern = "[\"|{]?secrets\\.((\\w|-)+)[\"|}]?")
 
     fun getMissingConnectorSecrets(processDefinitionKey: Long): List<String> {
         val referencedSecrets =
