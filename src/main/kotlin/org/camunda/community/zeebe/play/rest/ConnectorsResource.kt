@@ -219,7 +219,7 @@ class ConnectorsResource(
         }
 
         override fun <T : Any?> getVariablesAsType(variableType: Class<T>?): T {
-            TODO("Not yet implemented")
+            return objectMapper.readValue(variables, variableType)
         }
 
         override fun toJson(): String {
