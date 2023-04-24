@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/" id="Ratings" name="DRD" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="5.8.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.1.0">
+  <decision id="decision_a" name="Decision A">
+    <informationRequirement id="InformationRequirement_1sdnwtv">
+      <requiredDecision href="#decision_b" />
+    </informationRequirement>
+    <decisionTable id="DecisionTable_1hibhur">
+      <input id="Input_1" label="B">
+        <inputExpression id="InputExpression_1" typeRef="string">
+          <text>decision_b</text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" label="A" name="decision_a" typeRef="string" />
+      <rule id="DecisionRule_1sz0j2x">
+        <inputEntry id="UnaryTests_1r1z1nc">
+          <text>"high"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0gbpbaq">
+          <text>"A++"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0gt2ru5">
+        <inputEntry id="UnaryTests_15968nq">
+          <text>"mid"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_007rqht">
+          <text>"A+"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0ecrw8b">
+        <inputEntry id="UnaryTests_07gkonx">
+          <text>"low"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1pq462u">
+          <text>"A"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <decision id="decision_b" name="Decision B">
+    <decisionTable id="DecisionTable_0ihx504" hitPolicy="FIRST">
+      <input id="InputClause_11xz5ga" label="x">
+        <inputExpression id="LiteralExpression_01im9ul" typeRef="number">
+          <text>x</text>
+        </inputExpression>
+      </input>
+      <output id="OutputClause_0przvpv" label="B" name="decision_b" typeRef="string" />
+      <rule id="DecisionRule_0k1nys1">
+        <inputEntry id="UnaryTests_10glusy">
+          <text>&gt; 10</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1cogxsy">
+          <text>"high"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_018nu5a">
+        <inputEntry id="UnaryTests_1ayzs2v">
+          <text>&gt; 5</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_10m4edf">
+          <text>"mid"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1do7v4g">
+        <inputEntry id="UnaryTests_0t9q7uj">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_10g3mkg">
+          <text>"low"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape dmnElementRef="decision_a">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_12vg7f9" dmnElementRef="InformationRequirement_1sdnwtv">
+        <di:waypoint x="250" y="240" />
+        <di:waypoint x="250" y="200" />
+        <di:waypoint x="250" y="180" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_0xp7kud" dmnElementRef="decision_b">
+        <dc:Bounds height="80" width="180" x="160" y="240" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
