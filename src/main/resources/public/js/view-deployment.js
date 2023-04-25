@@ -113,8 +113,8 @@ function deploymentModal() {
   let resources = $("#deploymentForm")[0];
 
   deployResources(resources)
-    .done(function (deploymentKey) {
-      const toastId = "new-deployment-" + deploymentKey;
+    .done(function (deployment) {
+      const toastId = "new-deployment-" + deployment.deploymentKey;
       const content = "New resources deployed";
       showNotificationSuccess(toastId, content);
 
