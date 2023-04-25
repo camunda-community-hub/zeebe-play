@@ -58,7 +58,7 @@ function sendTimeTravelRequestWithDateTime(dateTime) {
 function deployResources(resources) {
   return $.ajax({
     type: "POST",
-    url: "/rest/deployments/",
+    url: "/rest/deployments/deploy",
     data: new FormData(resources),
     processData: false,
     contentType: false,
