@@ -562,7 +562,7 @@ function showElementInfo(elementId, bpmnElementType, info) {
     '" data-bs-toggle="tooltip" data-bs-placement="' +
     tooltipPlacement +
     '" data-bs-html="true" data-bs-customClass="bpmn-element-info" class="info-icon" title="' +
-    info +
+    info.replaceAll('"', "&quot;") +
     '">i</div>';
 
   overlays.add(elementId, "element-info", {
