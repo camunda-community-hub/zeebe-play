@@ -120,6 +120,10 @@
   margin-top: 1em;
 }
 
+code {
+  word-break: break-word;
+}
+
 .decision-canvas-container {
   padding-left: 50px;
   height: 100%;
