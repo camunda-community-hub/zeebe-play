@@ -12,7 +12,7 @@
 }
 
 .info-icon {
-  background: #007dffb2;
+  background-color: #00000030;
   border-radius: 2px;
   width: 18px;
   height: 18px;
@@ -23,6 +23,12 @@
   font-size: 12px;
   padding-right: 1px;
   margin-top: 5px;
+
+  transition: background-color 0.2s;
+}
+
+.info-icon:hover {
+  background-color: #007dffb2;
 }
 
 .overlay-button {
