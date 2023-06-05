@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>zeebe-play</artifactId>
-  <version>1.8.3-SNAPSHOT</version>
+  <version>1.8.3</version>
 
   <prerequisites>
     <maven>${maven.version}</maven>
