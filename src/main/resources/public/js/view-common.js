@@ -401,9 +401,6 @@ function showInfoOfBpmnElement(element) {
   if (metadata.jobType) {
     info = "job type: " + metadata.jobType;
   }
-  if (metadata.conditionExpression) {
-    info = "condition: " + metadata.conditionExpression;
-  }
   if (metadata.timerDefinition) {
     info = "timer: " + metadata.timerDefinition;
   }
