@@ -99,6 +99,8 @@ function loadProcessInstanceView() {
         // wait until BPMN is loaded
         loadProcessInstanceDetailsViews();
         loadElementInfoOfProcessInstance();
+
+        pulsateTasks();
       });
 
       bpmnViewIsLoaded = true;
@@ -107,6 +109,34 @@ function loadProcessInstanceView() {
 
   if (bpmnViewIsLoaded) {
     loadProcessInstanceDetailsViews();
+  }
+}
+
+function pulsateTasks() {
+  if (
+    !history.filter(({ action }) =>
+      [
+        "completeJob",
+        "timeTravel",
+        "publishMessage",
+        "failJob",
+        "throwJob",
+      ].includes(action)
+    ).length
+  ) {
+    // if we don't have any completed jobs in the instance history
+    // we add a class to the canvas that makes the overlay buttons pulsate
+    const canvas = document.querySelector("#canvas");
+    if (!canvas) return;
+
+    canvas.classList.add("pulsate-tasks");
+
+    canvas.addEventListener("click", (evt) => {
+      // stop pulsating when the user clicks a button group with the overlay button
+      if (evt.target.closest(".btn-group")?.querySelector(".overlay-button")) {
+        canvas.classList.remove("pulsate-tasks");
+      }
+    });
   }
 }
 
