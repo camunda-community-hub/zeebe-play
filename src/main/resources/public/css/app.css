@@ -455,3 +455,24 @@ code {
 #tab-resize-handle:hover {
   background-color: #666;
 }
+
+.pulsate-tasks .btn-group:has(.overlay-button) {
+  animation: 3s linear 1s infinite pulsate;
+}
+
+@keyframes pulsate {
+  25% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 #000000aa);
+  }
+
+  50% {
+    transform: scale(1.2);
+    filter: drop-shadow(3px 3px 1px #000000aa);
+  }
+
+  75% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 #000000aa);
+  }
+}
