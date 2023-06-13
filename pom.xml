@@ -23,9 +23,7 @@
     <zeeqs.version>2.9.0</zeeqs.version>
     <eze.version>1.2.0</eze.version>
     <hazelcast.version>1.4.0</hazelcast.version>
-    <spring-zeebe.version>8.2.2</spring-zeebe.version>
-    <camunda-connector-bundle.version>0.18.2</camunda-connector-bundle.version>
-    <camunda-connector-sdk.version>0.9.0</camunda-connector-sdk.version>
+    <camunda-connector-bundle.version>0.20.0</camunda-connector-bundle.version>
 
     <kotlin.version>1.8.22</kotlin.version>
     <spring.boot.version>2.7.12</spring.boot.version>
@@ -75,9 +73,15 @@
       </dependency>
 
       <dependency>
-        <groupId>io.camunda</groupId>
-        <artifactId>spring-zeebe-starter</artifactId>
-        <version>${spring-zeebe.version}</version>
+        <groupId>io.camunda.connector</groupId>
+        <artifactId>spring-boot-starter-camunda-connectors</artifactId>
+        <version>${camunda-connector-bundle.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.camunda.connector</groupId>
+        <artifactId>connector-runtime-bundle</artifactId>
+        <version>${camunda-connector-bundle.version}</version>
       </dependency>
 
       <dependency>
@@ -90,24 +94,6 @@
         <groupId>io.zeebe.hazelcast</groupId>
         <artifactId>zeebe-hazelcast-exporter</artifactId>
         <version>${hazelcast.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.camunda.connector</groupId>
-        <artifactId>connector-runtime-bundle</artifactId>
-        <version>${camunda-connector-bundle.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.camunda.connector</groupId>
-        <artifactId>connector-runtime-util</artifactId>
-        <version>${camunda-connector-sdk.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.camunda.connector</groupId>
-        <artifactId>connector-validation</artifactId>
-        <version>${camunda-connector-sdk.version}</version>
       </dependency>
 
       <dependency>
@@ -221,9 +207,14 @@
     <!-- Zeebe dependencies -->
 
     <dependency>
-      <groupId>io.camunda</groupId>
-      <artifactId>spring-zeebe-starter</artifactId>
+      <groupId>io.camunda.connector</groupId>
+      <artifactId>spring-boot-starter-camunda-connectors</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>io.camunda.connector</groupId>
+      <artifactId>connector-runtime-bundle</artifactId>
+     </dependency>
 
     <dependency>
       <groupId>org.camunda.community</groupId>
@@ -239,28 +230,6 @@
     <dependency>
       <groupId>io.zeebe.hazelcast</groupId>
       <artifactId>zeebe-hazelcast-exporter</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>io.camunda.connector</groupId>
-      <artifactId>connector-runtime-bundle</artifactId>
-      <exclusions>
-        <!-- The runtime causes errors in Spring. We don't need it. -->
-        <exclusion>
-          <groupId>io.camunda</groupId>
-          <artifactId>spring-zeebe-connector-runtime</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>io.camunda.connector</groupId>
-      <artifactId>connector-runtime-util</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>io.camunda.connector</groupId>
-      <artifactId>connector-validation</artifactId>
     </dependency>
 
     <!-- Database drivers -->

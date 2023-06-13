@@ -1,8 +1,8 @@
 package org.camunda.community.zeebe.play.connectors
 
 import io.camunda.connector.api.secret.SecretProvider
-import io.camunda.connector.runtime.util.ConnectorHelper
-import io.camunda.connector.runtime.util.outbound.ConnectorJobHandler
+import io.camunda.connector.runtime.core.ConnectorHelper
+import io.camunda.connector.runtime.core.outbound.ConnectorJobHandler
 import io.camunda.zeebe.client.ZeebeClient
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.domain.EntityScan

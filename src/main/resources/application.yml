@@ -32,6 +32,14 @@ zeebe:
     #  - name: SLACK_OAUTH_TOKEN
     #    value: my-slack-oauth-token
 
+camunda:
+  # disable inbound connector
+  connector:
+    polling:
+      enabled: false
+    webhook:
+      enabled: false
+
 spring:
   datasource:
     url: jdbc:h2:mem:zeeqs;DB_CLOSE_DELAY=-1

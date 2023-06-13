@@ -1,7 +1,7 @@
 package org.camunda.community.zeebe.play.connectors
 
 import io.camunda.connector.impl.outbound.OutboundConnectorConfiguration
-import io.camunda.connector.runtime.util.discovery.SPIConnectorDiscovery
+import io.camunda.connector.runtime.core.discovery.SPIConnectorDiscovery
 import io.camunda.zeebe.model.bpmn.Bpmn
 import io.camunda.zeebe.model.bpmn.BpmnModelInstance
 import io.camunda.zeebe.model.bpmn.instance.zeebe.ZeebeInput
