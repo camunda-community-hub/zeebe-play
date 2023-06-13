@@ -3,8 +3,8 @@ package org.camunda.community.zeebe.play.rest
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.camunda.connector.impl.outbound.OutboundConnectorConfiguration
-import io.camunda.connector.runtime.util.ConnectorHelper
-import io.camunda.connector.runtime.util.outbound.ConnectorJobHandler
+import io.camunda.connector.runtime.core.ConnectorHelper
+import io.camunda.connector.runtime.core.outbound.ConnectorJobHandler
 import io.camunda.zeebe.client.ZeebeClient
 import io.camunda.zeebe.client.api.response.ActivatedJob
 import io.camunda.zeebe.model.bpmn.Bpmn
