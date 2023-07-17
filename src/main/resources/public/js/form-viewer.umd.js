@@ -11859,7 +11859,7 @@
      * @return { ValueProducer }
      */
     static of(fn) {
-      return new ValueProducer$1(fn);
+      return new ValueProducer(fn);
     }
 
   };
@@ -12084,7 +12084,7 @@
      */
     assign(options = {}) {
 
-      return Variables$1.of({
+      return Variables.of({
         ...this,
         ...options
       });
@@ -12102,7 +12102,7 @@
         parent: this.parent
       };
 
-      return Variables$1.of({
+      return Variables.of({
         ...defaultOptions,
         ...options
       });
@@ -12119,7 +12119,7 @@
         raw
       } = options;
 
-      return new Variables$1({
+      return new Variables({
         name,
         tokens: [ ...tokens ],
         children: [ ...children ],
@@ -16975,7 +16975,7 @@
           if (text.length == 0)
               throw new RangeError("A document must have at least one line");
           if (text.length == 1 && !text[0])
-              return Text$1.empty;
+              return Text.empty;
           return text.length <= 32 /* Tree.Branch */ ? new TextLeaf(text) : TextNode.from(TextLeaf.split(text, []));
       }
   };
@@ -38979,9 +38979,9 @@
   };
 
   /*!
-    Copyright (c) 2018 Jed Watson.
-    Licensed under the MIT License (MIT), see
-    http://jedwatson.github.io/classnames
+  	Copyright (c) 2018 Jed Watson.
+  	Licensed under the MIT License (MIT), see
+  	http://jedwatson.github.io/classnames
   */
 
   (function (module) {
@@ -39010,14 +39010,15 @@
   						}
   					}
   				} else if (argType === 'object') {
-  					if (arg.toString === Object.prototype.toString) {
-  						for (var key in arg) {
-  							if (hasOwn.call(arg, key) && arg[key]) {
-  								classes.push(key);
-  							}
-  						}
-  					} else {
+  					if (arg.toString !== Object.prototype.toString && !arg.toString.toString().includes('[native code]')) {
   						classes.push(arg.toString());
+  						continue;
+  					}
+
+  					for (var key in arg) {
+  						if (hasOwn.call(arg, key) && arg[key]) {
+  							classes.push(key);
+  						}
   					}
   				}
   			}
@@ -39036,13 +39037,13 @@
 
   var classNames = classnamesExports;
 
-  var n$1,l$2,u$1,t$1,o$3,r$1,f$1,e$3={},c$1=[],s$1=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;function a$2(n,l){for(var u in l)n[u]=l[u];return n}function h$1(n){var l=n.parentNode;l&&l.removeChild(n);}function v$1(l,u,i){var t,o,r,f={};for(r in u)"key"==r?t=u[r]:"ref"==r?o=u[r]:f[r]=u[r];if(arguments.length>2&&(f.children=arguments.length>3?n$1.call(arguments,2):i),"function"==typeof l&&null!=l.defaultProps)for(r in l.defaultProps)void 0===f[r]&&(f[r]=l.defaultProps[r]);return y$1(l,f,t,o,null)}function y$1(n,i,t,o,r){var f={type:n,props:i,key:t,ref:o,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:null==r?++u$1:r};return null!=l$2.vnode&&l$2.vnode(f),f}function p$2(){return {current:null}}function d$1(n){return n.children}function _$1(n,l){this.props=n,this.context=l;}function k$2(n,l){if(null==l)return n.__?k$2(n.__,n.__.__k.indexOf(n)+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return "function"==typeof n.type?k$2(n):null}function b$1(n){var l,u;if(null!=(n=n.__)&&null!=n.__c){for(n.__e=n.__c.base=null,l=0;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e){n.__e=n.__c.base=u.__e;break}return b$1(n)}}function m$1(n){(!n.__d&&(n.__d=!0)&&t$1.push(n)&&!g$2.__r++||r$1!==l$2.debounceRendering)&&((r$1=l$2.debounceRendering)||o$3)(g$2);}function g$2(){for(var n;g$2.__r=t$1.length;)n=t$1.sort(function(n,l){return n.__v.__b-l.__v.__b}),t$1=[],n.some(function(n){var l,u,i,t,o,r;n.__d&&(o=(t=(l=n).__v).__e,(r=l.__P)&&(u=[],(i=a$2({},t)).__v=t.__v+1,j$2(r,t,i,l.__n,void 0!==r.ownerSVGElement,null!=t.__h?[o]:null,u,null==o?k$2(t):o,t.__h),z$1(u,t),t.__e!=o&&b$1(t)));});}function w$2(n,l,u,i,t,o,r,f,s,a){var h,v,p,_,b,m,g,w=i&&i.__k||c$1,A=w.length;for(u.__k=[],h=0;h<l.length;h++)if(null!=(_=u.__k[h]=null==(_=l[h])||"boolean"==typeof _?null:"string"==typeof _||"number"==typeof _||"bigint"==typeof _?y$1(null,_,null,null,_):Array.isArray(_)?y$1(d$1,{children:_},null,null,null):_.__b>0?y$1(_.type,_.props,_.key,null,_.__v):_)){if(_.__=u,_.__b=u.__b+1,null===(p=w[h])||p&&_.key==p.key&&_.type===p.type)w[h]=void 0;else for(v=0;v<A;v++){if((p=w[v])&&_.key==p.key&&_.type===p.type){w[v]=void 0;break}p=null;}j$2(n,_,p=p||e$3,t,o,r,f,s,a),b=_.__e,(v=_.ref)&&p.ref!=v&&(g||(g=[]),p.ref&&g.push(p.ref,null,_),g.push(v,_.__c||b,_)),null!=b?(null==m&&(m=b),"function"==typeof _.type&&null!=_.__k&&_.__k===p.__k?_.__d=s=x$2(_,s,n):s=P$1(n,_,p,w,b,s),a||"option"!==u.type?"function"==typeof u.type&&(u.__d=s):n.value=""):s&&p.__e==s&&s.parentNode!=n&&(s=k$2(p));}for(u.__e=m,h=A;h--;)null!=w[h]&&("function"==typeof u.type&&null!=w[h].__e&&w[h].__e==u.__d&&(u.__d=k$2(i,h+1)),N$1(w[h],w[h]));if(g)for(h=0;h<g.length;h++)M$1(g[h],g[++h],g[++h]);}function x$2(n,l,u){var i,t;for(i=0;i<n.__k.length;i++)(t=n.__k[i])&&(t.__=n,l="function"==typeof t.type?x$2(t,l,u):P$1(u,t,t,n.__k,t.__e,l));return l}function A$2(n,l){return l=l||[],null==n||"boolean"==typeof n||(Array.isArray(n)?n.some(function(n){A$2(n,l);}):l.push(n)),l}function P$1(n,l,u,i,t,o){var r,f,e;if(void 0!==l.__d)r=l.__d,l.__d=void 0;else if(null==u||t!=o||null==t.parentNode)n:if(null==o||o.parentNode!==n)n.appendChild(t),r=null;else {for(f=o,e=0;(f=f.nextSibling)&&e<i.length;e+=2)if(f==t)break n;n.insertBefore(t,o),r=o;}return void 0!==r?r:t.nextSibling}function C$1(n,l,u,i,t){var o;for(o in u)"children"===o||"key"===o||o in l||H$1(n,o,null,u[o],i);for(o in l)t&&"function"!=typeof l[o]||"children"===o||"key"===o||"value"===o||"checked"===o||u[o]===l[o]||H$1(n,o,l[o],u[o],i);}function $$1(n,l,u){"-"===l[0]?n.setProperty(l,u):n[l]=null==u?"":"number"!=typeof u||s$1.test(l)?u:u+"px";}function H$1(n,l,u,i,t){var o;n:if("style"===l)if("string"==typeof u)n.style.cssText=u;else {if("string"==typeof i&&(n.style.cssText=i=""),i)for(l in i)u&&l in u||$$1(n.style,l,"");if(u)for(l in u)i&&u[l]===i[l]||$$1(n.style,l,u[l]);}else if("o"===l[0]&&"n"===l[1])o=l!==(l=l.replace(/Capture$/,"")),l=l.toLowerCase()in n?l.toLowerCase().slice(2):l.slice(2),n.l||(n.l={}),n.l[l+o]=u,u?i||n.addEventListener(l,o?T$2:I$1,o):n.removeEventListener(l,o?T$2:I$1,o);else if("dangerouslySetInnerHTML"!==l){if(t)l=l.replace(/xlink[H:h]/,"h").replace(/sName$/,"s");else if("href"!==l&&"list"!==l&&"form"!==l&&"tabIndex"!==l&&"download"!==l&&l in n)try{n[l]=null==u?"":u;break n}catch(n){}"function"==typeof u||(null!=u&&(!1!==u||"a"===l[0]&&"r"===l[1])?n.setAttribute(l,u):n.removeAttribute(l));}}function I$1(n){this.l[n.type+!1](l$2.event?l$2.event(n):n);}function T$2(n){this.l[n.type+!0](l$2.event?l$2.event(n):n);}function j$2(n,u,i,t,o,r,f,e,c){var s,h,v,y,p,k,b,m,g,x,A,P=u.type;if(void 0!==u.constructor)return null;null!=i.__h&&(c=i.__h,e=u.__e=i.__e,u.__h=null,r=[e]),(s=l$2.__b)&&s(u);try{n:if("function"==typeof P){if(m=u.props,g=(s=P.contextType)&&t[s.__c],x=s?g?g.props.value:s.__:t,i.__c?b=(h=u.__c=i.__c).__=h.__E:("prototype"in P&&P.prototype.render?u.__c=h=new P(m,x):(u.__c=h=new _$1(m,x),h.constructor=P,h.render=O$1),g&&g.sub(h),h.props=m,h.state||(h.state={}),h.context=x,h.__n=t,v=h.__d=!0,h.__h=[]),null==h.__s&&(h.__s=h.state),null!=P.getDerivedStateFromProps&&(h.__s==h.state&&(h.__s=a$2({},h.__s)),a$2(h.__s,P.getDerivedStateFromProps(m,h.__s))),y=h.props,p=h.state,v)null==P.getDerivedStateFromProps&&null!=h.componentWillMount&&h.componentWillMount(),null!=h.componentDidMount&&h.__h.push(h.componentDidMount);else {if(null==P.getDerivedStateFromProps&&m!==y&&null!=h.componentWillReceiveProps&&h.componentWillReceiveProps(m,x),!h.__e&&null!=h.shouldComponentUpdate&&!1===h.shouldComponentUpdate(m,h.__s,x)||u.__v===i.__v){h.props=m,h.state=h.__s,u.__v!==i.__v&&(h.__d=!1),h.__v=u,u.__e=i.__e,u.__k=i.__k,u.__k.forEach(function(n){n&&(n.__=u);}),h.__h.length&&f.push(h);break n}null!=h.componentWillUpdate&&h.componentWillUpdate(m,h.__s,x),null!=h.componentDidUpdate&&h.__h.push(function(){h.componentDidUpdate(y,p,k);});}h.context=x,h.props=m,h.state=h.__s,(s=l$2.__r)&&s(u),h.__d=!1,h.__v=u,h.__P=n,s=h.render(h.props,h.state,h.context),h.state=h.__s,null!=h.getChildContext&&(t=a$2(a$2({},t),h.getChildContext())),v||null==h.getSnapshotBeforeUpdate||(k=h.getSnapshotBeforeUpdate(y,p)),A=null!=s&&s.type===d$1&&null==s.key?s.props.children:s,w$2(n,Array.isArray(A)?A:[A],u,i,t,o,r,f,e,c),h.base=u.__e,u.__h=null,h.__h.length&&f.push(h),b&&(h.__E=h.__=null),h.__e=!1;}else null==r&&u.__v===i.__v?(u.__k=i.__k,u.__e=i.__e):u.__e=L$1(i.__e,u,i,t,o,r,f,c);(s=l$2.diffed)&&s(u);}catch(n){u.__v=null,(c||null!=r)&&(u.__e=e,u.__h=!!c,r[r.indexOf(e)]=null),l$2.__e(n,u,i);}}function z$1(n,u){l$2.__c&&l$2.__c(u,n),n.some(function(u){try{n=u.__h,u.__h=[],n.some(function(n){n.call(u);});}catch(n){l$2.__e(n,u.__v);}});}function L$1(l,u,i,t,o,r,f,c){var s,a,v,y=i.props,p=u.props,d=u.type,_=0;if("svg"===d&&(o=!0),null!=r)for(;_<r.length;_++)if((s=r[_])&&(s===l||(d?s.localName==d:3==s.nodeType))){l=s,r[_]=null;break}if(null==l){if(null===d)return document.createTextNode(p);l=o?document.createElementNS("http://www.w3.org/2000/svg",d):document.createElement(d,p.is&&p),r=null,c=!1;}if(null===d)y===p||c&&l.data===p||(l.data=p);else {if(r=r&&n$1.call(l.childNodes),a=(y=i.props||e$3).dangerouslySetInnerHTML,v=p.dangerouslySetInnerHTML,!c){if(null!=r)for(y={},_=0;_<l.attributes.length;_++)y[l.attributes[_].name]=l.attributes[_].value;(v||a)&&(v&&(a&&v.__html==a.__html||v.__html===l.innerHTML)||(l.innerHTML=v&&v.__html||""));}if(C$1(l,p,y,o,c),v)u.__k=[];else if(_=u.props.children,w$2(l,Array.isArray(_)?_:[_],u,i,t,o&&"foreignObject"!==d,r,f,r?r[0]:i.__k&&k$2(i,0),c),null!=r)for(_=r.length;_--;)null!=r[_]&&h$1(r[_]);c||("value"in p&&void 0!==(_=p.value)&&(_!==l.value||"progress"===d&&!_)&&H$1(l,"value",_,y.value,!1),"checked"in p&&void 0!==(_=p.checked)&&_!==l.checked&&H$1(l,"checked",_,y.checked,!1));}return l}function M$1(n,u,i){try{"function"==typeof n?n(u):n.current=u;}catch(n){l$2.__e(n,i);}}function N$1(n,u,i){var t,o;if(l$2.unmount&&l$2.unmount(n),(t=n.ref)&&(t.current&&t.current!==n.__e||M$1(t,null,u)),null!=(t=n.__c)){if(t.componentWillUnmount)try{t.componentWillUnmount();}catch(n){l$2.__e(n,u);}t.base=t.__P=null;}if(t=n.__k)for(o=0;o<t.length;o++)t[o]&&N$1(t[o],u,"function"!=typeof n.type);i||null==n.__e||h$1(n.__e),n.__e=n.__d=void 0;}function O$1(n,l,u){return this.constructor(n,u)}function S$1(u,i,t){var o,r,f;l$2.__&&l$2.__(u,i),r=(o="function"==typeof t)?null:t&&t.__k||i.__k,f=[],j$2(i,u=(!o&&t||i).__k=v$1(d$1,null,[u]),r||e$3,e$3,void 0!==i.ownerSVGElement,!o&&t?[t]:r?null:i.firstChild?n$1.call(i.childNodes):null,f,!o&&t?t:r?r.__e:i.firstChild,o),z$1(f,u);}function q$1(n,l){S$1(n,l,q$1);}function B$1(l,u,i){var t,o,r,f=a$2({},l.props);for(r in u)"key"==r?t=u[r]:"ref"==r?o=u[r]:f[r]=u[r];return arguments.length>2&&(f.children=arguments.length>3?n$1.call(arguments,2):i),y$1(l.type,f,t||l.key,o||l.ref,null)}function D$1(n,l){var u={__c:l="__cC"+f$1++,__:n,Consumer:function(n,l){return n.children(l)},Provider:function(n){var u,i;return this.getChildContext||(u=[],(i={})[l]=this,this.getChildContext=function(){return i},this.shouldComponentUpdate=function(n){this.props.value!==n.value&&u.some(m$1);},this.sub=function(n){u.push(n);var l=n.componentWillUnmount;n.componentWillUnmount=function(){u.splice(u.indexOf(n),1),l&&l.call(n);};}),n.children}};return u.Provider.__=u.Consumer.contextType=u}n$1=c$1.slice,l$2={__e:function(n,l){for(var u,i,t;l=l.__;)if((u=l.__c)&&!u.__)try{if((i=u.constructor)&&null!=i.getDerivedStateFromError&&(u.setState(i.getDerivedStateFromError(n)),t=u.__d),null!=u.componentDidCatch&&(u.componentDidCatch(n),t=u.__d),t)return u.__E=u}catch(l){n=l;}throw n}},u$1=0,_$1.prototype.setState=function(n,l){var u;u=null!=this.__s&&this.__s!==this.state?this.__s:this.__s=a$2({},this.state),"function"==typeof n&&(n=n(a$2({},u),this.props)),n&&a$2(u,n),null!=n&&this.__v&&(l&&this.__h.push(l),m$1(this));},_$1.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),m$1(this));},_$1.prototype.render=d$1,t$1=[],o$3="function"==typeof Promise?Promise.prototype.then.bind(Promise.resolve()):setTimeout,g$2.__r=0,f$1=0;
+  var n$1,l$2,u$1,t$1,o$3,r$1,f$1,e$3={},c$1=[],s$1=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;function a$2(n,l){for(var u in l)n[u]=l[u];return n}function h(n){var l=n.parentNode;l&&l.removeChild(n);}function v$1(l,u,i){var t,o,r,f={};for(r in u)"key"==r?t=u[r]:"ref"==r?o=u[r]:f[r]=u[r];if(arguments.length>2&&(f.children=arguments.length>3?n$1.call(arguments,2):i),"function"==typeof l&&null!=l.defaultProps)for(r in l.defaultProps)void 0===f[r]&&(f[r]=l.defaultProps[r]);return y$1(l,f,t,o,null)}function y$1(n,i,t,o,r){var f={type:n,props:i,key:t,ref:o,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:null==r?++u$1:r};return null!=l$2.vnode&&l$2.vnode(f),f}function d$1(n){return n.children}function _(n,l){this.props=n,this.context=l;}function k$1(n,l){if(null==l)return n.__?k$1(n.__,n.__.__k.indexOf(n)+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return "function"==typeof n.type?k$1(n):null}function b$1(n){var l,u;if(null!=(n=n.__)&&null!=n.__c){for(n.__e=n.__c.base=null,l=0;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e){n.__e=n.__c.base=u.__e;break}return b$1(n)}}function m$1(n){(!n.__d&&(n.__d=!0)&&t$1.push(n)&&!g$1.__r++||r$1!==l$2.debounceRendering)&&((r$1=l$2.debounceRendering)||o$3)(g$1);}function g$1(){for(var n;g$1.__r=t$1.length;)n=t$1.sort(function(n,l){return n.__v.__b-l.__v.__b}),t$1=[],n.some(function(n){var l,u,i,t,o,r;n.__d&&(o=(t=(l=n).__v).__e,(r=l.__P)&&(u=[],(i=a$2({},t)).__v=t.__v+1,j$2(r,t,i,l.__n,void 0!==r.ownerSVGElement,null!=t.__h?[o]:null,u,null==o?k$1(t):o,t.__h),z(u,t),t.__e!=o&&b$1(t)));});}function w$2(n,l,u,i,t,o,r,f,s,a){var h,v,p,_,b,m,g,w=i&&i.__k||c$1,A=w.length;for(u.__k=[],h=0;h<l.length;h++)if(null!=(_=u.__k[h]=null==(_=l[h])||"boolean"==typeof _?null:"string"==typeof _||"number"==typeof _||"bigint"==typeof _?y$1(null,_,null,null,_):Array.isArray(_)?y$1(d$1,{children:_},null,null,null):_.__b>0?y$1(_.type,_.props,_.key,null,_.__v):_)){if(_.__=u,_.__b=u.__b+1,null===(p=w[h])||p&&_.key==p.key&&_.type===p.type)w[h]=void 0;else for(v=0;v<A;v++){if((p=w[v])&&_.key==p.key&&_.type===p.type){w[v]=void 0;break}p=null;}j$2(n,_,p=p||e$3,t,o,r,f,s,a),b=_.__e,(v=_.ref)&&p.ref!=v&&(g||(g=[]),p.ref&&g.push(p.ref,null,_),g.push(v,_.__c||b,_)),null!=b?(null==m&&(m=b),"function"==typeof _.type&&null!=_.__k&&_.__k===p.__k?_.__d=s=x$1(_,s,n):s=P$1(n,_,p,w,b,s),a||"option"!==u.type?"function"==typeof u.type&&(u.__d=s):n.value=""):s&&p.__e==s&&s.parentNode!=n&&(s=k$1(p));}for(u.__e=m,h=A;h--;)null!=w[h]&&("function"==typeof u.type&&null!=w[h].__e&&w[h].__e==u.__d&&(u.__d=k$1(i,h+1)),N(w[h],w[h]));if(g)for(h=0;h<g.length;h++)M$1(g[h],g[++h],g[++h]);}function x$1(n,l,u){var i,t;for(i=0;i<n.__k.length;i++)(t=n.__k[i])&&(t.__=n,l="function"==typeof t.type?x$1(t,l,u):P$1(u,t,t,n.__k,t.__e,l));return l}function A$2(n,l){return l=l||[],null==n||"boolean"==typeof n||(Array.isArray(n)?n.some(function(n){A$2(n,l);}):l.push(n)),l}function P$1(n,l,u,i,t,o){var r,f,e;if(void 0!==l.__d)r=l.__d,l.__d=void 0;else if(null==u||t!=o||null==t.parentNode)n:if(null==o||o.parentNode!==n)n.appendChild(t),r=null;else {for(f=o,e=0;(f=f.nextSibling)&&e<i.length;e+=2)if(f==t)break n;n.insertBefore(t,o),r=o;}return void 0!==r?r:t.nextSibling}function C$1(n,l,u,i,t){var o;for(o in u)"children"===o||"key"===o||o in l||H$1(n,o,null,u[o],i);for(o in l)t&&"function"!=typeof l[o]||"children"===o||"key"===o||"value"===o||"checked"===o||u[o]===l[o]||H$1(n,o,l[o],u[o],i);}function $$1(n,l,u){"-"===l[0]?n.setProperty(l,u):n[l]=null==u?"":"number"!=typeof u||s$1.test(l)?u:u+"px";}function H$1(n,l,u,i,t){var o;n:if("style"===l)if("string"==typeof u)n.style.cssText=u;else {if("string"==typeof i&&(n.style.cssText=i=""),i)for(l in i)u&&l in u||$$1(n.style,l,"");if(u)for(l in u)i&&u[l]===i[l]||$$1(n.style,l,u[l]);}else if("o"===l[0]&&"n"===l[1])o=l!==(l=l.replace(/Capture$/,"")),l=l.toLowerCase()in n?l.toLowerCase().slice(2):l.slice(2),n.l||(n.l={}),n.l[l+o]=u,u?i||n.addEventListener(l,o?T$1:I$1,o):n.removeEventListener(l,o?T$1:I$1,o);else if("dangerouslySetInnerHTML"!==l){if(t)l=l.replace(/xlink[H:h]/,"h").replace(/sName$/,"s");else if("href"!==l&&"list"!==l&&"form"!==l&&"tabIndex"!==l&&"download"!==l&&l in n)try{n[l]=null==u?"":u;break n}catch(n){}"function"==typeof u||(null!=u&&(!1!==u||"a"===l[0]&&"r"===l[1])?n.setAttribute(l,u):n.removeAttribute(l));}}function I$1(n){this.l[n.type+!1](l$2.event?l$2.event(n):n);}function T$1(n){this.l[n.type+!0](l$2.event?l$2.event(n):n);}function j$2(n,u,i,t,o,r,f,e,c){var s,h,v,y,p,k,b,m,g,x,A,P=u.type;if(void 0!==u.constructor)return null;null!=i.__h&&(c=i.__h,e=u.__e=i.__e,u.__h=null,r=[e]),(s=l$2.__b)&&s(u);try{n:if("function"==typeof P){if(m=u.props,g=(s=P.contextType)&&t[s.__c],x=s?g?g.props.value:s.__:t,i.__c?b=(h=u.__c=i.__c).__=h.__E:("prototype"in P&&P.prototype.render?u.__c=h=new P(m,x):(u.__c=h=new _(m,x),h.constructor=P,h.render=O$1),g&&g.sub(h),h.props=m,h.state||(h.state={}),h.context=x,h.__n=t,v=h.__d=!0,h.__h=[]),null==h.__s&&(h.__s=h.state),null!=P.getDerivedStateFromProps&&(h.__s==h.state&&(h.__s=a$2({},h.__s)),a$2(h.__s,P.getDerivedStateFromProps(m,h.__s))),y=h.props,p=h.state,v)null==P.getDerivedStateFromProps&&null!=h.componentWillMount&&h.componentWillMount(),null!=h.componentDidMount&&h.__h.push(h.componentDidMount);else {if(null==P.getDerivedStateFromProps&&m!==y&&null!=h.componentWillReceiveProps&&h.componentWillReceiveProps(m,x),!h.__e&&null!=h.shouldComponentUpdate&&!1===h.shouldComponentUpdate(m,h.__s,x)||u.__v===i.__v){h.props=m,h.state=h.__s,u.__v!==i.__v&&(h.__d=!1),h.__v=u,u.__e=i.__e,u.__k=i.__k,u.__k.forEach(function(n){n&&(n.__=u);}),h.__h.length&&f.push(h);break n}null!=h.componentWillUpdate&&h.componentWillUpdate(m,h.__s,x),null!=h.componentDidUpdate&&h.__h.push(function(){h.componentDidUpdate(y,p,k);});}h.context=x,h.props=m,h.state=h.__s,(s=l$2.__r)&&s(u),h.__d=!1,h.__v=u,h.__P=n,s=h.render(h.props,h.state,h.context),h.state=h.__s,null!=h.getChildContext&&(t=a$2(a$2({},t),h.getChildContext())),v||null==h.getSnapshotBeforeUpdate||(k=h.getSnapshotBeforeUpdate(y,p)),A=null!=s&&s.type===d$1&&null==s.key?s.props.children:s,w$2(n,Array.isArray(A)?A:[A],u,i,t,o,r,f,e,c),h.base=u.__e,u.__h=null,h.__h.length&&f.push(h),b&&(h.__E=h.__=null),h.__e=!1;}else null==r&&u.__v===i.__v?(u.__k=i.__k,u.__e=i.__e):u.__e=L$1(i.__e,u,i,t,o,r,f,c);(s=l$2.diffed)&&s(u);}catch(n){u.__v=null,(c||null!=r)&&(u.__e=e,u.__h=!!c,r[r.indexOf(e)]=null),l$2.__e(n,u,i);}}function z(n,u){l$2.__c&&l$2.__c(u,n),n.some(function(u){try{n=u.__h,u.__h=[],n.some(function(n){n.call(u);});}catch(n){l$2.__e(n,u.__v);}});}function L$1(l,u,i,t,o,r,f,c){var s,a,v,y=i.props,p=u.props,d=u.type,_=0;if("svg"===d&&(o=!0),null!=r)for(;_<r.length;_++)if((s=r[_])&&(s===l||(d?s.localName==d:3==s.nodeType))){l=s,r[_]=null;break}if(null==l){if(null===d)return document.createTextNode(p);l=o?document.createElementNS("http://www.w3.org/2000/svg",d):document.createElement(d,p.is&&p),r=null,c=!1;}if(null===d)y===p||c&&l.data===p||(l.data=p);else {if(r=r&&n$1.call(l.childNodes),a=(y=i.props||e$3).dangerouslySetInnerHTML,v=p.dangerouslySetInnerHTML,!c){if(null!=r)for(y={},_=0;_<l.attributes.length;_++)y[l.attributes[_].name]=l.attributes[_].value;(v||a)&&(v&&(a&&v.__html==a.__html||v.__html===l.innerHTML)||(l.innerHTML=v&&v.__html||""));}if(C$1(l,p,y,o,c),v)u.__k=[];else if(_=u.props.children,w$2(l,Array.isArray(_)?_:[_],u,i,t,o&&"foreignObject"!==d,r,f,r?r[0]:i.__k&&k$1(i,0),c),null!=r)for(_=r.length;_--;)null!=r[_]&&h(r[_]);c||("value"in p&&void 0!==(_=p.value)&&(_!==l.value||"progress"===d&&!_)&&H$1(l,"value",_,y.value,!1),"checked"in p&&void 0!==(_=p.checked)&&_!==l.checked&&H$1(l,"checked",_,y.checked,!1));}return l}function M$1(n,u,i){try{"function"==typeof n?n(u):n.current=u;}catch(n){l$2.__e(n,i);}}function N(n,u,i){var t,o;if(l$2.unmount&&l$2.unmount(n),(t=n.ref)&&(t.current&&t.current!==n.__e||M$1(t,null,u)),null!=(t=n.__c)){if(t.componentWillUnmount)try{t.componentWillUnmount();}catch(n){l$2.__e(n,u);}t.base=t.__P=null;}if(t=n.__k)for(o=0;o<t.length;o++)t[o]&&N(t[o],u,"function"!=typeof n.type);i||null==n.__e||h(n.__e),n.__e=n.__d=void 0;}function O$1(n,l,u){return this.constructor(n,u)}function S$1(u,i,t){var o,r,f;l$2.__&&l$2.__(u,i),r=(o="function"==typeof t)?null:t&&t.__k||i.__k,f=[],j$2(i,u=(!o&&t||i).__k=v$1(d$1,null,[u]),r||e$3,e$3,void 0!==i.ownerSVGElement,!o&&t?[t]:r?null:i.firstChild?n$1.call(i.childNodes):null,f,!o&&t?t:r?r.__e:i.firstChild,o),z(f,u);}function D$1(n,l){var u={__c:l="__cC"+f$1++,__:n,Consumer:function(n,l){return n.children(l)},Provider:function(n){var u,i;return this.getChildContext||(u=[],(i={})[l]=this,this.getChildContext=function(){return i},this.shouldComponentUpdate=function(n){this.props.value!==n.value&&u.some(m$1);},this.sub=function(n){u.push(n);var l=n.componentWillUnmount;n.componentWillUnmount=function(){u.splice(u.indexOf(n),1),l&&l.call(n);};}),n.children}};return u.Provider.__=u.Consumer.contextType=u}n$1=c$1.slice,l$2={__e:function(n,l){for(var u,i,t;l=l.__;)if((u=l.__c)&&!u.__)try{if((i=u.constructor)&&null!=i.getDerivedStateFromError&&(u.setState(i.getDerivedStateFromError(n)),t=u.__d),null!=u.componentDidCatch&&(u.componentDidCatch(n),t=u.__d),t)return u.__E=u}catch(l){n=l;}throw n}},u$1=0,_.prototype.setState=function(n,l){var u;u=null!=this.__s&&this.__s!==this.state?this.__s:this.__s=a$2({},this.state),"function"==typeof n&&(n=n(a$2({},u),this.props)),n&&a$2(u,n),null!=n&&this.__v&&(l&&this.__h.push(l),m$1(this));},_.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),m$1(this));},_.prototype.render=d$1,t$1=[],o$3="function"==typeof Promise?Promise.prototype.then.bind(Promise.resolve()):setTimeout,g$1.__r=0,f$1=0;
 
   var o$2=0;function e$2(_,e,n,t,f){var l,s,u={};for(s in e)"ref"==s?l=e[s]:u[s]=e[s];var a={type:_,props:u,key:n,ref:l,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:--o$2,__source:t,__self:f};if("function"==typeof _&&(l=_.defaultProps))for(s in l)void 0===u[s]&&(u[s]=l[s]);return l$2.vnode&&l$2.vnode(a),a}
 
-  var t,u,r,o$1=0,i$1=[],c=l$2.__b,f=l$2.__r,e$1=l$2.diffed,a$1=l$2.__c,v=l$2.unmount;function m(t,r){l$2.__h&&l$2.__h(u,t,o$1||r),o$1=0;var i=u.__H||(u.__H={__:[],__h:[]});return t>=i.__.length&&i.__.push({}),i.__[t]}function l$1(n){return o$1=1,p$1(w$1,n)}function p$1(n,r,o){var i=m(t++,2);return i.t=n,i.__c||(i.__=[o?o(r):w$1(void 0,r),function(n){var t=i.t(i.__[0],n);i.__[0]!==t&&(i.__=[t,i.__[1]],i.__c.setState({}));}],i.__c=u),i.__}function y(r,o){var i=m(t++,3);!l$2.__s&&k$1(i.__H,o)&&(i.__=r,i.__H=o,u.__H.__h.push(i));}function h(r,o){var i=m(t++,4);!l$2.__s&&k$1(i.__H,o)&&(i.__=r,i.__H=o,u.__h.push(i));}function s(n){return o$1=5,d(function(){return {current:n}},[])}function _(n,t,u){o$1=6,h(function(){"function"==typeof n?n(t()):n&&(n.current=t());},null==u?u:u.concat(n));}function d(n,u){var r=m(t++,7);return k$1(r.__H,u)&&(r.__=n(),r.__H=u,r.__h=n),r.__}function A$1(n,t){return o$1=8,d(function(){return n},t)}function F$1(n){var r=u.context[n.__c],o=m(t++,9);return o.c=n,r?(null==o.__&&(o.__=!0,r.sub(u)),r.props.value):n.__}function T$1(t,u){l$2.useDebugValue&&l$2.useDebugValue(u?u(t):t);}function x$1(){i$1.forEach(function(t){if(t.__P)try{t.__H.__h.forEach(g$1),t.__H.__h.forEach(j$1),t.__H.__h=[];}catch(u){t.__H.__h=[],l$2.__e(u,t.__v);}}),i$1=[];}l$2.__b=function(n){u=null,c&&c(n);},l$2.__r=function(n){f&&f(n),t=0;var r=(u=n.__c).__H;r&&(r.__h.forEach(g$1),r.__h.forEach(j$1),r.__h=[]);},l$2.diffed=function(t){e$1&&e$1(t);var o=t.__c;o&&o.__H&&o.__H.__h.length&&(1!==i$1.push(o)&&r===l$2.requestAnimationFrame||((r=l$2.requestAnimationFrame)||function(n){var t,u=function(){clearTimeout(r),b&&cancelAnimationFrame(t),setTimeout(n);},r=setTimeout(u,100);b&&(t=requestAnimationFrame(u));})(x$1)),u=void 0;},l$2.__c=function(t,u){u.some(function(t){try{t.__h.forEach(g$1),t.__h=t.__h.filter(function(n){return !n.__||j$1(n)});}catch(r){u.some(function(n){n.__h&&(n.__h=[]);}),u=[],l$2.__e(r,t.__v);}}),a$1&&a$1(t,u);},l$2.unmount=function(t){v&&v(t);var u=t.__c;if(u&&u.__H)try{u.__H.__.forEach(g$1);}catch(t){l$2.__e(t,u.__v);}};var b="function"==typeof requestAnimationFrame;function g$1(n){var t=u;"function"==typeof n.__c&&n.__c(),u=t;}function j$1(n){var t=u;n.__c=n.__(),u=t;}function k$1(n,t){return !n||n.length!==t.length||t.some(function(t,u){return t!==n[u]})}function w$1(n,t){return "function"==typeof t?t(n):t}
+  var t,u,r,o$1=0,i$1=[],c=l$2.__b,f=l$2.__r,e$1=l$2.diffed,a$1=l$2.__c,v=l$2.unmount;function m(t,r){l$2.__h&&l$2.__h(u,t,o$1||r),o$1=0;var i=u.__H||(u.__H={__:[],__h:[]});return t>=i.__.length&&i.__.push({}),i.__[t]}function l$1(n){return o$1=1,p$1(w$1,n)}function p$1(n,r,o){var i=m(t++,2);return i.t=n,i.__c||(i.__=[o?o(r):w$1(void 0,r),function(n){var t=i.t(i.__[0],n);i.__[0]!==t&&(i.__=[t,i.__[1]],i.__c.setState({}));}],i.__c=u),i.__}function y(r,o){var i=m(t++,3);!l$2.__s&&k(i.__H,o)&&(i.__=r,i.__H=o,u.__H.__h.push(i));}function s(n){return o$1=5,d(function(){return {current:n}},[])}function d(n,u){var r=m(t++,7);return k(r.__H,u)&&(r.__=n(),r.__H=u,r.__h=n),r.__}function A$1(n,t){return o$1=8,d(function(){return n},t)}function F(n){var r=u.context[n.__c],o=m(t++,9);return o.c=n,r?(null==o.__&&(o.__=!0,r.sub(u)),r.props.value):n.__}function x(){i$1.forEach(function(t){if(t.__P)try{t.__H.__h.forEach(g),t.__H.__h.forEach(j$1),t.__H.__h=[];}catch(u){t.__H.__h=[],l$2.__e(u,t.__v);}}),i$1=[];}l$2.__b=function(n){u=null,c&&c(n);},l$2.__r=function(n){f&&f(n),t=0;var r=(u=n.__c).__H;r&&(r.__h.forEach(g),r.__h.forEach(j$1),r.__h=[]);},l$2.diffed=function(t){e$1&&e$1(t);var o=t.__c;o&&o.__H&&o.__H.__h.length&&(1!==i$1.push(o)&&r===l$2.requestAnimationFrame||((r=l$2.requestAnimationFrame)||function(n){var t,u=function(){clearTimeout(r),b&&cancelAnimationFrame(t),setTimeout(n);},r=setTimeout(u,100);b&&(t=requestAnimationFrame(u));})(x)),u=void 0;},l$2.__c=function(t,u){u.some(function(t){try{t.__h.forEach(g),t.__h=t.__h.filter(function(n){return !n.__||j$1(n)});}catch(r){u.some(function(n){n.__h&&(n.__h=[]);}),u=[],l$2.__e(r,t.__v);}}),a$1&&a$1(t,u);},l$2.unmount=function(t){v&&v(t);var u=t.__c;if(u&&u.__H)try{u.__H.__.forEach(g);}catch(t){l$2.__e(t,u.__v);}};var b="function"==typeof requestAnimationFrame;function g(n){var t=u;"function"==typeof n.__c&&n.__c(),u=t;}function j$1(n){var t=u;n.__c=n.__(),u=t;}function k(n,t){return !n||n.length!==t.length||t.some(function(t,u){return t!==n[u]})}function w$1(n,t){return "function"==typeof t?t(n):t}
 
-  function S(n,t){for(var e in t)n[e]=t[e];return n}function C(n,t){for(var e in n)if("__source"!==e&&!(e in t))return !0;for(var r in t)if("__source"!==r&&n[r]!==t[r])return !0;return !1}function E(n){this.props=n;}function g(n,t){function e(n){var e=this.props.ref,r=e==n.ref;return !r&&e&&(e.call?e(null):e.current=null),t?!t(this.props,n)||!r:C(this.props,n)}function r(t){return this.shouldComponentUpdate=e,v$1(n,t)}return r.displayName="Memo("+(n.displayName||n.name)+")",r.prototype.isReactComponent=!0,r.__f=!0,r}(E.prototype=new _$1).isPureReactComponent=!0,E.prototype.shouldComponentUpdate=function(n,t){return C(this.props,n)||C(this.state,t)};var w=l$2.__b;l$2.__b=function(n){n.type&&n.type.__f&&n.ref&&(n.props.ref=n.ref,n.ref=null),w&&w(n);};var R="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.forward_ref")||3911;function x(n){function t(t,e){var r=S({},t);return delete r.ref,n(r,(e=t.ref||e)&&("object"!=typeof e||"current"in e)?e:null)}return t.$$typeof=R,t.render=t,t.prototype.isReactComponent=t.__f=!0,t.displayName="ForwardRef("+(n.displayName||n.name)+")",t}var N=function(n,t){return null==n?null:A$2(A$2(n).map(t))},k={map:N,forEach:N,count:function(n){return n?A$2(n).length:0},only:function(n){var t=A$2(n);if(1!==t.length)throw "Children.only";return t[0]},toArray:A$2},A=l$2.__e;l$2.__e=function(n,t,e){if(n.then)for(var r,u=t;u=u.__;)if((r=u.__c)&&r.__c)return null==t.__e&&(t.__e=e.__e,t.__k=e.__k),r.__c(n,t);A(n,t,e);};var O=l$2.unmount;function L(){this.__u=0,this.t=null,this.__b=null;}function U(n){var t=n.__.__c;return t&&t.__e&&t.__e(n)}function F(n){var t,e,r;function u(u){if(t||(t=n()).then(function(n){e=n.default||n;},function(n){r=n;}),r)throw r;if(!e)throw t;return v$1(e,u)}return u.displayName="Lazy",u.__f=!0,u}function M(){this.u=null,this.o=null;}l$2.unmount=function(n){var t=n.__c;t&&t.__R&&t.__R(),t&&!0===n.__h&&(n.type=null),O&&O(n);},(L.prototype=new _$1).__c=function(n,t){var e=t.__c,r=this;null==r.t&&(r.t=[]),r.t.push(e);var u=U(r.__v),o=!1,i=function(){o||(o=!0,e.__R=null,u?u(l):l());};e.__R=i;var l=function(){if(!--r.__u){if(r.state.__e){var n=r.state.__e;r.__v.__k[0]=function n(t,e,r){return t&&(t.__v=null,t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)}),t.__c&&t.__c.__P===e&&(t.__e&&r.insertBefore(t.__e,t.__d),t.__c.__e=!0,t.__c.__P=r)),t}(n,n.__c.__P,n.__c.__O);}var t;for(r.setState({__e:r.__b=null});t=r.t.pop();)t.forceUpdate();}},f=!0===t.__h;r.__u++||f||r.setState({__e:r.__b=r.__v.__k[0]}),n.then(i,i);},L.prototype.componentWillUnmount=function(){this.t=[];},L.prototype.render=function(n,t){if(this.__b){if(this.__v.__k){var e=document.createElement("div"),r=this.__v.__k[0].__c;this.__v.__k[0]=function n(t,e,r){return t&&(t.__c&&t.__c.__H&&(t.__c.__H.__.forEach(function(n){"function"==typeof n.__c&&n.__c();}),t.__c.__H=null),null!=(t=S({},t)).__c&&(t.__c.__P===r&&(t.__c.__P=e),t.__c=null),t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)})),t}(this.__b,e,r.__O=r.__P);}this.__b=null;}var u=t.__e&&v$1(d$1,null,n.fallback);return u&&(u.__h=null),[v$1(d$1,null,t.__e?null:n.children),u]};var T=function(n,t,e){if(++e[1]===e[0]&&n.o.delete(t),n.props.revealOrder&&("t"!==n.props.revealOrder[0]||!n.o.size))for(e=n.u;e;){for(;e.length>3;)e.pop()();if(e[1]<e[0])break;n.u=e=e[2];}};function D(n){return this.getChildContext=function(){return n.context},n.children}function I(n){var t=this,e=n.i;t.componentWillUnmount=function(){S$1(null,t.l),t.l=null,t.i=null;},t.i&&t.i!==e&&t.componentWillUnmount(),n.__v?(t.l||(t.i=e,t.l={nodeType:1,parentNode:e,childNodes:[],appendChild:function(n){this.childNodes.push(n),t.i.appendChild(n);},insertBefore:function(n,e){this.childNodes.push(n),t.i.appendChild(n);},removeChild:function(n){this.childNodes.splice(this.childNodes.indexOf(n)>>>1,1),t.i.removeChild(n);}}),S$1(v$1(D,{context:t.context},n.__v),t.l)):t.l&&t.componentWillUnmount();}function W(n,t){return v$1(I,{__v:n,i:t})}(M.prototype=new _$1).__e=function(n){var t=this,e=U(t.__v),r=t.o.get(n);return r[0]++,function(u){var o=function(){t.props.revealOrder?(r.push(u),T(t,n,r)):u();};e?e(o):o();}},M.prototype.render=function(n){this.u=null,this.o=new Map;var t=A$2(n.children);n.revealOrder&&"b"===n.revealOrder[0]&&t.reverse();for(var e=t.length;e--;)this.o.set(t[e],this.u=[1,0,this.u]);return n.children},M.prototype.componentDidUpdate=M.prototype.componentDidMount=function(){var n=this;this.o.forEach(function(t,e){T(n,e,t);});};var j="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.element")||60103,P=/^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|fill|flood|font|glyph(?!R)|horiz|marker(?!H|W|U)|overline|paint|stop|strikethrough|stroke|text(?!L)|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/,V=function(n){return ("undefined"!=typeof Symbol&&"symbol"==typeof Symbol()?/fil|che|rad/i:/fil|che|ra/i).test(n)};function z(n,t,e){return null==t.__k&&(t.textContent=""),S$1(n,t),"function"==typeof e&&e(),n?n.__c:null}function B(n,t,e){return q$1(n,t),"function"==typeof e&&e(),n?n.__c:null}_$1.prototype.isReactComponent={},["componentWillMount","componentWillReceiveProps","componentWillUpdate"].forEach(function(n){Object.defineProperty(_$1.prototype,n,{configurable:!0,get:function(){return this["UNSAFE_"+n]},set:function(t){Object.defineProperty(this,n,{configurable:!0,writable:!0,value:t});}});});var H=l$2.event;function Z(){}function Y(){return this.cancelBubble}function $(){return this.defaultPrevented}l$2.event=function(n){return H&&(n=H(n)),n.persist=Z,n.isPropagationStopped=Y,n.isDefaultPrevented=$,n.nativeEvent=n};var q,G={configurable:!0,get:function(){return this.class}},J=l$2.vnode;l$2.vnode=function(n){var t=n.type,e=n.props,r=e;if("string"==typeof t){for(var u in r={},e){var o=e[u];"value"===u&&"defaultValue"in e&&null==o||("defaultValue"===u&&"value"in e&&null==e.value?u="value":"download"===u&&!0===o?o="":/ondoubleclick/i.test(u)?u="ondblclick":/^onchange(textarea|input)/i.test(u+t)&&!V(e.type)?u="oninput":/^on(Ani|Tra|Tou|BeforeInp)/.test(u)?u=u.toLowerCase():P.test(u)?u=u.replace(/[A-Z0-9]/,"-$&").toLowerCase():null===o&&(o=void 0),r[u]=o);}"select"==t&&r.multiple&&Array.isArray(r.value)&&(r.value=A$2(e.children).forEach(function(n){n.props.selected=-1!=r.value.indexOf(n.props.value);})),"select"==t&&null!=r.defaultValue&&(r.value=A$2(e.children).forEach(function(n){n.props.selected=r.multiple?-1!=r.defaultValue.indexOf(n.props.value):r.defaultValue==n.props.value;})),n.props=r;}t&&e.class!=e.className&&(G.enumerable="className"in e,null!=e.className&&(r.class=e.className),Object.defineProperty(r,"className",G)),n.$$typeof=j,J&&J(n);};var K=l$2.__r;l$2.__r=function(n){K&&K(n),q=n.__c;};var Q={ReactCurrentDispatcher:{current:{readContext:function(n){return q.__n[n.__c].props.value}}}};function nn(n){return v$1.bind(null,n)}function tn(n){return !!n&&n.$$typeof===j}function en(n){return tn(n)?B$1.apply(null,arguments):n}function rn(n){return !!n.__k&&(S$1(null,n),!0)}function un(n){return n&&(n.base||1===n.nodeType&&n)||null}var on=function(n,t){return n(t)},ln=function(n,t){return n(t)};var React = {useState:l$1,useReducer:p$1,useEffect:y,useLayoutEffect:h,useRef:s,useImperativeHandle:_,useMemo:d,useCallback:A$1,useContext:F$1,useDebugValue:T$1,version:"17.0.2",Children:k,render:z,hydrate:B,unmountComponentAtNode:rn,createPortal:W,createElement:v$1,createContext:D$1,createFactory:nn,cloneElement:en,createRef:p$2,Fragment:d$1,isValidElement:tn,findDOMNode:un,Component:_$1,PureComponent:E,memo:g,forwardRef:x,flushSync:ln,unstable_batchedUpdates:on,StrictMode:d$1,Suspense:L,SuspenseList:M,lazy:F,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:Q};
+  function S(n,t){for(var e in t)n[e]=t[e];return n}function C(n,t){for(var e in n)if("__source"!==e&&!(e in t))return !0;for(var r in t)if("__source"!==r&&n[r]!==t[r])return !0;return !1}function E(n){this.props=n;}(E.prototype=new _).isPureReactComponent=!0,E.prototype.shouldComponentUpdate=function(n,t){return C(this.props,n)||C(this.state,t)};var w=l$2.__b;l$2.__b=function(n){n.type&&n.type.__f&&n.ref&&(n.props.ref=n.ref,n.ref=null),w&&w(n);};var A=l$2.__e;l$2.__e=function(n,t,e){if(n.then)for(var r,u=t;u=u.__;)if((r=u.__c)&&r.__c)return null==t.__e&&(t.__e=e.__e,t.__k=e.__k),r.__c(n,t);A(n,t,e);};var O=l$2.unmount;function L(){this.__u=0,this.t=null,this.__b=null;}function U(n){var t=n.__.__c;return t&&t.__e&&t.__e(n)}function M(){this.u=null,this.o=null;}l$2.unmount=function(n){var t=n.__c;t&&t.__R&&t.__R(),t&&!0===n.__h&&(n.type=null),O&&O(n);},(L.prototype=new _).__c=function(n,t){var e=t.__c,r=this;null==r.t&&(r.t=[]),r.t.push(e);var u=U(r.__v),o=!1,i=function(){o||(o=!0,e.__R=null,u?u(l):l());};e.__R=i;var l=function(){if(!--r.__u){if(r.state.__e){var n=r.state.__e;r.__v.__k[0]=function n(t,e,r){return t&&(t.__v=null,t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)}),t.__c&&t.__c.__P===e&&(t.__e&&r.insertBefore(t.__e,t.__d),t.__c.__e=!0,t.__c.__P=r)),t}(n,n.__c.__P,n.__c.__O);}var t;for(r.setState({__e:r.__b=null});t=r.t.pop();)t.forceUpdate();}},f=!0===t.__h;r.__u++||f||r.setState({__e:r.__b=r.__v.__k[0]}),n.then(i,i);},L.prototype.componentWillUnmount=function(){this.t=[];},L.prototype.render=function(n,t){if(this.__b){if(this.__v.__k){var e=document.createElement("div"),r=this.__v.__k[0].__c;this.__v.__k[0]=function n(t,e,r){return t&&(t.__c&&t.__c.__H&&(t.__c.__H.__.forEach(function(n){"function"==typeof n.__c&&n.__c();}),t.__c.__H=null),null!=(t=S({},t)).__c&&(t.__c.__P===r&&(t.__c.__P=e),t.__c=null),t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)})),t}(this.__b,e,r.__O=r.__P);}this.__b=null;}var u=t.__e&&v$1(d$1,null,n.fallback);return u&&(u.__h=null),[v$1(d$1,null,t.__e?null:n.children),u]};var T=function(n,t,e){if(++e[1]===e[0]&&n.o.delete(t),n.props.revealOrder&&("t"!==n.props.revealOrder[0]||!n.o.size))for(e=n.u;e;){for(;e.length>3;)e.pop()();if(e[1]<e[0])break;n.u=e=e[2];}};function D(n){return this.getChildContext=function(){return n.context},n.children}function I(n){var t=this,e=n.i;t.componentWillUnmount=function(){S$1(null,t.l),t.l=null,t.i=null;},t.i&&t.i!==e&&t.componentWillUnmount(),n.__v?(t.l||(t.i=e,t.l={nodeType:1,parentNode:e,childNodes:[],appendChild:function(n){this.childNodes.push(n),t.i.appendChild(n);},insertBefore:function(n,e){this.childNodes.push(n),t.i.appendChild(n);},removeChild:function(n){this.childNodes.splice(this.childNodes.indexOf(n)>>>1,1),t.i.removeChild(n);}}),S$1(v$1(D,{context:t.context},n.__v),t.l)):t.l&&t.componentWillUnmount();}function W(n,t){return v$1(I,{__v:n,i:t})}(M.prototype=new _).__e=function(n){var t=this,e=U(t.__v),r=t.o.get(n);return r[0]++,function(u){var o=function(){t.props.revealOrder?(r.push(u),T(t,n,r)):u();};e?e(o):o();}},M.prototype.render=function(n){this.u=null,this.o=new Map;var t=A$2(n.children);n.revealOrder&&"b"===n.revealOrder[0]&&t.reverse();for(var e=t.length;e--;)this.o.set(t[e],this.u=[1,0,this.u]);return n.children},M.prototype.componentDidUpdate=M.prototype.componentDidMount=function(){var n=this;this.o.forEach(function(t,e){T(n,e,t);});};var j="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.element")||60103,P=/^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|fill|flood|font|glyph(?!R)|horiz|marker(?!H|W|U)|overline|paint|stop|strikethrough|stroke|text(?!L)|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/,V=function(n){return ("undefined"!=typeof Symbol&&"symbol"==typeof Symbol()?/fil|che|rad/i:/fil|che|ra/i).test(n)};_.prototype.isReactComponent={},["componentWillMount","componentWillReceiveProps","componentWillUpdate"].forEach(function(n){Object.defineProperty(_.prototype,n,{configurable:!0,get:function(){return this["UNSAFE_"+n]},set:function(t){Object.defineProperty(this,n,{configurable:!0,writable:!0,value:t});}});});var H=l$2.event;function Z(){}function Y(){return this.cancelBubble}function $(){return this.defaultPrevented}l$2.event=function(n){return H&&(n=H(n)),n.persist=Z,n.isPropagationStopped=Y,n.isDefaultPrevented=$,n.nativeEvent=n};var G={configurable:!0,get:function(){return this.class}},J=l$2.vnode;l$2.vnode=function(n){var t=n.type,e=n.props,r=e;if("string"==typeof t){for(var u in r={},e){var o=e[u];"value"===u&&"defaultValue"in e&&null==o||("defaultValue"===u&&"value"in e&&null==e.value?u="value":"download"===u&&!0===o?o="":/ondoubleclick/i.test(u)?u="ondblclick":/^onchange(textarea|input)/i.test(u+t)&&!V(e.type)?u="oninput":/^on(Ani|Tra|Tou|BeforeInp)/.test(u)?u=u.toLowerCase():P.test(u)?u=u.replace(/[A-Z0-9]/,"-$&").toLowerCase():null===o&&(o=void 0),r[u]=o);}"select"==t&&r.multiple&&Array.isArray(r.value)&&(r.value=A$2(e.children).forEach(function(n){n.props.selected=-1!=r.value.indexOf(n.props.value);})),"select"==t&&null!=r.defaultValue&&(r.value=A$2(e.children).forEach(function(n){n.props.selected=r.multiple?-1!=r.defaultValue.indexOf(n.props.value):r.defaultValue==n.props.value;})),n.props=r;}t&&e.class!=e.className&&(G.enumerable="className"in e,null!=e.className&&(r.class=e.className),Object.defineProperty(r,"className",G)),n.$$typeof=j,J&&J(n);};var K=l$2.__r;l$2.__r=function(n){K&&K(n),n.__c;};
 
   var HOOKS = [
       "onChange",
@@ -41599,7 +41600,7 @@
       window.flatpickr = flatpickr;
   }
 
-  var e,o={};function n(r,t,e){if(3===r.nodeType){var o="textContent"in r?r.textContent:r.nodeValue||"";if(!1!==n.options.trim){var a=0===t||t===e.length-1;if((!(o=o.match(/^[\s\n]+$/g)&&"all"!==n.options.trim?" ":o.replace(/(^[\s\n]+|[\s\n]+$)/g,"all"===n.options.trim||a?"":" "))||" "===o)&&e.length>1&&a)return null}return o}if(1!==r.nodeType)return null;var p=String(r.nodeName).toLowerCase();if("script"===p&&!n.options.allowScripts)return null;var l,s,u=n.h(p,function(r){var t=r&&r.length;if(!t)return null;for(var e={},o=0;o<t;o++){var a=r[o],i=a.name,p=a.value;"on"===i.substring(0,2)&&n.options.allowEvents&&(p=new Function(p)),e[i]=p;}return e}(r.attributes),(s=(l=r.childNodes)&&Array.prototype.map.call(l,n).filter(i))&&s.length?s:null);return n.visitor&&n.visitor(u),u}var a,i=function(r){return r},p={};function l(r){var t=(r.type||"").toLowerCase(),e=l.map;e&&e.hasOwnProperty(t)?(r.type=e[t],r.props=Object.keys(r.props||{}).reduce(function(t,e){var o;return t[(o=e,o.replace(/-(.)/g,function(r,t){return t.toUpperCase()}))]=r.props[e],t},{})):r.type=t.replace(/[^a-z0-9-]/i,"");}var Markup = (function(t){function i(){t.apply(this,arguments);}return t&&(i.__proto__=t),(i.prototype=Object.create(t&&t.prototype)).constructor=i,i.setReviver=function(r){a=r;},i.prototype.shouldComponentUpdate=function(r){var t=this.props;return r.wrap!==t.wrap||r.type!==t.type||r.markup!==t.markup},i.prototype.setComponents=function(r){if(this.map={},r)for(var t in r)if(r.hasOwnProperty(t)){var e=t.replace(/([A-Z]+)([A-Z][a-z0-9])|([a-z0-9]+)([A-Z])/g,"$1$3-$2$4").toLowerCase();this.map[e]=r[t];}},i.prototype.render=function(t){var i=t.wrap;void 0===i&&(i=!0);var s,u=t.type,c=t.markup,m=t.components,v=t.reviver,f=t.onError,d=t["allow-scripts"],h=t["allow-events"],y=t.trim,w=function(r,t){var e={};for(var o in r)Object.prototype.hasOwnProperty.call(r,o)&&-1===t.indexOf(o)&&(e[o]=r[o]);return e}(t,["wrap","type","markup","components","reviver","onError","allow-scripts","allow-events","trim"]),C=v||this.reviver||this.constructor.prototype.reviver||a||v$1;this.setComponents(m);var g={allowScripts:d,allowEvents:h,trim:y};try{s=function(r,t,a,i,s){var u=function(r,t){var o,n,a,i,p="html"===t?"text/html":"application/xml";"html"===t?(i="body",a="<!DOCTYPE html>\n<html><body>"+r+"</body></html>"):(i="xml",a='<?xml version="1.0" encoding="UTF-8"?>\n<xml>'+r+"</xml>");try{o=(new DOMParser).parseFromString(a,p);}catch(r){n=r;}if(o||"html"!==t||((o=e||(e=function(){if(document.implementation&&document.implementation.createHTMLDocument)return document.implementation.createHTMLDocument("");var r=document.createElement("iframe");return r.style.cssText="position:absolute; left:0; top:-999em; width:1px; height:1px; overflow:hidden;",r.setAttribute("sandbox","allow-forms"),document.body.appendChild(r),r.contentWindow.document}())).open(),o.write(a),o.close()),o){var l=o.getElementsByTagName(i)[0],s=l.firstChild;return r&&!s&&(l.error="Document parse failed."),s&&"parsererror"===String(s.nodeName).toLowerCase()&&(s.removeChild(s.firstChild),s.removeChild(s.lastChild),l.error=s.textContent||s.nodeValue||n||"Unknown error",l.removeChild(s)),l}}(r,t);if(u&&u.error)throw new Error(u.error);var c=u&&u.body||u;l.map=i||p;var m=c&&function(r,t,e,a){return n.visitor=t,n.h=e,n.options=a||o,n(r)}(c,l,a,s);return l.map=null,m&&m.props&&m.props.children||null}(c,u,C,this.map,g);}catch(r){f?f({error:r}):"undefined"!=typeof console&&console.error&&console.error("preact-markup: "+r);}if(!1===i)return s||null;var x=w.hasOwnProperty("className")?"className":"class",b=w[x];return b?b.splice?b.splice(0,0,"markup"):"string"==typeof b?w[x]+=" markup":"object"==typeof b&&(b.markup=!0):w[x]="markup",C("div",w,s||null)},i}(_$1));
+  var e,o={};function n(r,t,e){if(3===r.nodeType){var o="textContent"in r?r.textContent:r.nodeValue||"";if(!1!==n.options.trim){var a=0===t||t===e.length-1;if((!(o=o.match(/^[\s\n]+$/g)&&"all"!==n.options.trim?" ":o.replace(/(^[\s\n]+|[\s\n]+$)/g,"all"===n.options.trim||a?"":" "))||" "===o)&&e.length>1&&a)return null}return o}if(1!==r.nodeType)return null;var p=String(r.nodeName).toLowerCase();if("script"===p&&!n.options.allowScripts)return null;var l,s,u=n.h(p,function(r){var t=r&&r.length;if(!t)return null;for(var e={},o=0;o<t;o++){var a=r[o],i=a.name,p=a.value;"on"===i.substring(0,2)&&n.options.allowEvents&&(p=new Function(p)),e[i]=p;}return e}(r.attributes),(s=(l=r.childNodes)&&Array.prototype.map.call(l,n).filter(i))&&s.length?s:null);return n.visitor&&n.visitor(u),u}var a,i=function(r){return r},p={};function l(r){var t=(r.type||"").toLowerCase(),e=l.map;e&&e.hasOwnProperty(t)?(r.type=e[t],r.props=Object.keys(r.props||{}).reduce(function(t,e){var o;return t[(o=e,o.replace(/-(.)/g,function(r,t){return t.toUpperCase()}))]=r.props[e],t},{})):r.type=t.replace(/[^a-z0-9-]/i,"");}var Markup = (function(t){function i(){t.apply(this,arguments);}return t&&(i.__proto__=t),(i.prototype=Object.create(t&&t.prototype)).constructor=i,i.setReviver=function(r){a=r;},i.prototype.shouldComponentUpdate=function(r){var t=this.props;return r.wrap!==t.wrap||r.type!==t.type||r.markup!==t.markup},i.prototype.setComponents=function(r){if(this.map={},r)for(var t in r)if(r.hasOwnProperty(t)){var e=t.replace(/([A-Z]+)([A-Z][a-z0-9])|([a-z0-9]+)([A-Z])/g,"$1$3-$2$4").toLowerCase();this.map[e]=r[t];}},i.prototype.render=function(t){var i=t.wrap;void 0===i&&(i=!0);var s,u=t.type,c=t.markup,m=t.components,v=t.reviver,f=t.onError,d=t["allow-scripts"],h=t["allow-events"],y=t.trim,w=function(r,t){var e={};for(var o in r)Object.prototype.hasOwnProperty.call(r,o)&&-1===t.indexOf(o)&&(e[o]=r[o]);return e}(t,["wrap","type","markup","components","reviver","onError","allow-scripts","allow-events","trim"]),C=v||this.reviver||this.constructor.prototype.reviver||a||v$1;this.setComponents(m);var g={allowScripts:d,allowEvents:h,trim:y};try{s=function(r,t,a,i,s){var u=function(r,t){var o,n,a,i,p="html"===t?"text/html":"application/xml";"html"===t?(i="body",a="<!DOCTYPE html>\n<html><body>"+r+"</body></html>"):(i="xml",a='<?xml version="1.0" encoding="UTF-8"?>\n<xml>'+r+"</xml>");try{o=(new DOMParser).parseFromString(a,p);}catch(r){n=r;}if(o||"html"!==t||((o=e||(e=function(){if(document.implementation&&document.implementation.createHTMLDocument)return document.implementation.createHTMLDocument("");var r=document.createElement("iframe");return r.style.cssText="position:absolute; left:0; top:-999em; width:1px; height:1px; overflow:hidden;",r.setAttribute("sandbox","allow-forms"),document.body.appendChild(r),r.contentWindow.document}())).open(),o.write(a),o.close()),o){var l=o.getElementsByTagName(i)[0],s=l.firstChild;return r&&!s&&(l.error="Document parse failed."),s&&"parsererror"===String(s.nodeName).toLowerCase()&&(s.removeChild(s.firstChild),s.removeChild(s.lastChild),l.error=s.textContent||s.nodeValue||n||"Unknown error",l.removeChild(s)),l}}(r,t);if(u&&u.error)throw new Error(u.error);var c=u&&u.body||u;l.map=i||p;var m=c&&function(r,t,e,a){return n.visitor=t,n.h=e,n.options=a||o,n(r)}(c,l,a,s);return l.map=null,m&&m.props&&m.props.children||null}(c,u,C,this.map,g);}catch(r){f?f({error:r}):"undefined"!=typeof console&&console.error&&console.error("preact-markup: "+r);}if(!1===i)return s||null;var x=w.hasOwnProperty("className")?"className":"class",b=w[x];return b?b.splice?b.splice(0,0,"markup"):"string"==typeof b?w[x]+=" markup":"object"==typeof b&&(b.markup=!0):w[x]="markup",C("div",w,s||null)},i}(_));
 
   const CLASS_PATTERN = /^class[ {]/;
 
@@ -42065,15 +42066,164 @@
     return value;
   }
 
+  const getFlavouredFeelVariableNames = (feelString, feelFlavour, options = {}) => {
+    const {
+      depth = 0,
+      specialDepthAccessors = {}
+    } = options;
+    if (!['expression', 'unaryTest'].includes(feelFlavour)) return [];
+    const tree = feelFlavour === 'expression' ? parseExpressions$1(feelString) : parseUnaryTests$1(feelString);
+    const simpleExpressionTree = _buildSimpleFeelStructureTree(tree, feelString);
+    return function _unfoldVariables(node) {
+      if (node.name === 'PathExpression') {
+        if (Object.keys(specialDepthAccessors).length === 0) {
+          return depth === 0 ? [_getVariableNameAtPathIndex(node, 0)] : [];
+        }
+
+        // if using special depth accessors, use a more complex extraction
+        return Array.from(_smartExtractVariableNames(node, depth, specialDepthAccessors));
+      }
+      if (depth === 0 && node.name === 'VariableName') return [node.variableName];
+
+      // for any other kind of node, traverse its children and flatten the result
+      if (node.children) {
+        return node.children.reduce((acc, child) => {
+          return acc.concat(_unfoldVariables(child));
+        }, []);
+      }
+      return [];
+    }(simpleExpressionTree);
+  };
+
+  /**
+   * Get the variable name at the specified index in a given path expression.
+   *
+   * @param {Object} root - The root node of the path expression tree.
+   * @param {number} index - The index of the variable name to retrieve.
+   * @returns {string|null} The variable name at the specified index or null if index is out of bounds.
+   */
+  const _getVariableNameAtPathIndex = (root, index) => {
+    const accessors = _deconstructPathExpression(root);
+    return accessors[index] || null;
+  };
+
+  /**
+   * Extracts the variables which are required of the external context for a given path expression.
+   * This is done by traversing the path expression tree and keeping track of the current depth relative to the external context.
+   *
+   * @param {Object} node - The root node of the path expression tree.
+   * @param {number} initialDepth - The depth at which the root node is located in the outer context.
+   * @param {Object} specialDepthAccessors - Definitions of special keywords which represent more complex accesses of the outer context.
+   * @returns {Set} - A set containing the extracted variable names.
+   */
+  const _smartExtractVariableNames = (node, initialDepth, specialDepthAccessors) => {
+    // depth info represents the previous (initialised as null) and current depth of the current accessor in the path expression
+    // we track multiple of these to account for the fact that a path expression may be ambiguous due to special keywords
+    let accessorDepthInfos = [{
+      previous: null,
+      current: initialDepth - 1
+    }];
+    const extractedVariables = new Set();
+    const nodeAccessors = _deconstructPathExpression(node);
+    for (let i = 0; i < nodeAccessors.length; i++) {
+      const currentAccessor = nodeAccessors[i];
+      if (currentAccessor in specialDepthAccessors) {
+        const depthOffsets = specialDepthAccessors[currentAccessor];
+
+        // if the current accessor is a special keyword, we need to expand the current depth info set
+        // this is done to account for the ambiguity of keywords like parent, which may be used to access
+        // the parent of the current node, or a child variable of the same name
+        accessorDepthInfos = depthOffsets.reduce((accumulator, offset) => {
+          return [...accumulator, ...accessorDepthInfos.map(depthInfo => ({
+            previous: depthInfo.current,
+            current: depthInfo.current + offset
+          }))];
+        }, []).filter(depthInfo => depthInfo.current >= -1); // discard all depth infos which are out of bounds
+      } else {
+        // if the current accessor is not a special keyword, we know it's simply accessing a child
+        // hence we are now one level deeper in the tree and simply increment
+        accessorDepthInfos = accessorDepthInfos.map(depthInfo => ({
+          previous: depthInfo.current,
+          current: depthInfo.current + 1
+        }));
+      }
+
+      // finally, we check if for the current accessor, there is a scenario where:
+      // previous it was at depth -1 (i.e. the root context), and is now at depth 0 (i.e. a variable)
+      // these are the variables we need to request, so we add them to the set
+      if (accessorDepthInfos.some(depthInfo => depthInfo.previous === -1 && depthInfo.current === 0)) {
+        extractedVariables.add(currentAccessor);
+      }
+    }
+
+    // we return a set to avoid duplicates
+    return new Set(extractedVariables);
+  };
+
+  /**
+   * Deconstructs a path expression tree into an array of components.
+   *
+   * @param {Object} root - The root node of the path expression tree.
+   * @returns {Array<string>} An array of components in the path expression, in the correct order.
+   */
+  const _deconstructPathExpression = root => {
+    let node = root;
+    let parts = [];
+
+    // Traverse the tree and collect path components
+    while (node.name === 'PathExpression') {
+      parts.push(node.children[1].variableName);
+      node = node.children[0];
+    }
+
+    // Add the last component to the array
+    parts.push(node.variableName);
+
+    // Reverse and return the array to get the correct order
+    return parts.reverse();
+  };
+
+  /**
+   * Builds a simplified feel structure tree from the given parse tree and feel string.
+   * The nodes follow this structure: `{ name: string, children: Array, variableName?: string }`
+   *
+   * @param {Object} parseTree - The parse tree generated by a parser.
+   * @param {string} feelString - The feel string used for parsing.
+   * @returns {Object} The simplified feel structure tree.
+   */
+  const _buildSimpleFeelStructureTree = (parseTree, feelString) => {
+    const stack = [{
+      children: []
+    }];
+    parseTree.iterate({
+      enter: node => {
+        const nodeRepresentation = {
+          name: node.type.name,
+          children: []
+        };
+        if (node.type.name === 'VariableName') {
+          nodeRepresentation.variableName = feelString.slice(node.from, node.to);
+        }
+        stack.push(nodeRepresentation);
+      },
+      leave: () => {
+        const result = stack.pop();
+        const parent = stack[stack.length - 1];
+        parent.children.push(result);
+      }
+    });
+    return stack[0].children[0];
+  };
+
   class FeelExpressionLanguage {
     constructor(eventBus) {
       this._eventBus = eventBus;
     }
 
     /**
-     * Determines if the given string is a FEEL expression.
+     * Determines if the given value is a FEEL expression.
      *
-     * @param {string} value
+     * @param {any} value
      * @returns {boolean}
      *
      */
@@ -42097,12 +42247,10 @@
       if (!this.isExpression(expression)) {
         return [];
       }
-      if (type === 'unaryTest') {
-        return this._getUnaryVariableNames(expression);
-      } else if (type === 'expression') {
-        return this._getExpressionVariableNames(expression);
+      if (!['unaryTest', 'expression'].includes(type)) {
+        throw new Error('Unknown expression type: ' + type);
       }
-      throw new Error('Unknown expression type: ' + options.type);
+      return getFlavouredFeelVariableNames(expression, type);
     }
 
     /**
@@ -42130,37 +42278,52 @@
         return null;
       }
     }
-    _getExpressionVariableNames(expression) {
-      const tree = parseExpressions$1(expression);
-      const cursor = tree.cursor();
-      const variables = new Set();
-      do {
-        const node = cursor.node;
-        if (node.type.name === 'VariableName') {
-          variables.add(expression.slice(node.from, node.to));
-        }
-      } while (cursor.next());
-      return Array.from(variables);
-    }
-    _getUnaryVariableNames(unaryTest) {
-      const tree = parseUnaryTests$1(unaryTest);
-      const cursor = tree.cursor();
-      const variables = new Set();
-      do {
-        const node = cursor.node;
-        if (node.type.name === 'VariableName') {
-          variables.add(unaryTest.slice(node.from, node.to));
-        }
-      } while (cursor.next());
-      return Array.from(variables);
-    }
   }
   FeelExpressionLanguage.$inject = ['eventBus'];
 
   class FeelersTemplating {
     constructor() {}
+
+    /**
+     * Determines if the given value is a feelers template.
+     *
+     * @param {any} value
+     * @returns {boolean}
+     *
+     */
     isTemplate(value) {
-      return isString$3(value) && (value.startsWith('=') || /{{/.test(value));
+      return isString$3(value) && (value.startsWith('=') || /{{.*?}}/.test(value));
+    }
+
+    /**
+     * Retrieve variable names from a given feelers template.
+     *
+     * @param {string} template
+     *
+     * @returns {string[]}
+     */
+    getVariableNames(template) {
+      if (!this.isTemplate(template)) {
+        return [];
+      }
+      const expressions = this._extractExpressionsWithDepth(template);
+
+      // defines special accessors, and the change(s) in depth they could imply (e.g. parent can be used to access the parent context (depth - 1) or a child variable named parent (depth + 1)
+      const specialDepthAccessors = {
+        parent: [-1, 1],
+        _parent_: [-1],
+        this: [0, 1],
+        _this_: [0]
+      };
+      return expressions.reduce((variables, {
+        expression,
+        depth
+      }) => {
+        return variables.concat(getFlavouredFeelVariableNames(expression, 'expression', {
+          depth,
+          specialDepthAccessors
+        }));
+      }, []);
     }
 
     /**
@@ -42186,6 +42349,50 @@
         strict,
         buildDebugString
       });
+    }
+
+    /**
+    * @typedef {Object} ExpressionWithDepth
+    * @property {number} depth - The depth of the expression in the syntax tree.
+    * @property {string} expression - The extracted expression
+    */
+
+    /**
+    * Extracts all feel expressions in the template along with their depth in the syntax tree.
+    * The depth is incremented for child expressions of loops to account for context drilling.
+    * @name extractExpressionsWithDepth
+    * @param {string} template - A feelers template string.
+    * @returns {Array<ExpressionWithDepth>} An array of objects, each containing the depth and the extracted expression.
+    *
+    * @example
+    * const template = "Hello {{user}}, you have:{{#loop items}}\n- {{amount}} {{name}}{{/loop}}.";
+    * const extractedExpressions = _extractExpressionsWithDepth(template);
+    */
+    _extractExpressionsWithDepth(template) {
+      // build simplified feelers syntax tree
+      const parseTree = parser.parse(template);
+      const tree = buildSimpleTree(parseTree, template);
+      return function _traverse(n, depth = 0) {
+        if (['Feel', 'FeelBlock'].includes(n.name)) {
+          return [{
+            depth,
+            expression: n.content
+          }];
+        }
+        if (n.name === 'LoopSpanner') {
+          const loopExpression = n.children[0].content;
+          const childResults = n.children.slice(1).reduce((acc, child) => {
+            return acc.concat(_traverse(child, depth + 1));
+          }, []);
+          return [{
+            depth,
+            expression: loopExpression
+          }, ...childResults];
+        }
+        return n.children.reduce((acc, child) => {
+          return acc.concat(_traverse(child, depth));
+        }, []);
+      }(tree);
     }
   }
   FeelersTemplating.$inject = [];
@@ -42321,6 +42528,30 @@
   var slice = Array.prototype.slice;
 
   /**
+   * @typedef { {
+   *   stopPropagation(): void;
+   *   preventDefault(): void;
+   *   cancelBubble: boolean;
+   *   defaultPrevented: boolean;
+   *   returnValue: any;
+   * } } Event
+   */
+
+  /**
+   * @template E
+   *
+   * @typedef { (event: E & Event, ...any) => any } EventBusEventCallback
+   */
+
+  /**
+   * @typedef { {
+   *  priority: number;
+   *  next: EventBusListener | null;
+   *  callback: EventBusEventCallback<any>;
+   * } } EventBusListener
+   */
+
+  /**
    * A general purpose event bus.
    *
    * This component is used to communicate across a diagram instance.
@@ -42404,6 +42635,9 @@
    * ```
    */
   function EventBus() {
+    /**
+     * @type { Record<string, EventBusListener> }
+     */
     this._listeners = {};
 
     // cleanup on destroy on lowest priority to allow
@@ -42423,10 +42657,12 @@
    *
    * Returning anything but `undefined` from a listener will stop the listener propagation.
    *
-   * @param {string|Array<string>} events
-   * @param {number} [priority=1000] the priority in which this listener is called, larger is higher
-   * @param {Function} callback
-   * @param {Object} [that] Pass context (`this`) to the callback
+   * @template T
+   *
+   * @param {string|string[]} events to subscribe to
+   * @param {number} [priority=1000] listen priority
+   * @param {EventBusEventCallback<T>} callback
+   * @param {any} [that] callback context
    */
   EventBus.prototype.on = function (events, priority, callback, that) {
     events = isArray$3(events) ? events : [events];
@@ -42458,14 +42694,16 @@
   };
 
   /**
-   * Register an event listener that is executed only once.
+   * Register an event listener that is called only once.
    *
-   * @param {string} event the event name to register for
-   * @param {number} [priority=1000] the priority in which this listener is called, larger is higher
-   * @param {Function} callback the callback to execute
-   * @param {Object} [that] Pass context (`this`) to the callback
+   * @template T
+   *
+   * @param {string|string[]} events to subscribe to
+   * @param {number} [priority=1000] the listen priority
+   * @param {EventBusEventCallback<T>} callback
+   * @param {any} [that] callback context
    */
-  EventBus.prototype.once = function (event, priority, callback, that) {
+  EventBus.prototype.once = function (events, priority, callback, that) {
     var self = this;
     if (isFunction(priority)) {
       that = callback;
@@ -42478,7 +42716,7 @@
     function wrappedCallback() {
       wrappedCallback.__isTomb = true;
       var result = callback.apply(that, arguments);
-      self.off(event, wrappedCallback);
+      self.off(events, wrappedCallback);
       return result;
     }
 
@@ -42486,7 +42724,7 @@
     // bound callbacks via {@link #off} using the original
     // callback
     wrappedCallback[FN_REF] = callback;
-    this.on(event, priority, wrappedCallback);
+    this.on(events, priority, wrappedCallback);
   };
 
   /**
@@ -42494,8 +42732,8 @@
    *
    * If no callback is given, all listeners for a given event name are being removed.
    *
-   * @param {string|Array<string>} events
-   * @param {Function} [callback]
+   * @param {string|string[]} events
+   * @param {EventBusEventCallback} [callback]
    */
   EventBus.prototype.off = function (events, callback) {
     events = isArray$3(events) ? events : [events];
@@ -42506,11 +42744,11 @@
   };
 
   /**
-   * Create an EventBus event.
+   * Create an event recognized be the event bus.
    *
-   * @param {Object} data
+   * @param {Object} data Event data.
    *
-   * @return {Object} event, recognized by the eventBus
+   * @return {Event} An event that will be recognized by the event bus.
    */
   EventBus.prototype.createEvent = function (data) {
     var event = new InternalEvent();
@@ -42519,10 +42757,11 @@
   };
 
   /**
-   * Fires a named event.
+   * Fires an event.
    *
    * @example
    *
+   * ```javascript
    * // fire event by name
    * events.fire('foo');
    *
@@ -42540,13 +42779,13 @@
    * });
    *
    * events.fire({ type: 'foo' }, 'I am bar!');
+   * ```
    *
-   * @param {string} [name] the optional event name
-   * @param {Object} [event] the event object
-   * @param {...Object} additional arguments to be passed to the callback functions
+   * @param {string} [type] event type
+   * @param {Object} [data] event or event data
+   * @param {...any} [args] additional arguments the callback will be called with.
    *
-   * @return {boolean} the events return value, if specified or false if the
-   *                   default action was prevented by listeners
+   * @return {any} The return value. Will be set to `false` if the default was prevented.
    */
   EventBus.prototype.fire = function (type, data) {
     var event, firstListener, returnValue, args;
@@ -42598,6 +42837,14 @@
     }
     return returnValue;
   };
+
+  /**
+   * Handle an error by firing an event.
+   *
+   * @param {Error} error The error to be handled.
+   *
+   * @return {boolean} Whether the error was handled.
+   */
   EventBus.prototype.handleError = function (error) {
     return this.fire('error', {
       error: error
@@ -42606,6 +42853,14 @@
   EventBus.prototype._destroy = function () {
     this._listeners = {};
   };
+
+  /**
+   * @param {Event} event
+   * @param {any[]} args
+   * @param {EventBusListener} listener
+   *
+   * @return {any}
+   */
   EventBus.prototype._invokeListeners = function (event, args, listener) {
     var returnValue;
     while (listener) {
@@ -42618,6 +42873,14 @@
     }
     return returnValue;
   };
+
+  /**
+   * @param {Event} event
+   * @param {any[]} args
+   * @param {EventBusListener} listener
+   *
+   * @return {any}
+   */
   EventBus.prototype._invokeListener = function (event, args, listener) {
     var returnValue;
     if (listener.callback.__isTomb) {
@@ -42646,7 +42909,7 @@
     return returnValue;
   };
 
-  /*
+  /**
    * Add new listener with a certain priority to the list
    * of listeners (for the given event).
    *
@@ -42660,7 +42923,7 @@
    *    * after: [ 1500, 1500, (new=1300), 1000, 1000, (new=1000) ]
    *
    * @param {string} event
-   * @param {Object} listener { priority, callback }
+   * @param {EventBusListener} listener
    */
   EventBus.prototype._addListener = function (event, newListener) {
     var listener = this._getListeners(event),
@@ -42691,9 +42954,20 @@
     // add new listener to back
     previousListener.next = newListener;
   };
+
+  /**
+   * @param {string} name
+   *
+   * @return {EventBusListener}
+   */
   EventBus.prototype._getListeners = function (name) {
     return this._listeners[name];
   };
+
+  /**
+   * @param {string} name
+   * @param {EventBusListener} listener
+   */
   EventBus.prototype._setListeners = function (name, listener) {
     this._listeners[name] = listener;
   };
@@ -42741,9 +43015,9 @@
    * Invoke function. Be fast...
    *
    * @param {Function} fn
-   * @param {Array<Object>} args
+   * @param {any[]} args
    *
-   * @return {Any}
+   * @return {any}
    */
   function invokeFunction(fn, args) {
     return fn.apply(null, args);
@@ -42776,7 +43050,13 @@
 
   const EMAIL_PATTERN = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   const PHONE_PATTERN = /(\+|00)(297|93|244|1264|358|355|376|971|54|374|1684|1268|61|43|994|257|32|229|226|880|359|973|1242|387|590|375|501|1441|591|55|1246|673|975|267|236|1|61|41|56|86|225|237|243|242|682|57|269|238|506|53|5999|61|1345|357|420|49|253|1767|45|1809|1829|1849|213|593|20|291|212|34|372|251|358|679|500|33|298|691|241|44|995|44|233|350|224|590|220|245|240|30|1473|299|502|594|1671|592|852|504|385|509|36|62|44|91|246|353|98|964|354|972|39|1876|44|962|81|76|77|254|996|855|686|1869|82|383|965|856|961|231|218|1758|423|94|266|370|352|371|853|590|212|377|373|261|960|52|692|389|223|356|95|382|976|1670|258|222|1664|596|230|265|60|262|264|687|227|672|234|505|683|31|47|977|674|64|968|92|507|64|51|63|680|675|48|1787|1939|850|351|595|970|689|974|262|40|7|250|966|249|221|65|500|4779|677|232|503|378|252|508|381|211|239|597|421|386|46|268|1721|248|963|1649|235|228|66|992|690|993|670|676|1868|216|90|688|886|255|256|380|598|1|998|3906698|379|1784|58|1284|1340|84|678|681|685|967|27|260|263)(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\d{4,20}$/;
+  const VALIDATE_FEEL_PROPERTIES = ['min', 'max', 'minLength', 'maxLength'];
   class Validator {
+    constructor(expressionLanguage, conditionChecker, form) {
+      this._expressionLanguage = expressionLanguage;
+      this._conditionChecker = conditionChecker;
+      this._form = form;
+    }
     validateField(field, value) {
       const {
         type,
@@ -42809,34 +43089,76 @@
       if (!validate) {
         return errors;
       }
-      if (validate.pattern && value && !new RegExp(validate.pattern).test(value)) {
-        errors = [...errors, `Field must match pattern ${validate.pattern}.`];
+      const evaluatedValidation = evaluateFEELValues(validate, this._expressionLanguage, this._conditionChecker, this._form);
+      if (evaluatedValidation.pattern && value && !new RegExp(evaluatedValidation.pattern).test(value)) {
+        errors = [...errors, `Field must match pattern ${evaluatedValidation.pattern}.`];
       }
-      if (validate.required && (isNil(value) || value === '')) {
-        errors = [...errors, 'Field is required.'];
+      if (evaluatedValidation.required) {
+        const isUncheckedCheckbox = type === 'checkbox' && value === false;
+        const isUnsetValue = isNil(value) || value === '';
+        const isEmptyMultiselect = Array.isArray(value) && value.length === 0;
+        if (isUncheckedCheckbox || isUnsetValue || isEmptyMultiselect) {
+          errors = [...errors, 'Field is required.'];
+        }
       }
-      if ('min' in validate && (value || value === 0) && value < validate.min) {
-        errors = [...errors, `Field must have minimum value of ${validate.min}.`];
+      if ('min' in evaluatedValidation && (value || value === 0) && value < evaluatedValidation.min) {
+        errors = [...errors, `Field must have minimum value of ${evaluatedValidation.min}.`];
       }
-      if ('max' in validate && (value || value === 0) && value > validate.max) {
-        errors = [...errors, `Field must have maximum value of ${validate.max}.`];
+      if ('max' in evaluatedValidation && (value || value === 0) && value > evaluatedValidation.max) {
+        errors = [...errors, `Field must have maximum value of ${evaluatedValidation.max}.`];
       }
-      if ('minLength' in validate && value && value.trim().length < validate.minLength) {
-        errors = [...errors, `Field must have minimum length of ${validate.minLength}.`];
+      if ('minLength' in evaluatedValidation && value && value.trim().length < evaluatedValidation.minLength) {
+        errors = [...errors, `Field must have minimum length of ${evaluatedValidation.minLength}.`];
       }
-      if ('maxLength' in validate && value && value.trim().length > validate.maxLength) {
-        errors = [...errors, `Field must have maximum length of ${validate.maxLength}.`];
+      if ('maxLength' in evaluatedValidation && value && value.trim().length > evaluatedValidation.maxLength) {
+        errors = [...errors, `Field must have maximum length of ${evaluatedValidation.maxLength}.`];
       }
-      if ('validationType' in validate && value && validate.validationType === 'phone' && !PHONE_PATTERN.test(value)) {
+      if ('validationType' in evaluatedValidation && value && evaluatedValidation.validationType === 'phone' && !PHONE_PATTERN.test(value)) {
         errors = [...errors, 'Field must be a valid  international phone number. (e.g. +4930664040900)'];
       }
-      if ('validationType' in validate && value && validate.validationType === 'email' && !EMAIL_PATTERN.test(value)) {
+      if ('validationType' in evaluatedValidation && value && evaluatedValidation.validationType === 'email' && !EMAIL_PATTERN.test(value)) {
         errors = [...errors, 'Field must be a valid email.'];
       }
       return errors;
     }
   }
-  Validator.$inject = [];
+  Validator.$inject = ['expressionLanguage', 'conditionChecker', 'form'];
+
+  // helpers //////////
+
+  /**
+   * Helper function to evaluate optional FEEL validation values.
+   */
+  function evaluateFEELValues(validate, expressionLanguage, conditionChecker, form) {
+    const evaluatedValidate = {
+      ...validate
+    };
+    VALIDATE_FEEL_PROPERTIES.forEach(property => {
+      const path = property.split('.');
+      const value = get(evaluatedValidate, path);
+
+      // mirroring FEEL evaluation of our hooks
+      if (!expressionLanguage || !expressionLanguage.isExpression(value)) {
+        return value;
+      }
+      const {
+        initialData,
+        data
+      } = form._getState();
+      const newData = conditionChecker ? conditionChecker.applyConditions(data, data) : data;
+      const filteredData = {
+        ...initialData,
+        ...newData
+      };
+      const evaluatedValue = expressionLanguage.evaluate(value, filteredData);
+
+      // replace validate property with evaluated value
+      if (evaluatedValue) {
+        set(evaluatedValidate, path, evaluatedValue);
+      }
+    });
+    return evaluatedValidate;
+  }
 
   class FormFieldRegistry {
     constructor(eventBus) {
@@ -43065,7 +43387,8 @@
     return container;
   }
 
-  const EXPRESSION_PROPERTIES = ['alt', 'source', 'text'];
+  const EXPRESSION_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'conditional.hide', 'description', 'label', 'source', 'readonly', 'text', 'validate.min', 'validate.max', 'validate.minLength', 'validate.maxLength', 'valuesExpression'];
+  const TEMPLATE_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'description', 'label', 'source', 'text'];
   function findErrors(errors, path) {
     return errors[pathStringify(path)];
   }
@@ -43105,7 +43428,7 @@
    *
    * @return {string[]}
    */
-  function getSchemaVariables(schema, expressionLanguage = new FeelExpressionLanguage(null)) {
+  function getSchemaVariables(schema, expressionLanguage = new FeelExpressionLanguage(null), templating = new FeelersTemplating()) {
     if (!schema.components) {
       return [];
     }
@@ -43113,8 +43436,7 @@
       const {
         key,
         valuesKey,
-        type,
-        conditional
+        type
       } = component;
       if (['button'].includes(type)) {
         return variables;
@@ -43125,19 +43447,20 @@
       if (valuesKey) {
         variables = [...variables, valuesKey];
       }
-      if (conditional && conditional.hide) {
-        const conditionVariables = expressionLanguage.getVariableNames(conditional.hide, {
-          type: 'unaryTest'
-        });
-        variables = [...variables, ...conditionVariables];
-      }
       EXPRESSION_PROPERTIES.forEach(prop => {
-        const property = component[prop];
+        const property = get(component, prop.split('.'));
         if (property && expressionLanguage.isExpression(property)) {
           const expressionVariables = expressionLanguage.getVariableNames(property, {
             type: 'expression'
           });
           variables = [...variables, ...expressionVariables];
+        }
+      });
+      TEMPLATE_PROPERTIES.forEach(prop => {
+        const property = get(component, prop.split('.'));
+        if (property && !expressionLanguage.isExpression(property) && templating.isTemplate(property)) {
+          const templateVariables = templating.getVariableNames(property);
+          variables = [...variables, ...templateVariables];
         }
       });
       return variables;
@@ -43262,16 +43585,18 @@
         // if unavailable - get empty value from form field
 
         if (_path) {
-          const fieldImplementation = this._formFields.get(type);
+          const {
+            config: fieldConfig
+          } = this._formFields.get(type);
           let valueData = get(data, _path);
-          if (!isUndefined$1(valueData) && fieldImplementation.sanitizeValue) {
-            valueData = fieldImplementation.sanitizeValue({
+          if (!isUndefined$1(valueData) && fieldConfig.sanitizeValue) {
+            valueData = fieldConfig.sanitizeValue({
               formField,
               data,
               value: valueData
             });
           }
-          const initializedFieldValue = !isUndefined$1(valueData) ? valueData : !isUndefined$1(defaultValue) ? defaultValue : fieldImplementation.emptyValue;
+          const initializedFieldValue = !isUndefined$1(valueData) ? valueData : !isUndefined$1(defaultValue) ? defaultValue : fieldConfig.emptyValue;
           initializedData = {
             ...initializedData,
             [_path[0]]: initializedFieldValue
@@ -43289,14 +43614,16 @@
 
   function formFieldClasses(type, {
     errors = [],
-    disabled = false
+    disabled = false,
+    readonly = false
   } = {}) {
     if (!type) {
       throw new Error('type required');
     }
     return classNames('fjs-form-field', `fjs-form-field-${type}`, {
       'fjs-has-errors': errors.length > 0,
-      'fjs-disabled': disabled
+      'fjs-disabled': disabled,
+      'fjs-readonly': readonly
     });
   }
   function gridColumnClasses(formField) {
@@ -43336,14 +43663,16 @@
       })
     });
   }
-  Button.create = (options = {}) => ({
-    action: 'submit',
-    ...options
-  });
-  Button.type = type$b;
-  Button.label = 'Button';
-  Button.keyed = true;
-  Button.group = 'action';
+  Button.config = {
+    type: type$b,
+    keyed: true,
+    label: 'Button',
+    group: 'action',
+    create: (options = {}) => ({
+      action: 'submit',
+      ...options
+    })
+  };
 
   const FormRenderContext = D$1({
     Empty: props => {
@@ -43392,28 +43721,177 @@
   });
   var FormContext$1 = FormContext;
 
+  function useService(type, strict) {
+    const {
+      getService
+    } = F(FormContext$1);
+    return getService(type, strict);
+  }
+
+  /**
+   * Returns the conditionally filtered data of a form reactively.
+   * Memoised to minimize re-renders
+   *
+   */
+  function useFilteredFormData() {
+    const {
+      initialData,
+      data
+    } = useService('form')._getState();
+    const conditionChecker = useService('conditionChecker', false);
+    return d(() => {
+      const newData = conditionChecker ? conditionChecker.applyConditions(data, data) : data;
+      return {
+        ...initialData,
+        ...newData
+      };
+    }, [conditionChecker, data, initialData]);
+  }
+
+  /**
+   * Evaluate if condition is met reactively based on the conditionChecker and form data.
+   *
+   * @param {string | undefined} condition
+   *
+   * @returns {boolean} true if condition is met or no condition or condition checker exists
+   */
+  function useCondition(condition) {
+    const conditionChecker = useService('conditionChecker', false);
+    const filteredData = useFilteredFormData();
+    return d(() => {
+      return conditionChecker ? conditionChecker.check(condition, filteredData) : null;
+    }, [conditionChecker, condition, filteredData]);
+  }
+
+  /**
+   * Evaluate a string reactively based on the expressionLanguage and form data.
+   * If the string is not an expression, it is returned as is.
+   * Memoised to minimize re-renders.
+   *
+   * @param {string} value
+   *
+   */
+  function useExpressionEvaluation(value) {
+    const formData = useFilteredFormData();
+    const expressionLanguage = useService('expressionLanguage');
+    return d(() => {
+      if (expressionLanguage && expressionLanguage.isExpression(value)) {
+        return expressionLanguage.evaluate(value, formData);
+      }
+      return value;
+    }, [expressionLanguage, formData, value]);
+  }
+
+  function useKeyDownAction(targetKey, action, listenerElement = window) {
+    function downHandler({
+      key
+    }) {
+      if (key === targetKey) {
+        action();
+      }
+    }
+    y(() => {
+      listenerElement.addEventListener('keydown', downHandler);
+      return () => {
+        listenerElement.removeEventListener('keydown', downHandler);
+      };
+    });
+  }
+
+  /**
+   * Retrieve readonly value of a form field, given it can be an
+   * expression optionally or configured globally.
+   *
+   * @typedef { import('../../types').FormProperties } FormProperties
+   *
+   * @param {any} formField
+   * @param {FormProperties} properties
+   *
+   * @returns {boolean}
+   */
+  function useReadonly(formField, properties = {}) {
+    const expressionLanguage = useService('expressionLanguage');
+    const conditionChecker = useService('conditionChecker', false);
+    const filteredData = useFilteredFormData();
+    const {
+      readonly
+    } = formField;
+    if (properties.readOnly) {
+      return true;
+    }
+    if (expressionLanguage && expressionLanguage.isExpression(readonly)) {
+      return conditionChecker ? conditionChecker.check(readonly, filteredData) : false;
+    }
+    return readonly || false;
+  }
+
+  /**
+   * Template a string reactively based on form data. If the string is not a template, it is returned as is.
+   * Memoised to minimize re-renders
+   *
+   * @param {string} value
+   * @param {Object} options
+   * @param {boolean} [options.debug = false]
+   * @param {boolean} [options.strict = false]
+   * @param {Function} [options.buildDebugString]
+   *
+   */
+  function useTemplateEvaluation(value, options) {
+    const filteredData = useFilteredFormData();
+    const templating = useService('templating');
+    return d(() => {
+      if (templating && templating.isTemplate(value)) {
+        return templating.evaluate(value, filteredData, options);
+      }
+      return value;
+    }, [filteredData, templating, value, options]);
+  }
+
+  /**
+   * Template a string reactively based on form data. If the string is not a template, it is returned as is.
+   * If the string contains multiple lines, only the first line is returned.
+   * Memoised to minimize re-renders
+   *
+   * @param {string} value
+   * @param {Object} [options]
+   * @param {boolean} [options.debug = false]
+   * @param {boolean} [options.strict = false]
+   * @param {Function} [options.buildDebugString]
+   *
+   */
+  function useSingleLineTemplateEvaluation(value, options = {}) {
+    const evaluatedTemplate = useTemplateEvaluation(value, options);
+    return d(() => evaluatedTemplate && evaluatedTemplate.split('\n')[0], [evaluatedTemplate]);
+  }
+
   function Description(props) {
     const {
       description
     } = props;
-    if (!description) {
+    const evaluatedDescription = useSingleLineTemplateEvaluation(description || '', {
+      debug: true
+    });
+    if (!evaluatedDescription) {
       return null;
     }
     return e$2("div", {
       class: "fjs-form-field-description",
-      children: description
+      children: evaluatedDescription
     });
   }
 
   function Errors(props) {
     const {
-      errors
+      errors,
+      id
     } = props;
     if (!errors.length) {
       return null;
     }
     return e$2("div", {
       class: "fjs-form-field-error",
+      "aria-live": "polite",
+      id: id,
       children: e$2("ul", {
         children: errors.map(error => {
           return e$2("li", {
@@ -43431,12 +43909,15 @@
       collapseOnEmpty = true,
       required = false
     } = props;
+    const evaluatedLabel = useSingleLineTemplateEvaluation(label || '', {
+      debug: true
+    });
     return e$2("label", {
       for: id,
       class: classNames('fjs-form-field-label', {
         'fjs-incollapsible-label': !collapseOnEmpty
       }, props['class']),
-      children: [props.children, label || '', required && e$2("span", {
+      children: [props.children, evaluatedLabel, required && e$2("span", {
         class: "fjs-asterix",
         children: "*"
       })]
@@ -43449,13 +43930,18 @@
       disabled,
       errors = [],
       field,
+      readonly,
       value = false
     } = props;
     const {
       description,
       id,
-      label
+      label,
+      validate = {}
     } = field;
+    const {
+      required
+    } = validate;
     const onChange = ({
       target
     }) => {
@@ -43466,44 +43952,51 @@
     };
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
+    const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
       class: classNames(formFieldClasses(type$a, {
         errors,
-        disabled
+        disabled,
+        readonly
       }), {
         'fjs-checked': value
       }),
       children: [e$2(Label, {
         id: prefixId(id, formId),
         label: label,
-        required: false,
+        required: required,
         children: e$2("input", {
           checked: value,
           class: "fjs-input",
           disabled: disabled,
+          readOnly: readonly,
           id: prefixId(id, formId),
           type: "checkbox",
-          onChange: onChange
+          onChange: onChange,
+          "aria-describedby": errorMessageId
         })
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: errors
+        errors: errors,
+        id: errorMessageId
       })]
     });
   }
-  Checkbox.create = (options = {}) => ({
-    ...options
-  });
-  Checkbox.type = type$a;
-  Checkbox.label = 'Checkbox';
-  Checkbox.keyed = true;
-  Checkbox.emptyValue = false;
-  Checkbox.sanitizeValue = ({
-    value
-  }) => value === true;
-  Checkbox.group = 'selection';
+  Checkbox.config = {
+    type: type$a,
+    keyed: true,
+    label: 'Checkbox',
+    group: 'selection',
+    emptyValue: false,
+    sanitizeValue: ({
+      value
+    }) => value === true,
+    create: (options = {}) => ({
+      ...options
+    })
+  };
 
   // parses the options data from the provided form field and form data
   function getValuesData(formField, formData) {
@@ -43551,13 +44044,6 @@
     return value || value === 0 || value === false;
   }
 
-  function useService(type, strict) {
-    const {
-      getService
-    } = F$1(FormContext$1);
-    return getService(type, strict);
-  }
-
   /**
    * @enum { String }
    */
@@ -43581,6 +44067,7 @@
    */
   function useValuesAsync (field) {
     const {
+      valuesExpression,
       valuesKey,
       values: staticValues
     } = field;
@@ -43590,6 +44077,11 @@
       state: LOAD_STATES.LOADING
     });
     const initialData = useService('form')._getState().initialData;
+    const evaluatedValues = d(() => {
+      if (valuesExpression) {
+        return useExpressionEvaluation(valuesExpression);
+      }
+    }, [valuesExpression]);
     y(() => {
       let values = [];
 
@@ -43599,11 +44091,14 @@
         if (keyedValues && Array.isArray(keyedValues)) {
           values = keyedValues;
         }
-      }
 
-      // static values
-      else if (staticValues !== undefined) {
+        // static values
+      } else if (staticValues !== undefined) {
         values = Array.isArray(staticValues) ? staticValues : [];
+
+        // expression
+      } else if (evaluatedValues && Array.isArray(evaluatedValues)) {
+        values = evaluatedValues;
       } else {
         setValuesGetter(buildErrorState('No values source defined in the form definition'));
         return;
@@ -43839,13 +44334,18 @@
       disabled,
       errors = [],
       field,
+      readonly,
       value = []
     } = props;
     const {
       description,
       id,
-      label
+      label,
+      validate = {}
     } = field;
+    const {
+      required
+    } = validate;
     const toggleCheckbox = v => {
       let newValue = [...value];
       if (!newValue.includes(v)) {
@@ -43864,14 +44364,17 @@
     } = useValuesAsync(field);
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
+    const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
       class: classNames(formFieldClasses(type$9, {
         errors,
-        disabled
+        disabled,
+        readonly
       })),
       children: [e$2(Label, {
-        label: label
+        label: label,
+        required: required
       }), loadState == LOAD_STATES.LOADED && options.map((v, index) => {
         return e$2(Label, {
           id: prefixId(`${id}-${index}`, formId),
@@ -43884,131 +44387,44 @@
             checked: value.includes(v.value),
             class: "fjs-input",
             disabled: disabled,
+            readOnly: readonly,
             id: prefixId(`${id}-${index}`, formId),
             type: "checkbox",
-            onClick: () => toggleCheckbox(v.value)
+            onClick: () => toggleCheckbox(v.value),
+            "aria-describedby": errorMessageId
           })
         }, `${id}-${index}`);
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: errors
+        errors: errors,
+        id: errorMessageId
       })]
     });
   }
-  Checklist.create = (options = {}) => {
-    const defaults = {};
+  Checklist.config = {
+    type: type$9,
+    keyed: true,
+    label: 'Checklist',
+    group: 'selection',
+    emptyValue: [],
+    sanitizeValue: sanitizeMultiSelectValue,
+    create: (options = {}) => {
+      const defaults = {};
 
-    // provide default values if valuesKey isn't set
-    if (!options.valuesKey) {
-      defaults.values = [{
-        label: 'Value',
-        value: 'value'
-      }];
-    }
-    return {
-      ...defaults,
-      ...options
-    };
-  };
-  Checklist.type = type$9;
-  Checklist.label = 'Checklist';
-  Checklist.keyed = true;
-  Checklist.emptyValue = [];
-  Checklist.sanitizeValue = sanitizeMultiSelectValue;
-  Checklist.group = 'selection';
-
-  /**
-   * Returns the conditionally filtered data of a form reactively.
-   * Memoised to minimize re-renders
-   *
-   */
-  function useFilteredFormData() {
-    const {
-      initialData,
-      data
-    } = useService('form')._getState();
-    const conditionChecker = useService('conditionChecker', false);
-    return d(() => {
-      const newData = conditionChecker ? conditionChecker.applyConditions(data, data) : data;
+      // provide default values if valuesKey isn't set
+      if (!options.valuesKey) {
+        defaults.values = [{
+          label: 'Value',
+          value: 'value'
+        }];
+      }
       return {
-        ...initialData,
-        ...newData
+        ...defaults,
+        ...options
       };
-    }, [conditionChecker, data, initialData]);
-  }
-
-  /**
-   * Evaluate if condition is met reactively based on the conditionChecker and form data.
-   *
-   * @param {string | undefined} condition
-   *
-   * @returns {boolean} true if condition is met or no condition or condition checker exists
-   */
-  function useCondition(condition) {
-    const conditionChecker = useService('conditionChecker', false);
-    const filteredData = useFilteredFormData();
-    return d(() => {
-      return conditionChecker ? conditionChecker.check(condition, filteredData) : null;
-    }, [conditionChecker, condition, filteredData]);
-  }
-
-  /**
-   * Evaluate a string reactively based on the expressionLanguage and form data.
-   * If the string is not an expression, it is returned as is.
-   * Memoised to minimize re-renders.
-   *
-   * @param {string} value
-   *
-   */
-  function useExpressionEvaluation(value) {
-    const formData = useFilteredFormData();
-    const expressionLanguage = useService('expressionLanguage');
-    return d(() => {
-      if (expressionLanguage && expressionLanguage.isExpression(value)) {
-        return expressionLanguage.evaluate(value, formData);
-      }
-      return value;
-    }, [expressionLanguage, formData, value]);
-  }
-
-  function useKeyDownAction(targetKey, action, listenerElement = window) {
-    function downHandler({
-      key
-    }) {
-      if (key === targetKey) {
-        action();
-      }
     }
-    y(() => {
-      listenerElement.addEventListener('keydown', downHandler);
-      return () => {
-        listenerElement.removeEventListener('keydown', downHandler);
-      };
-    });
-  }
-
-  /**
-   * Template a string reactively based on form data. If the string is not a template, it is returned as is.
-   * Memoised to minimize re-renders
-   *
-   * @param {string} value
-   * @param {Object} options
-   * @param {boolean} [options.debug = false]
-   * @param {boolean} [options.strict = false]
-   * @param {Function} [options.buildDebugString]
-   *
-   */
-  function useTemplateEvaluation(value, options) {
-    const filteredData = useFilteredFormData();
-    const templating = useService('templating');
-    return d(() => {
-      if (templating.isTemplate(value)) {
-        return templating.evaluate(value, filteredData, options);
-      }
-      return value;
-    }, [filteredData, templating, value, options]);
-  }
+  };
 
   const noop$1 = () => false;
   function FormField(props) {
@@ -44016,9 +44432,6 @@
       field,
       onChange
     } = props;
-    const {
-      _path
-    } = field;
     const formFields = useService('formFields'),
       form = useService('form');
     const {
@@ -44030,14 +44443,17 @@
       Element,
       Empty,
       Column
-    } = F$1(FormRenderContext$1);
+    } = F(FormRenderContext$1);
     const FormFieldComponent = formFields.get(field.type);
     if (!FormFieldComponent) {
       throw new Error(`cannot render field <${field.type}>`);
     }
-    const value = get(data, _path);
-    const fieldErrors = findErrors(errors, _path);
-    const disabled = properties.readOnly || field.disabled || false;
+    const value = get(data, field._path);
+    const fieldErrors = findErrors(errors, field._path);
+    const readonly = useReadonly(field, properties);
+
+    // add precedence: global readonly > form field disabled
+    const disabled = !properties.readOnly && (properties.disabled || field.disabled || false);
     const hidden = useCondition(field.conditional && field.conditional.hide || null);
     if (hidden) {
       return e$2(Empty, {});
@@ -44052,7 +44468,8 @@
           ...props,
           disabled: disabled,
           errors: fieldErrors,
-          onChange: disabled ? noop$1 : onChange,
+          onChange: disabled || readonly ? noop$1 : onChange,
+          readonly: readonly,
           value: value
         })
       })
@@ -44064,7 +44481,7 @@
       Children,
       Empty,
       Row
-    } = F$1(FormRenderContext$1);
+    } = F(FormRenderContext$1);
     const {
       field
     } = props;
@@ -44103,58 +44520,63 @@
       }), components.length ? null : e$2(Empty, {})]
     });
   }
-  Default.create = (options = {}) => ({
-    components: [],
-    ...options
-  });
-  Default.type = 'default';
-  Default.keyed = false;
-  Default.label = null;
-  Default.group = null;
+  Default.config = {
+    type: 'default',
+    keyed: false,
+    label: null,
+    group: null,
+    create: (options = {}) => ({
+      components: [],
+      ...options
+    })
+  };
 
+  var _path$g;
   function _extends$j() { _extends$j = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$j.apply(this, arguments); }
-  var CalendarIcon = (({
-    styles = {},
-    ...props
-  }) => /*#__PURE__*/React.createElement("svg", _extends$j({
-    width: "14",
-    height: "15",
-    viewBox: "0 0 28 30",
-    fill: "none",
-    xmlns: "http://www.w3.org/2000/svg"
-  }, props), /*#__PURE__*/React.createElement("path", {
-    fillRule: "evenodd",
-    clipRule: "evenodd",
-    fill: "currentColor",
-    d: "M19 2H9V0H7v2H2a2 2 0 00-2 2v24a2 2 0 002 2h24a2 2 0 002-2V4a2 2 0 00-2-2h-5V0h-2v2zM7 7V4H2v5h24V4h-5v3h-2V4H9v3H7zm-5 4v17h24V11H2z"
-  })));
+  var SvgCalendar = function SvgCalendar(props) {
+    return /*#__PURE__*/v$1("svg", _extends$j({
+      xmlns: "http://www.w3.org/2000/svg",
+      width: 14,
+      height: 15,
+      fill: "none",
+      viewBox: "0 0 28 30"
+    }, props), _path$g || (_path$g = /*#__PURE__*/v$1("path", {
+      fill: "currentColor",
+      fillRule: "evenodd",
+      d: "M19 2H9V0H7v2H2a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-5V0h-2v2ZM7 7V4H2v5h24V4h-5v3h-2V4H9v3H7Zm-5 4v17h24V11H2Z",
+      clipRule: "evenodd"
+    })));
+  };
+  var CalendarIcon = SvgCalendar;
 
   function InputAdorner(props) {
     const {
-      pre = null,
-      post = null,
+      pre,
+      post,
       rootRef,
       inputRef,
       children,
       disabled,
+      readonly,
       hasErrors
     } = props;
     const onAdornmentClick = () => inputRef && inputRef.current && inputRef.current.focus();
     return e$2("div", {
       class: classNames('fjs-input-group', {
-        'fjs-disabled': disabled
+        'fjs-disabled': disabled,
+        'fjs-readonly': readonly
       }, {
         'hasErrors': hasErrors
       }),
       ref: rootRef,
-      children: [pre !== null && e$2("span", {
+      children: [pre && e$2("span", {
         class: "fjs-input-adornment border-right border-radius-left",
         onClick: onAdornmentClick,
         children: [" ", isString$3(pre) ? e$2("span", {
           class: "fjs-input-adornment-text",
           children: pre
         }) : pre, " "]
-      }), children, post !== null && e$2("span", {
+      }), children, post && e$2("span", {
         class: "fjs-input-adornment border-left border-radius-right",
         onClick: onAdornmentClick,
         children: [" ", isString$3(post) ? e$2("span", {
@@ -44175,6 +44597,7 @@
       disabled,
       disallowPassedDates,
       date,
+      readonly,
       setDate
     } = props;
     const dateInputRef = s();
@@ -44254,9 +44677,9 @@
       }
     }, [flatpickrInstance, isInputDirty]);
     const onInputFocus = A$1(e => {
-      if (!flatpickrInstance || focusScopeRef.current.contains(e.relatedTarget)) return;
+      if (!flatpickrInstance || focusScopeRef.current.contains(e.relatedTarget) || readonly) return;
       flatpickrInstance.open();
-    }, [flatpickrInstance]);
+    }, [flatpickrInstance, readonly]);
 
     // simulate an enter press on blur to make sure the date value is submitted in all scenarios
     const onInputBlur = A$1(e => {
@@ -44275,6 +44698,7 @@
       }), e$2(InputAdorner, {
         pre: e$2(CalendarIcon, {}),
         disabled: disabled,
+        readonly: readonly,
         rootRef: focusScopeRef,
         inputRef: dateInputRef,
         children: e$2("div", {
@@ -44286,41 +44710,44 @@
             ref: dateInputRef,
             type: "text",
             id: fullId,
-            class: 'fjs-input',
+            class: "fjs-input",
             disabled: disabled,
+            readOnly: readonly,
             placeholder: "mm/dd/yyyy",
             autoComplete: "off",
             onFocus: onInputFocus,
             onKeyDown: onInputKeyDown,
-            onMouseDown: e => !flatpickrInstance.isOpen && flatpickrInstance.open(),
+            onMouseDown: () => !flatpickrInstance.isOpen && !readonly && flatpickrInstance.open(),
             onBlur: onInputBlur,
-            onInput: e => setIsInputDirty(true),
-            "data-input": true
+            onInput: () => setIsInputDirty(true),
+            "data-input": true,
+            "aria-describedby": props['aria-describedby']
           })
         })
       })]
     });
   }
 
+  var _path$f, _path2$3;
   function _extends$i() { _extends$i = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$i.apply(this, arguments); }
-  var ClockIcon = (({
-    styles = {},
-    ...props
-  }) => /*#__PURE__*/React.createElement("svg", _extends$i({
-    width: "16",
-    height: "16",
-    viewBox: "0 0 28 29",
-    fill: "none",
-    xmlns: "http://www.w3.org/2000/svg"
-  }, props), /*#__PURE__*/React.createElement("path", {
-    fill: "currentColor",
-    d: "M13 14.41L18.59 20 20 18.59l-5-5.01V5h-2v9.41z"
-  }), /*#__PURE__*/React.createElement("path", {
-    fillRule: "evenodd",
-    clipRule: "evenodd",
-    fill: "currentColor",
-    d: "M6.222 25.64A14 14 0 1021.778 2.36 14 14 0 006.222 25.64zM7.333 4.023a12 12 0 1113.334 19.955A12 12 0 017.333 4.022z"
-  })));
+  var SvgClock = function SvgClock(props) {
+    return /*#__PURE__*/v$1("svg", _extends$i({
+      xmlns: "http://www.w3.org/2000/svg",
+      width: 16,
+      height: 16,
+      fill: "none",
+      viewBox: "0 0 28 29"
+    }, props), _path$f || (_path$f = /*#__PURE__*/v$1("path", {
+      fill: "currentColor",
+      d: "M13 14.41 18.59 20 20 18.59l-5-5.01V5h-2v9.41Z"
+    })), _path2$3 || (_path2$3 = /*#__PURE__*/v$1("path", {
+      fill: "currentColor",
+      fillRule: "evenodd",
+      d: "M6.222 25.64A14 14 0 1 0 21.778 2.36 14 14 0 0 0 6.222 25.64ZM7.333 4.023a12 12 0 1 1 13.334 19.955A12 12 0 0 1 7.333 4.022Z",
+      clipRule: "evenodd"
+    })));
+  };
+  var ClockIcon = SvgClock;
 
   const DEFAULT_LABEL_GETTER = value => value;
   const NOOP = () => {};
@@ -44425,14 +44852,22 @@
       formId,
       required,
       disabled,
+      readonly,
       use24h = false,
       timeInterval,
       time,
       setTime
     } = props;
+    const safeTimeInterval = d(() => {
+      const allowedIntervals = [1, 5, 10, 15, 30, 60];
+      if (allowedIntervals.includes(timeInterval)) {
+        return timeInterval;
+      }
+      return 15;
+    }, [timeInterval]);
     const timeInputRef = s();
     const [dropdownIsOpen, setDropdownIsOpen] = l$1(false);
-    const useDropdown = d(() => timeInterval !== 1, [timeInterval]);
+    const useDropdown = d(() => safeTimeInterval !== 1, [safeTimeInterval]);
     const [rawValue, setRawValue] = l$1('');
 
     // populates values from source
@@ -44441,12 +44876,12 @@
         setRawValue('');
         return;
       }
-      const intervalAdjustedTime = time - time % timeInterval;
+      const intervalAdjustedTime = time - time % safeTimeInterval;
       setRawValue(formatTime(use24h, intervalAdjustedTime));
       if (intervalAdjustedTime != time) {
         setTime(intervalAdjustedTime);
       }
-    }, [time, setTime, use24h, timeInterval]);
+    }, [time, setTime, use24h, safeTimeInterval]);
     const propagateRawToMinute = A$1(newRawValue => {
       const localRawValue = newRawValue || rawValue;
 
@@ -44465,34 +44900,34 @@
       }
 
       // Enforce the minutes to match the timeInterval
-      const correctedMinutes = minutes - minutes % timeInterval;
+      const correctedMinutes = minutes - minutes % safeTimeInterval;
 
       // Enforce the raw text to be formatted properly
       setRawValue(formatTime(use24h, correctedMinutes));
       setTime(correctedMinutes);
-    }, [rawValue, timeInterval, use24h, setTime]);
+    }, [rawValue, safeTimeInterval, use24h, setTime]);
     const timeOptions = d(() => {
       const minutesInDay = 24 * 60;
-      const intervalCount = Math.floor(minutesInDay / timeInterval);
-      return [...Array(intervalCount).keys()].map(intervalIndex => formatTime(use24h, intervalIndex * timeInterval));
-    }, [timeInterval, use24h]);
+      const intervalCount = Math.floor(minutesInDay / safeTimeInterval);
+      return [...Array(intervalCount).keys()].map(intervalIndex => formatTime(use24h, intervalIndex * safeTimeInterval));
+    }, [safeTimeInterval, use24h]);
     const initialFocusIndex = d(() => {
       // if there are no options, there will not be any focusing
-      if (!timeOptions || !timeInterval) return null;
+      if (!timeOptions || !safeTimeInterval) return null;
 
       // if there is a set minute value, we focus it in the dropdown
-      if (time) return time / timeInterval;
+      if (time) return time / safeTimeInterval;
       const cacheTime = parseInputTime(rawValue);
 
       // if there is a valid value in the input cache, we try and focus close to it
       if (cacheTime) {
-        const flooredCacheTime = cacheTime - cacheTime % timeInterval;
-        return flooredCacheTime / timeInterval;
+        const flooredCacheTime = cacheTime - cacheTime % safeTimeInterval;
+        return flooredCacheTime / safeTimeInterval;
       }
 
       // If there is no set value, simply focus the middle of the dropdown (12:00)
       return Math.floor(timeOptions.length / 2);
-    }, [rawValue, time, timeInterval, timeOptions]);
+    }, [rawValue, time, safeTimeInterval, timeOptions]);
     const onInputKeyDown = e => {
       switch (e.key) {
         case 'ArrowUp':
@@ -44530,6 +44965,7 @@
         pre: e$2(ClockIcon, {}),
         inputRef: timeInputRef,
         disabled: disabled,
+        readonly: readonly,
         children: e$2("div", {
           class: "fjs-timepicker fjs-timepicker-anchor",
           children: [e$2("input", {
@@ -44539,10 +44975,11 @@
             class: "fjs-input",
             value: rawValue,
             disabled: disabled,
+            readOnly: readonly,
             placeholder: use24h ? 'hh:mm' : 'hh:mm ?m',
             autoComplete: "off",
-            onFocus: () => useDropdown && setDropdownIsOpen(true),
-            onClick: () => useDropdown && setDropdownIsOpen(true)
+            onFocus: () => !readonly && useDropdown && setDropdownIsOpen(true),
+            onClick: () => !readonly && useDropdown && setDropdownIsOpen(true)
 
             // @ts-ignore
             ,
@@ -44552,7 +44989,8 @@
             },
             onBlur: onInputBlur,
             onKeyDown: onInputKeyDown,
-            "data-input": true
+            "data-input": true,
+            "aria-describedby": props['aria-describedby']
           }), dropdownIsOpen && e$2(DropdownList, {
             values: timeOptions,
             height: 150,
@@ -44572,6 +45010,7 @@
       errors = [],
       field,
       onChange,
+      readonly,
       value = ''
     } = props;
     const {
@@ -44591,7 +45030,7 @@
     } = validate;
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
     const getNullDateTime = () => ({
       date: new Date(Date.parse(null)),
       time: null
@@ -44688,6 +45127,7 @@
         time
       });
     }, []);
+    const errorMessageId = allErrors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     const datePickerProps = {
       id,
       label: dateLabel,
@@ -44697,7 +45137,9 @@
       disabled,
       disallowPassedDates,
       date: dateTime.date,
-      setDate
+      readonly,
+      setDate,
+      'aria-describedby': errorMessageId
     };
     const timePickerProps = {
       id,
@@ -44706,15 +45148,18 @@
       formId,
       required,
       disabled,
+      readonly,
       use24h,
       timeInterval,
       time: dateTime.time,
-      setTime
+      setTime,
+      'aria-describedby': errorMessageId
     };
     return e$2("div", {
       class: formFieldClasses(type$8, {
         errors: allErrors,
-        disabled
+        disabled,
+        readonly
       }),
       children: [e$2("div", {
         class: classNames('fjs-vertical-group'),
@@ -44728,25 +45173,28 @@
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: allErrors
+        errors: allErrors,
+        id: errorMessageId
       })]
     });
   }
-  Datetime.create = (options = {}) => {
-    const defaults = {};
-    set(defaults, DATETIME_SUBTYPE_PATH, DATETIME_SUBTYPES.DATE);
-    set(defaults, DATE_LABEL_PATH, 'Date');
-    return {
-      ...defaults,
-      ...options
-    };
+  Datetime.config = {
+    type: type$8,
+    keyed: true,
+    label: 'Date time',
+    group: 'basic-input',
+    emptyValue: null,
+    sanitizeValue: sanitizeDateTimePickerValue,
+    create: (options = {}) => {
+      const defaults = {};
+      set(defaults, DATETIME_SUBTYPE_PATH, DATETIME_SUBTYPES.DATE);
+      set(defaults, DATE_LABEL_PATH, 'Date');
+      return {
+        ...defaults,
+        ...options
+      };
+    }
   };
-  Datetime.type = type$8;
-  Datetime.keyed = true;
-  Datetime.emptyValue = null;
-  Datetime.sanitizeValue = sanitizeDateTimePickerValue;
-  Datetime.label = 'Date time';
-  Datetime.group = 'basic-input';
 
   /**
    * This file must not be changed or exchanged.
@@ -44790,7 +45238,7 @@
           href: "https://bpmn.io",
           target: "_blank",
           rel: "noopener",
-          style: "margin: 15px 20px 15px 10px; align-self: center; color: #404040",
+          style: "margin: 15px 20px 15px 10px; align-self: center; color: var(--cds-icon-primary, #404040)",
           children: e$2(Logo, {})
         }), e$2("span", {
           children: ["Web-based tooling for BPMN, DMN, and forms powered by ", e$2("a", {
@@ -44813,7 +45261,7 @@
         rel: "noopener",
         class: "fjs-powered-by-link",
         title: "Powered by bpmn.io",
-        style: "color: #404040",
+        style: "color: var(--cds-text-primary, #404040)",
         onClick: props.onClick,
         children: e$2(Logo, {})
       })
@@ -44841,8 +45289,12 @@
   function FormComponent(props) {
     const form = useService('form');
     const {
-      schema
+      schema,
+      properties
     } = form._getState();
+    const {
+      ariaLabel
+    } = properties;
     const {
       onSubmit = noop,
       onReset = noop,
@@ -44860,6 +45312,7 @@
       class: "fjs-form",
       onSubmit: handleSubmit,
       onReset: handleReset,
+      "aria-label": ariaLabel,
       noValidate: true,
       children: [e$2(FormField, {
         field: schema,
@@ -44870,7 +45323,7 @@
 
   const NODE_TYPE_TEXT = 3,
     NODE_TYPE_ELEMENT = 1;
-  const ALLOWED_NODES = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'em', 'a', 'p', 'div', 'ul', 'ol', 'li', 'hr', 'blockquote', 'img', 'pre', 'code', 'br', 'strong'];
+  const ALLOWED_NODES = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'em', 'a', 'p', 'div', 'ul', 'ol', 'li', 'hr', 'blockquote', 'img', 'pre', 'code', 'br', 'strong', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
   const ALLOWED_ATTRIBUTES = ['align', 'alt', 'class', 'href', 'id', 'name', 'rel', 'target', 'src'];
   const ALLOWED_URI_PATTERN = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i; // eslint-disable-line no-useless-escape
   const ALLOWED_IMAGE_SRC_PATTERN = /^(https?|data):.*/i; // eslint-disable-line no-useless-escape
@@ -44996,34 +45449,45 @@
   }
 
   function _extends$h() { _extends$h = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$h.apply(this, arguments); }
-  var ImagePlaceholder = (({
-    styles = {},
-    ...props
-  }) => /*#__PURE__*/React.createElement("svg", _extends$h({
-    width: "64",
-    height: "64",
-    viewBox: "0 0 1280 1280",
-    xmlns: "http://www.w3.org/2000/svg",
-    fillRule: "evenodd",
-    clipRule: "evenodd",
-    strokeLinejoin: "round",
-    strokeMiterlimit: "2"
-  }, props), /*#__PURE__*/React.createElement("path", {
-    fill: "#e5e9ed",
-    d: "M0 0h1280v1280H0z"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M910 410H370v470h540V410zm-57.333 57.333v355.334H427.333V467.333h425.334z",
-    fill: "#cad3db"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M810 770H480v-60l100-170 130 170 100-65v125z",
-    fill: "#cad3db"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "750",
-    cy: "550",
-    r: "50",
-    fill: "#cad3db",
-    transform: "translate(10 10)"
-  })));
+  var SvgImagePlaceholder = function SvgImagePlaceholder(props) {
+    return /*#__PURE__*/v$1("svg", _extends$h({
+      xmlns: "http://www.w3.org/2000/svg",
+      xmlSpace: "preserve",
+      width: 64,
+      height: 64,
+      style: {
+        fillRule: "evenodd",
+        clipRule: "evenodd",
+        strokeLinejoin: "round",
+        strokeMiterlimit: 2
+      },
+      viewBox: "0 0 1280 1280"
+    }, props), /*#__PURE__*/v$1("path", {
+      d: "M0 0h1280v1280H0z",
+      style: {
+        fill: "#e5e9ed"
+      }
+    }), /*#__PURE__*/v$1("path", {
+      d: "M910 410H370v470h540V410Zm-57.333 57.333v355.334H427.333V467.333h425.334Z",
+      style: {
+        fill: "#cad3db"
+      }
+    }), /*#__PURE__*/v$1("path", {
+      d: "M810 770H480v-60l100-170 130 170 100-65v125Z",
+      style: {
+        fill: "#cad3db"
+      }
+    }), /*#__PURE__*/v$1("circle", {
+      cx: 750,
+      cy: 550,
+      r: 50,
+      style: {
+        fill: "#cad3db"
+      },
+      transform: "translate(10 10)"
+    }));
+  };
+  var ImagePlaceholder = SvgImagePlaceholder;
 
   const type$7 = 'image';
   function Image(props) {
@@ -45035,12 +45499,16 @@
       id,
       source
     } = field;
-    const evaluatedImageSource = useExpressionEvaluation(source);
+    const evaluatedImageSource = useSingleLineTemplateEvaluation(source, {
+      debug: true
+    });
     const safeSource = d(() => sanitizeImageSource(evaluatedImageSource), [evaluatedImageSource]);
-    const altText = useExpressionEvaluation(alt);
+    const altText = useSingleLineTemplateEvaluation(alt, {
+      debug: true
+    });
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
     return e$2("div", {
       class: formFieldClasses(type$7),
       children: e$2("div", {
@@ -45059,47 +45527,69 @@
       })
     });
   }
-  Image.create = (options = {}) => ({
-    ...options
-  });
-  Image.type = type$7;
-  Image.keyed = false;
-  Image.label = 'Image view';
-  Image.group = 'presentation';
+  Image.config = {
+    type: type$7,
+    keyed: false,
+    label: 'Image view',
+    group: 'presentation',
+    create: (options = {}) => ({
+      ...options
+    })
+  };
 
+  function TemplatedInputAdorner(props) {
+    const {
+      pre,
+      post
+    } = props;
+    const evaluatedPre = useSingleLineTemplateEvaluation(pre, {
+      debug: true
+    });
+    const evaluatedPost = useSingleLineTemplateEvaluation(post, {
+      debug: true
+    });
+    return e$2(InputAdorner, {
+      ...props,
+      pre: evaluatedPre,
+      post: evaluatedPost
+    });
+  }
+
+  var _path$e;
   function _extends$g() { _extends$g = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$g.apply(this, arguments); }
-  var AngelDownIcon = (({
-    styles = {},
-    ...props
-  }) => /*#__PURE__*/React.createElement("svg", _extends$g({
-    xmlns: "http://www.w3.org/2000/svg",
-    width: "8",
-    height: "8"
-  }, props), /*#__PURE__*/React.createElement("path", {
-    fillRule: "evenodd",
-    clipRule: "evenodd",
-    fill: "currentColor",
-    stroke: "currentColor",
-    strokeWidth: ".5",
-    d: "M7.75 1.336L4 6.125.258 1.335 0 1.54l4 5.125L8 1.54zm0 0"
-  })));
+  var SvgAngelDown = function SvgAngelDown(props) {
+    return /*#__PURE__*/v$1("svg", _extends$g({
+      xmlns: "http://www.w3.org/2000/svg",
+      width: 8,
+      height: 8
+    }, props), _path$e || (_path$e = /*#__PURE__*/v$1("path", {
+      fill: "currentColor",
+      fillRule: "evenodd",
+      stroke: "currentColor",
+      strokeWidth: 0.5,
+      d: "M7.75 1.336 4 6.125.258 1.335 0 1.54l4 5.125L8 1.54Zm0 0",
+      clipRule: "evenodd"
+    })));
+  };
+  var AngelDownIcon = SvgAngelDown;
 
+  var _path$d;
   function _extends$f() { _extends$f = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$f.apply(this, arguments); }
-  var AngelUpIcon = (({
-    styles = {},
-    ...props
-  }) => /*#__PURE__*/React.createElement("svg", _extends$f({
-    xmlns: "http://www.w3.org/2000/svg",
-    width: "8",
-    height: "8"
-  }, props), /*#__PURE__*/React.createElement("path", {
-    fillRule: "evenodd",
-    clipRule: "evenodd",
-    fill: "currentColor",
-    stroke: "currentColor",
-    strokeWidth: ".5",
-    d: "M7.75 6.664L4 1.875.258 6.665 0 6.46l4-5.125L8 6.46zm0 0"
-  })));
+  var SvgAngelUp = function SvgAngelUp(props) {
+    return /*#__PURE__*/v$1("svg", _extends$f({
+      xmlns: "http://www.w3.org/2000/svg",
+      width: 8,
+      height: 8
+    }, props), _path$d || (_path$d = /*#__PURE__*/v$1("path", {
+      fill: "currentColor",
+      fillRule: "evenodd",
+      stroke: "currentColor",
+      strokeWidth: 0.5,
+      d: "M7.75 6.664 4 1.875.258 6.665 0 6.46l4-5.125L8 6.46Zm0 0",
+      clipRule: "evenodd"
+    })));
+  };
+  var AngelUpIcon = SvgAngelUp;
 
   const type$6 = 'number';
   function Numberfield(props) {
@@ -45108,6 +45598,7 @@
       errors = [],
       field,
       value,
+      readonly,
       onChange
     } = props;
     const {
@@ -45132,10 +45623,10 @@
 
     // checks whether the value currently in the form data is practically different from the one in the input field cache
     // this allows us to guarantee the field always displays valid form data, but without auto-simplifying values like 1.000 to 1
-    const cacheValueMatchesState = d(() => Numberfield.sanitizeValue({
+    const cacheValueMatchesState = d(() => Numberfield.config.sanitizeValue({
       value,
       formField: field
-    }) === Numberfield.sanitizeValue({
+    }) === Numberfield.config.sanitizeValue({
       value: stringValueCache,
       formField: field
     }), [stringValueCache, value, field]);
@@ -45180,6 +45671,9 @@
       });
     }, [field, onChange, serializeToString]);
     const increment = () => {
+      if (readonly) {
+        return;
+      }
       const base = isValidNumber(value) ? Big(value) : Big(0);
       const stepFlooredValue = base.minus(base.mod(arrowIncrementValue));
 
@@ -45187,6 +45681,9 @@
       setValue(stepFlooredValue.plus(arrowIncrementValue).toFixed());
     };
     const decrement = () => {
+      if (readonly) {
+        return;
+      }
       const base = isValidNumber(value) ? Big(value) : Big(0);
       const offset = base.mod(arrowIncrementValue);
       if (offset.cmp(0) === 0) {
@@ -45228,23 +45725,27 @@
     };
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
+    const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
       class: formFieldClasses(type$6, {
         errors,
-        disabled
+        disabled,
+        readonly
       }),
       children: [e$2(Label, {
         id: prefixId(id, formId),
         label: label,
         required: required
-      }), e$2(InputAdorner, {
+      }), e$2(TemplatedInputAdorner, {
         disabled: disabled,
+        readonly: readonly,
         pre: prefixAdorner,
         post: suffixAdorner,
         children: e$2("div", {
           class: classNames('fjs-vertical-group', {
-            'fjs-disabled': disabled
+            'fjs-disabled': disabled,
+            'fjs-readonly': readonly
           }, {
             'hasErrors': errors.length
           }),
@@ -45252,6 +45753,7 @@
             ref: inputRef,
             class: "fjs-input",
             disabled: disabled,
+            readOnly: readonly,
             id: prefixId(id, formId),
             onKeyDown: onKeyDown,
             onKeyPress: onKeyPress
@@ -45262,10 +45764,12 @@
             type: "text",
             autoComplete: "off",
             step: arrowIncrementValue,
-            value: displayValue
+            value: displayValue,
+            "aria-describedby": errorMessageId
           }), e$2("div", {
             class: classNames('fjs-number-arrow-container', {
-              'fjs-disabled': disabled
+              'fjs-disabled': disabled,
+              'fjs-readonly': readonly
             }),
             children: [e$2("button", {
               class: "fjs-number-arrow-up",
@@ -45289,31 +45793,34 @@
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: errors
+        errors: errors,
+        id: errorMessageId
       })]
     });
   }
-  Numberfield.create = (options = {}) => ({
-    ...options
-  });
-  Numberfield.sanitizeValue = ({
-    value,
-    formField
-  }) => {
-    // null state is allowed
-    if (isNullEquivalentValue(value)) return null;
+  Numberfield.config = {
+    type: type$6,
+    keyed: true,
+    label: 'Number',
+    group: 'basic-input',
+    emptyValue: null,
+    sanitizeValue: ({
+      value,
+      formField
+    }) => {
+      // null state is allowed
+      if (isNullEquivalentValue(value)) return null;
 
-    // if data cannot be parsed as a valid number, go into invalid NaN state
-    if (!isValidNumber(value)) return 'NaN';
+      // if data cannot be parsed as a valid number, go into invalid NaN state
+      if (!isValidNumber(value)) return 'NaN';
 
-    // otherwise parse to formatting type
-    return formField.serializeToString ? value.toString() : Number(value);
+      // otherwise parse to formatting type
+      return formField.serializeToString ? value.toString() : Number(value);
+    },
+    create: (options = {}) => ({
+      ...options
+    })
   };
-  Numberfield.type = type$6;
-  Numberfield.keyed = true;
-  Numberfield.label = 'Number';
-  Numberfield.emptyValue = null;
-  Numberfield.group = 'basic-input';
 
   const type$5 = 'radio';
   function Radio(props) {
@@ -45321,6 +45828,7 @@
       disabled,
       errors = [],
       field,
+      readonly,
       value
     } = props;
     const {
@@ -45344,11 +45852,13 @@
     } = useValuesAsync(field);
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
+    const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
       class: formFieldClasses(type$5, {
         errors,
-        disabled
+        disabled,
+        readonly
       }),
       children: [e$2(Label, {
         label: label,
@@ -45365,56 +45875,62 @@
             checked: option.value === value,
             class: "fjs-input",
             disabled: disabled,
+            readOnly: readonly,
             id: prefixId(`${id}-${index}`, formId),
             type: "radio",
-            onClick: () => onChange(option.value)
+            onClick: () => onChange(option.value),
+            "aria-describedby": errorMessageId
           })
         }, `${id}-${index}`);
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: errors
+        errors: errors,
+        id: errorMessageId
       })]
     });
   }
-  Radio.create = function (options = {}) {
-    const defaults = {};
+  Radio.config = {
+    type: type$5,
+    keyed: true,
+    label: 'Radio',
+    group: 'selection',
+    emptyValue: null,
+    sanitizeValue: sanitizeSingleSelectValue,
+    create: (options = {}) => {
+      const defaults = {};
 
-    // provide default values if valuesKey isn't set
-    if (!options.valuesKey) {
-      defaults.values = [{
-        label: 'Value',
-        value: 'value'
-      }];
+      // provide default values if valuesKey isn't set
+      if (!options.valuesKey) {
+        defaults.values = [{
+          label: 'Value',
+          value: 'value'
+        }];
+      }
+      return {
+        ...defaults,
+        ...options
+      };
     }
-    return {
-      ...defaults,
-      ...options
-    };
   };
-  Radio.type = type$5;
-  Radio.label = 'Radio';
-  Radio.keyed = true;
-  Radio.emptyValue = null;
-  Radio.sanitizeValue = sanitizeSingleSelectValue;
-  Radio.group = 'selection';
 
+  var _path$c;
   function _extends$e() { _extends$e = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$e.apply(this, arguments); }
-  var XMarkIcon = (({
-    styles = {},
-    ...props
-  }) => /*#__PURE__*/React.createElement("svg", _extends$e({
-    xmlns: "http://www.w3.org/2000/svg",
-    width: "8",
-    height: "8"
-  }, props), /*#__PURE__*/React.createElement("path", {
-    fillRule: "evenodd",
-    clipRule: "evenodd",
-    fill: "currentColor",
-    stroke: "currentColor",
-    strokeWidth: ".5",
-    d: "M4 3.766L7.43.336l.234.234L4.234 4l3.43 3.43-.234.234L4 4.234.57 7.664.336 7.43 3.766 4 .336.57.57.336zm0 0"
-  })));
+  var SvgXMark = function SvgXMark(props) {
+    return /*#__PURE__*/v$1("svg", _extends$e({
+      xmlns: "http://www.w3.org/2000/svg",
+      width: 8,
+      height: 8
+    }, props), _path$c || (_path$c = /*#__PURE__*/v$1("path", {
+      fill: "currentColor",
+      fillRule: "evenodd",
+      stroke: "currentColor",
+      strokeWidth: 0.5,
+      d: "M4 3.766 7.43.336l.234.234L4.234 4l3.43 3.43-.234.234L4 4.234.57 7.664.336 7.43 3.766 4 .336.57.57.336Zm0 0",
+      clipRule: "evenodd"
+    })));
+  };
+  var XMarkIcon = SvgXMark;
 
   function SearchableSelect(props) {
     const {
@@ -45422,11 +45938,12 @@
       disabled,
       errors,
       field,
+      readonly,
       value
     } = props;
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
     const [filter, setFilter] = l$1('');
     const [isDropdownExpanded, setIsDropdownExpanded] = l$1(false);
     const [shouldApplyFilter, setShouldApplyFilter] = l$1(true);
@@ -45494,11 +46011,11 @@
     }, [isDropdownExpanded, isEscapeClosed]);
     const displayState = d(() => {
       const ds = {};
-      ds.componentReady = !disabled && loadState === LOAD_STATES.LOADED;
+      ds.componentReady = !disabled && !readonly && loadState === LOAD_STATES.LOADED;
       ds.displayCross = ds.componentReady && value !== null && value !== undefined;
-      ds.displayDropdown = !disabled && isDropdownExpanded && !isEscapeClosed;
+      ds.displayDropdown = !disabled && !readonly && isDropdownExpanded && !isEscapeClosed;
       return ds;
-    }, [disabled, isDropdownExpanded, isEscapeClosed, loadState, value]);
+    }, [disabled, isDropdownExpanded, isEscapeClosed, loadState, readonly, value]);
     const onAngelMouseDown = A$1(e => {
       setIsEscapeClose(false);
       setIsDropdownExpanded(!isDropdownExpanded);
@@ -45510,12 +46027,14 @@
       children: [e$2("div", {
         id: prefixId(`${id}`, formId),
         class: classNames('fjs-input-group', {
-          'disabled': disabled
+          'disabled': disabled,
+          'readonly': readonly
         }, {
           'hasErrors': errors.length
         }),
         children: [e$2("input", {
           disabled: disabled,
+          readOnly: readonly,
           class: "fjs-input",
           ref: searchbarRef,
           id: prefixId(`${id}-search`, formId),
@@ -45537,7 +46056,8 @@
           onBlur: () => {
             setIsDropdownExpanded(false);
             setFilter(valueLabel);
-          }
+          },
+          "aria-describedby": props['aria-describedby']
         }), displayState.displayCross && e$2("span", {
           class: "fjs-select-cross",
           onMouseDown: e => {
@@ -45571,11 +46091,12 @@
       disabled,
       errors,
       field,
+      readonly,
       value
     } = props;
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
     const [isDropdownExpanded, setIsDropdownExpanded] = l$1(false);
     const selectRef = s();
     const {
@@ -45596,9 +46117,9 @@
     }, [field, props]);
     const displayState = d(() => {
       const ds = {};
-      ds.componentReady = !disabled && loadState === LOAD_STATES.LOADED;
+      ds.componentReady = !disabled && !readonly && loadState === LOAD_STATES.LOADED;
       ds.displayCross = ds.componentReady && value !== null && value !== undefined;
-      ds.displayDropdown = !disabled && isDropdownExpanded;
+      ds.displayDropdown = !disabled && !readonly && isDropdownExpanded;
       return ds;
     }, [disabled, isDropdownExpanded, loadState, value]);
     const onMouseDown = A$1(e => {
@@ -45617,20 +46138,27 @@
         ref: selectRef,
         id: prefixId(`${id}`, formId),
         class: classNames('fjs-input-group', {
-          'disabled': disabled
+          disabled,
+          readonly
         }, {
           'hasErrors': errors.length
         }),
         onFocus: () => setIsDropdownExpanded(true),
         onBlur: () => setIsDropdownExpanded(false),
-        onMouseDown: e => onMouseDown(e),
-        tabIndex: disabled ? undefined : 0,
+        onMouseDown: onMouseDown,
         children: [e$2("div", {
           class: classNames('fjs-select-display', {
             'fjs-select-placeholder': !value
           }),
           id: prefixId(`${id}-display`, formId),
           children: valueLabel || 'Select'
+        }), !disabled && e$2("input", {
+          id: prefixId(`${id}-search`, formId),
+          class: "fjs-select-hidden-input",
+          value: valueLabel,
+          onFocus: () => !readonly && setIsDropdownExpanded(true),
+          onBlur: () => !readonly && setIsDropdownExpanded(false),
+          "aria-describedby": props['aria-describedby']
         }), displayState.displayCross && e$2("span", {
           class: "fjs-select-cross",
           onMouseDown: e => {
@@ -45665,6 +46193,7 @@
       errors = [],
       field,
       onChange,
+      readonly,
       value
     } = props;
     const {
@@ -45679,22 +46208,32 @@
     } = validate;
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
+    const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     const selectProps = d(() => ({
       id,
       disabled,
       errors,
       field,
       value,
-      onChange
-    }), [disabled, errors, field, id, value, onChange]);
+      onChange,
+      readonly,
+      'aria-describedby': errorMessageId
+    }), [disabled, errors, field, id, value, onChange, readonly, errorMessageId]);
     return e$2("div", {
       class: formFieldClasses(type$4, {
         errors,
-        disabled
+        disabled,
+        readonly
       }),
+      onKeyDown: event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      },
       children: [e$2(Label, {
-        id: prefixId(id, formId),
+        id: prefixId(`${id}-search`, formId),
         label: label,
         required: required
       }), searchable ? e$2(SearchableSelect, {
@@ -45704,31 +46243,34 @@
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: errors
+        errors: errors,
+        id: errorMessageId
       })]
     });
   }
-  Select.create = (options = {}) => {
-    const defaults = {};
+  Select.config = {
+    type: type$4,
+    keyed: true,
+    label: 'Select',
+    group: 'selection',
+    emptyValue: null,
+    sanitizeValue: sanitizeSingleSelectValue,
+    create: (options = {}) => {
+      const defaults = {};
 
-    // provide default values if valuesKey isn't set
-    if (!options.valuesKey) {
-      defaults.values = [{
-        label: 'Value',
-        value: 'value'
-      }];
+      // provide default values if valuesKey isn't set
+      if (!options.valuesKey) {
+        defaults.values = [{
+          label: 'Value',
+          value: 'value'
+        }];
+      }
+      return {
+        ...defaults,
+        ...options
+      };
     }
-    return {
-      ...defaults,
-      ...options
-    };
   };
-  Select.type = type$4;
-  Select.label = 'Select';
-  Select.keyed = true;
-  Select.emptyValue = null;
-  Select.sanitizeValue = sanitizeSingleSelectValue;
-  Select.group = 'selection';
 
   const type$3 = 'taglist';
   function Taglist(props) {
@@ -45736,16 +46278,22 @@
       disabled,
       errors = [],
       field,
+      readonly,
       value: values = []
     } = props;
     const {
       description,
       id,
-      label
+      label,
+      validate = {}
     } = field;
     const {
+      required
+    } = validate;
+    const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
+    const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     const [filter, setFilter] = l$1('');
     const [filteredOptions, setFilteredOptions] = l$1([]);
     const [isDropdownExpanded, setIsDropdownExpanded] = l$1(false);
@@ -45821,6 +46369,10 @@
           break;
       }
     };
+    const onBlur = () => {
+      setIsDropdownExpanded(false);
+      setFilter('');
+    };
     const onTagRemoveClick = (event, value) => {
       const {
         target
@@ -45837,27 +46389,37 @@
     return e$2("div", {
       class: formFieldClasses(type$3, {
         errors,
-        disabled
+        disabled,
+        readonly
       }),
+      onKeyDown: event => {
+        if (event.key === 'Enter') {
+          event.stopPropagation();
+          event.preventDefault();
+        }
+      },
       children: [e$2(Label, {
         label: label,
+        required: required,
         id: prefixId(`${id}-search`, formId)
       }), e$2("div", {
         class: classNames('fjs-taglist', {
-          'fjs-disabled': disabled
+          'fjs-disabled': disabled,
+          'fjs-readonly': readonly
         }),
         children: [loadState === LOAD_STATES.LOADED && e$2("div", {
           class: "fjs-taglist-tags",
           children: values.map(v => {
             return e$2("div", {
               class: classNames('fjs-taglist-tag', {
-                'fjs-disabled': disabled
+                'fjs-disabled': disabled,
+                'fjs-readonly': readonly
               }),
               onMouseDown: e => e.preventDefault(),
               children: [e$2("span", {
                 class: "fjs-taglist-tag-label",
                 children: valueToOptionMap[v] ? valueToOptionMap[v].label : `unexpected value{${v}}`
-              }), !disabled && e$2("button", {
+              }), !disabled && !readonly && e$2("button", {
                 type: "button",
                 title: "Remove tag",
                 class: "fjs-taglist-tag-remove",
@@ -45868,21 +46430,22 @@
           })
         }), e$2("input", {
           disabled: disabled,
+          readOnly: readonly,
           class: "fjs-taglist-input",
           ref: searchbarRef,
           id: prefixId(`${id}-search`, formId),
           onChange: onFilterChange,
           type: "text",
           value: filter,
-          placeholder: disabled ? '' : 'Search',
+          placeholder: disabled || readonly ? undefined : 'Search',
           autoComplete: "off",
-          onKeyDown: e => onInputKeyDown(e),
+          onKeyDown: onInputKeyDown,
           onMouseDown: () => setIsEscapeClose(false),
-          onFocus: () => setIsDropdownExpanded(true),
+          onFocus: () => !readonly && setIsDropdownExpanded(true),
           onBlur: () => {
-            setIsDropdownExpanded(false);
-            setFilter('');
-          }
+            !readonly && onBlur();
+          },
+          "aria-describedby": errorMessageId
         })]
       }), e$2("div", {
         class: "fjs-taglist-anchor",
@@ -45896,34 +46459,41 @@
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: errors
+        errors: errors,
+        id: errorMessageId
       })]
     });
   }
-  Taglist.create = (options = {}) => {
-    const defaults = {};
+  Taglist.config = {
+    type: type$3,
+    keyed: true,
+    label: 'Tag list',
+    group: 'selection',
+    emptyValue: [],
+    sanitizeValue: sanitizeMultiSelectValue,
+    create: (options = {}) => {
+      const defaults = {};
 
-    // provide default values if valuesKey isn't set
-    if (!options.valuesKey) {
-      defaults.values = [{
-        label: 'Value',
-        value: 'value'
-      }];
+      // provide default values if valuesKey isn't set
+      if (!options.valuesKey) {
+        defaults.values = [{
+          label: 'Value',
+          value: 'value'
+        }];
+      }
+      return {
+        ...defaults,
+        ...options
+      };
     }
-    return {
-      ...defaults,
-      ...options
-    };
   };
-  Taglist.type = type$3;
-  Taglist.label = 'Tag list';
-  Taglist.keyed = true;
-  Taglist.emptyValue = [];
-  Taglist.sanitizeValue = sanitizeMultiSelectValue;
-  Taglist.group = 'selection';
 
   const type$2 = 'text';
   function Text(props) {
+    const form = useService('form');
+    const {
+      textLinkTarget
+    } = form._getState().properties;
     const {
       field,
       disableLinks
@@ -45945,9 +46515,20 @@
       const html = markdownRenderer.render(markdown);
       return sanitizeHTML(html);
     }, [markdownRenderer, markdown]);
-    const componentOverrides = d(() => disableLinks ? {
-      'a': DisabledLink
-    } : {}, [disableLinks]);
+    const OverridenTargetLink = d(() => BuildOverridenTargetLink(textLinkTarget), [textLinkTarget]);
+    const componentOverrides = d(() => {
+      if (disableLinks) {
+        return {
+          'a': DisabledLink
+        };
+      }
+      if (textLinkTarget) {
+        return {
+          'a': OverridenTargetLink
+        };
+      }
+      return {};
+    }, [disableLinks, OverridenTargetLink, textLinkTarget]);
     return e$2("div", {
       class: formFieldClasses(type$2),
       children: e$2(Markup, {
@@ -45957,21 +46538,35 @@
       })
     });
   }
-  Text.create = (options = {}) => ({
-    text: '# Text',
-    ...options
-  });
-  Text.type = type$2;
-  Text.keyed = false;
-  Text.group = 'presentation';
-  Text.label = 'Text view';
+  Text.config = {
+    type: type$2,
+    keyed: false,
+    label: 'Text view',
+    group: 'presentation',
+    create: (options = {}) => ({
+      text: '# Text',
+      ...options
+    })
+  };
+  function BuildOverridenTargetLink(target) {
+    return function ({
+      children,
+      ...rest
+    }) {
+      return e$2("a", {
+        ...rest,
+        target: target,
+        children: children
+      });
+    };
+  }
   function DisabledLink({
-    href,
-    children
+    children,
+    ...rest
   }) {
     return e$2("a", {
+      ...rest,
       class: "fjs-disabled-link",
-      href: href,
       tabIndex: -1,
       children: children
     });
@@ -45983,6 +46578,7 @@
       disabled,
       errors = [],
       field,
+      readonly,
       value = ''
     } = props;
     const {
@@ -46009,46 +46605,64 @@
     };
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
+    const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
       class: formFieldClasses(type$1, {
         errors,
-        disabled
+        disabled,
+        readonly
       }),
       children: [e$2(Label, {
         id: prefixId(id, formId),
         label: label,
         required: required
-      }), e$2(InputAdorner, {
+      }), e$2(TemplatedInputAdorner, {
         disabled: disabled,
+        readonly: readonly,
         pre: prefixAdorner,
         post: suffixAdorner,
         children: e$2("input", {
           class: "fjs-input",
           disabled: disabled,
+          readOnly: readonly,
           id: prefixId(id, formId),
           onInput: onChange,
           type: "text",
-          value: value
+          value: value,
+          "aria-describedby": errorMessageId
         })
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: errors
+        errors: errors,
+        id: errorMessageId
       })]
     });
   }
-  Textfield.create = (options = {}) => ({
-    ...options
-  });
-  Textfield.type = type$1;
-  Textfield.label = 'Text field';
-  Textfield.keyed = true;
-  Textfield.emptyValue = '';
-  Textfield.sanitizeValue = ({
-    value
-  }) => isArray$3(value) || isObject(value) ? '' : String(value);
-  Textfield.group = 'basic-input';
+  Textfield.config = {
+    type: type$1,
+    keyed: true,
+    label: 'Text field',
+    group: 'basic-input',
+    emptyValue: '',
+    sanitizeValue: ({
+      value
+    }) => {
+      if (isArray$3(value) || isObject(value)) {
+        return '';
+      }
+
+      // sanitize newlines to spaces
+      if (typeof value === 'string') {
+        return value.replace(/[\r\n\t]/g, ' ');
+      }
+      return String(value);
+    },
+    create: (options = {}) => ({
+      ...options
+    })
+  };
 
   const type = 'textarea';
   function Textarea(props) {
@@ -46056,6 +46670,7 @@
       disabled,
       errors = [],
       field,
+      readonly,
       value = ''
     } = props;
     const {
@@ -46094,11 +46709,13 @@
     }, [autoSizeTextarea, value]);
     const {
       formId
-    } = F$1(FormContext$1);
+    } = F(FormContext$1);
+    const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
       class: formFieldClasses(type, {
         errors,
-        disabled
+        disabled,
+        readonly
       }),
       children: [e$2(Label, {
         id: prefixId(id, formId),
@@ -46107,28 +46724,33 @@
       }), e$2("textarea", {
         class: "fjs-textarea",
         disabled: disabled,
+        readonly: readonly,
         id: prefixId(id, formId),
         onInput: onInput,
         value: value,
-        ref: textareaRef
+        ref: textareaRef,
+        "aria-describedby": errorMessageId
       }), e$2(Description, {
         description: description
       }), e$2(Errors, {
-        errors: errors
+        errors: errors,
+        id: errorMessageId
       })]
     });
   }
-  Textarea.create = (options = {}) => ({
-    ...options
-  });
-  Textarea.type = type;
-  Textarea.label = 'Text area';
-  Textarea.keyed = true;
-  Textarea.emptyValue = '';
-  Textarea.sanitizeValue = ({
-    value
-  }) => isArray$3(value) || isObject(value) ? '' : String(value);
-  Textarea.group = 'basic-input';
+  Textarea.config = {
+    type,
+    keyed: true,
+    label: 'Text area',
+    group: 'basic-input',
+    emptyValue: '',
+    sanitizeValue: ({
+      value
+    }) => isArray$3(value) || isObject(value) ? '' : String(value),
+    create: (options = {}) => ({
+      ...options
+    })
+  };
 
   const formFields = [Button, Checkbox, Checklist, Default, Image, Numberfield, Datetime, Radio, Select, Taglist, Text, Textfield, Textarea];
 
@@ -46136,7 +46758,7 @@
     constructor() {
       this._formFields = {};
       formFields.forEach(formField => {
-        this.register(formField.type, formField);
+        this.register(formField.config.type, formField);
       });
     }
     register(type, formField) {
@@ -46357,7 +46979,7 @@
       const {
         properties
       } = this._getState();
-      if (properties.readOnly) {
+      if (properties.readOnly || properties.disabled) {
         throw new Error('form is read-only');
       }
       const data = this._getSubmitData();
@@ -46586,7 +47208,7 @@
     }
   }
 
-  const schemaVersion = 8;
+  const schemaVersion = 9;
 
   /**
    * @typedef { import('./types').CreateFormOptions } CreateFormOptions
