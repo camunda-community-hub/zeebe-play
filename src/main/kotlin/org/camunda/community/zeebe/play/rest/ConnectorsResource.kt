@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.camunda.connector.impl.outbound.OutboundConnectorConfiguration
 import io.camunda.connector.runtime.core.ConnectorHelper
 import io.camunda.connector.runtime.core.outbound.ConnectorJobHandler
+import io.camunda.connector.validation.impl.DefaultValidationProvider
 import io.camunda.zeebe.client.ZeebeClient
 import io.camunda.zeebe.client.api.response.ActivatedJob
 import io.camunda.zeebe.model.bpmn.Bpmn
@@ -66,7 +67,8 @@ class ConnectorsResource(
             ?: throw RuntimeException("No connector found with job type '$jobType'."))
 
         val connector = ConnectorHelper.instantiateConnector(connectorConfig.connectorClass)
-        val jobHandler = ConnectorJobHandler(connector, connectorsSecretProvider)
+        val validationProvider = DefaultValidationProvider()
+        val jobHandler = ConnectorJobHandler(connector, connectorsSecretProvider, validationProvider, objectMapper)
 
         jobRepository.findByIdOrNull(jobKey)
             ?.takeIf { it.state == JobState.ACTIVATABLE && !keysOfPendingJobs.contains(jobKey) }
