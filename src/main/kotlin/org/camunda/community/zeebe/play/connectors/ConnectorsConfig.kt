@@ -1,8 +1,10 @@
 package org.camunda.community.zeebe.play.connectors
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.camunda.connector.api.secret.SecretProvider
 import io.camunda.connector.runtime.core.ConnectorHelper
 import io.camunda.connector.runtime.core.outbound.ConnectorJobHandler
+import io.camunda.connector.validation.impl.DefaultValidationProvider
 import io.camunda.zeebe.client.ZeebeClient
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -34,7 +36,9 @@ class ConnectorsConfig(
                 .forEach { connectorConfig ->
                     val connector =
                         ConnectorHelper.instantiateConnector(connectorConfig.connectorClass)
-                    val jobHandler = ConnectorJobHandler(connector, secretProvider)
+                    val validationProvider = DefaultValidationProvider()
+                    val objectMapper = ObjectMapper()
+                    val jobHandler = ConnectorJobHandler(connector, secretProvider, validationProvider, objectMapper)
 
                     zeebeClient
                         .newWorker()
