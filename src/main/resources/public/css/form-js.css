@@ -32,7 +32,7 @@
    * Specify color variables in the following schema:
    * 1 - use specified layer
    * 2 - use layer one
-   * 3 - use fallback
+   * 3 - use fallback 
    */
   --color-background: var(
     --cds-field,
@@ -158,6 +158,10 @@
   flex: auto;
   padding: 9px 0;
   position: relative;
+}
+
+.fjs-container .fjs-layout-row:empty {
+  display: none;
 }
 
 .fjs-container .fjs-column {
@@ -348,6 +352,13 @@
 
 .fjs-container .fjs-input-adornment svg {
   margin: auto;
+}
+
+.fjs-container .fjs-form-field-spacer {
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fjs-container .fjs-input[type=text],
@@ -687,6 +698,10 @@
 
 .fjs-container .fjs-form-field-error > ul > li {
   list-style-type: none;
+}
+
+.fjs-container .fjs-form-field-text {
+  overflow-wrap: break-word;
 }
 
 .fjs-container .fjs-form-field-text a {
