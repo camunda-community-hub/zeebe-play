@@ -174,7 +174,7 @@
    *
    * @return {Array<?>}
    */
-  function flatten$3(arr) {
+  function flatten$2(arr) {
     return Array.prototype.concat.apply([], arr);
   }
 
@@ -193,7 +193,7 @@
     return obj == null;
   }
 
-  function isArray$3(obj) {
+  function isArray$2(obj) {
     return nativeToString.call(obj) === '[object Array]';
   }
 
@@ -201,7 +201,7 @@
     return nativeToString.call(obj) === '[object Object]';
   }
 
-  function isNumber$3(obj) {
+  function isNumber$2(obj) {
     return nativeToString.call(obj) === '[object Number]';
   }
 
@@ -217,7 +217,7 @@
     );
   }
 
-  function isString$3(obj) {
+  function isString$2(obj) {
     return nativeToString.call(obj) === '[object String]';
   }
 
@@ -246,7 +246,7 @@
 
     matcher = toMatcher(matcher);
 
-    let idx = isArray$3(collection) ? -1 : undefined;
+    let idx = isArray$2(collection) ? -1 : undefined;
 
     forEach(collection, function(val, key) {
       if (matcher(val, key)) {
@@ -278,7 +278,7 @@
       return;
     }
 
-    const convertKey = isArray$3(collection) ? toNum : identity;
+    const convertKey = isArray$2(collection) ? toNum : identity;
 
     for (let key in collection) {
 
@@ -292,6 +292,27 @@
         }
       }
     }
+  }
+
+
+  /**
+   * Transform a collection into another collection
+   * by piping each member through the given fn.
+   *
+   * @param  {Object|Array}   collection
+   * @param  {Function} fn
+   *
+   * @return {Array} transformed collection
+   */
+  function map(collection, fn) {
+
+    let result = [];
+
+    forEach(collection, function(val, key) {
+      result.push(fn(val, key));
+    });
+
+    return result;
   }
 
 
@@ -320,6 +341,22 @@
     });
 
     return grouped;
+  }
+
+
+  function uniqueBy(extractor, ...collections) {
+
+    extractor = toExtractor(extractor);
+
+    let grouped = {};
+
+    forEach(collections, (c) => groupBy(c, extractor, grouped));
+
+    let result = map(grouped, function(val, key) {
+      return val[0];
+    });
+
+    return result;
   }
 
 
@@ -443,6 +480,1031 @@
 
     return isUndefined$1(currentTarget) ? defaultValue : currentTarget;
   }
+
+  /*
+   *  big.js v6.2.1
+   *  A small, fast, easy-to-use library for arbitrary-precision decimal arithmetic.
+   *  Copyright (c) 2022 Michael Mclaughlin
+   *  https://github.com/MikeMcl/big.js/LICENCE.md
+   */
+
+
+  /************************************** EDITABLE DEFAULTS *****************************************/
+
+
+    // The default values below must be integers within the stated ranges.
+
+    /*
+     * The maximum number of decimal places (DP) of the results of operations involving division:
+     * div and sqrt, and pow with negative exponents.
+     */
+  var DP = 20,          // 0 to MAX_DP
+
+    /*
+     * The rounding mode (RM) used when rounding to the above decimal places.
+     *
+     *  0  Towards zero (i.e. truncate, no rounding).       (ROUND_DOWN)
+     *  1  To nearest neighbour. If equidistant, round up.  (ROUND_HALF_UP)
+     *  2  To nearest neighbour. If equidistant, to even.   (ROUND_HALF_EVEN)
+     *  3  Away from zero.                                  (ROUND_UP)
+     */
+    RM = 1,             // 0, 1, 2 or 3
+
+    // The maximum value of DP and Big.DP.
+    MAX_DP = 1E6,       // 0 to 1000000
+
+    // The maximum magnitude of the exponent argument to the pow method.
+    MAX_POWER = 1E6,    // 1 to 1000000
+
+    /*
+     * The negative exponent (NE) at and beneath which toString returns exponential notation.
+     * (JavaScript numbers: -7)
+     * -1000000 is the minimum recommended exponent value of a Big.
+     */
+    NE = -7,            // 0 to -1000000
+
+    /*
+     * The positive exponent (PE) at and above which toString returns exponential notation.
+     * (JavaScript numbers: 21)
+     * 1000000 is the maximum recommended exponent value of a Big, but this limit is not enforced.
+     */
+    PE = 21,            // 0 to 1000000
+
+    /*
+     * When true, an error will be thrown if a primitive number is passed to the Big constructor,
+     * or if valueOf is called, or if toNumber is called on a Big which cannot be converted to a
+     * primitive number without a loss of precision.
+     */
+    STRICT = false,     // true or false
+
+
+  /**************************************************************************************************/
+
+
+    // Error messages.
+    NAME = '[big.js] ',
+    INVALID$3 = NAME + 'Invalid ',
+    INVALID_DP = INVALID$3 + 'decimal places',
+    INVALID_RM = INVALID$3 + 'rounding mode',
+    DIV_BY_ZERO = NAME + 'Division by zero',
+
+    // The shared prototype object.
+    P$2 = {},
+    UNDEFINED = void 0,
+    NUMERIC = /^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i;
+
+
+  /*
+   * Create and return a Big constructor.
+   */
+  function _Big_() {
+
+    /*
+     * The Big constructor and exported function.
+     * Create and return a new instance of a Big number object.
+     *
+     * n {number|string|Big} A numeric value.
+     */
+    function Big(n) {
+      var x = this;
+
+      // Enable constructor usage without new.
+      if (!(x instanceof Big)) return n === UNDEFINED ? _Big_() : new Big(n);
+
+      // Duplicate.
+      if (n instanceof Big) {
+        x.s = n.s;
+        x.e = n.e;
+        x.c = n.c.slice();
+      } else {
+        if (typeof n !== 'string') {
+          if (Big.strict === true && typeof n !== 'bigint') {
+            throw TypeError(INVALID$3 + 'value');
+          }
+
+          // Minus zero?
+          n = n === 0 && 1 / n < 0 ? '-0' : String(n);
+        }
+
+        parse$1(x, n);
+      }
+
+      // Retain a reference to this Big constructor.
+      // Shadow Big.prototype.constructor which points to Object.
+      x.constructor = Big;
+    }
+
+    Big.prototype = P$2;
+    Big.DP = DP;
+    Big.RM = RM;
+    Big.NE = NE;
+    Big.PE = PE;
+    Big.strict = STRICT;
+    Big.roundDown = 0;
+    Big.roundHalfUp = 1;
+    Big.roundHalfEven = 2;
+    Big.roundUp = 3;
+
+    return Big;
+  }
+
+
+  /*
+   * Parse the number or string value passed to a Big constructor.
+   *
+   * x {Big} A Big number instance.
+   * n {number|string} A numeric value.
+   */
+  function parse$1(x, n) {
+    var e, i, nl;
+
+    if (!NUMERIC.test(n)) {
+      throw Error(INVALID$3 + 'number');
+    }
+
+    // Determine sign.
+    x.s = n.charAt(0) == '-' ? (n = n.slice(1), -1) : 1;
+
+    // Decimal point?
+    if ((e = n.indexOf('.')) > -1) n = n.replace('.', '');
+
+    // Exponential form?
+    if ((i = n.search(/e/i)) > 0) {
+
+      // Determine exponent.
+      if (e < 0) e = i;
+      e += +n.slice(i + 1);
+      n = n.substring(0, i);
+    } else if (e < 0) {
+
+      // Integer.
+      e = n.length;
+    }
+
+    nl = n.length;
+
+    // Determine leading zeros.
+    for (i = 0; i < nl && n.charAt(i) == '0';) ++i;
+
+    if (i == nl) {
+
+      // Zero.
+      x.c = [x.e = 0];
+    } else {
+
+      // Determine trailing zeros.
+      for (; nl > 0 && n.charAt(--nl) == '0';);
+      x.e = e - i - 1;
+      x.c = [];
+
+      // Convert string to array of digits without leading/trailing zeros.
+      for (e = 0; i <= nl;) x.c[e++] = +n.charAt(i++);
+    }
+
+    return x;
+  }
+
+
+  /*
+   * Round Big x to a maximum of sd significant digits using rounding mode rm.
+   *
+   * x {Big} The Big to round.
+   * sd {number} Significant digits: integer, 0 to MAX_DP inclusive.
+   * rm {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
+   * [more] {boolean} Whether the result of division was truncated.
+   */
+  function round$1(x, sd, rm, more) {
+    var xc = x.c;
+
+    if (rm === UNDEFINED) rm = x.constructor.RM;
+    if (rm !== 0 && rm !== 1 && rm !== 2 && rm !== 3) {
+      throw Error(INVALID_RM);
+    }
+
+    if (sd < 1) {
+      more =
+        rm === 3 && (more || !!xc[0]) || sd === 0 && (
+        rm === 1 && xc[0] >= 5 ||
+        rm === 2 && (xc[0] > 5 || xc[0] === 5 && (more || xc[1] !== UNDEFINED))
+      );
+
+      xc.length = 1;
+
+      if (more) {
+
+        // 1, 0.1, 0.01, 0.001, 0.0001 etc.
+        x.e = x.e - sd + 1;
+        xc[0] = 1;
+      } else {
+
+        // Zero.
+        xc[0] = x.e = 0;
+      }
+    } else if (sd < xc.length) {
+
+      // xc[sd] is the digit after the digit that may be rounded up.
+      more =
+        rm === 1 && xc[sd] >= 5 ||
+        rm === 2 && (xc[sd] > 5 || xc[sd] === 5 &&
+          (more || xc[sd + 1] !== UNDEFINED || xc[sd - 1] & 1)) ||
+        rm === 3 && (more || !!xc[0]);
+
+      // Remove any digits after the required precision.
+      xc.length = sd;
+
+      // Round up?
+      if (more) {
+
+        // Rounding up may mean the previous digit has to be rounded up.
+        for (; ++xc[--sd] > 9;) {
+          xc[sd] = 0;
+          if (sd === 0) {
+            ++x.e;
+            xc.unshift(1);
+            break;
+          }
+        }
+      }
+
+      // Remove trailing zeros.
+      for (sd = xc.length; !xc[--sd];) xc.pop();
+    }
+
+    return x;
+  }
+
+
+  /*
+   * Return a string representing the value of Big x in normal or exponential notation.
+   * Handles P.toExponential, P.toFixed, P.toJSON, P.toPrecision, P.toString and P.valueOf.
+   */
+  function stringify(x, doExponential, isNonzero) {
+    var e = x.e,
+      s = x.c.join(''),
+      n = s.length;
+
+    // Exponential notation?
+    if (doExponential) {
+      s = s.charAt(0) + (n > 1 ? '.' + s.slice(1) : '') + (e < 0 ? 'e' : 'e+') + e;
+
+    // Normal notation.
+    } else if (e < 0) {
+      for (; ++e;) s = '0' + s;
+      s = '0.' + s;
+    } else if (e > 0) {
+      if (++e > n) {
+        for (e -= n; e--;) s += '0';
+      } else if (e < n) {
+        s = s.slice(0, e) + '.' + s.slice(e);
+      }
+    } else if (n > 1) {
+      s = s.charAt(0) + '.' + s.slice(1);
+    }
+
+    return x.s < 0 && isNonzero ? '-' + s : s;
+  }
+
+
+  // Prototype/instance methods
+
+
+  /*
+   * Return a new Big whose value is the absolute value of this Big.
+   */
+  P$2.abs = function () {
+    var x = new this.constructor(this);
+    x.s = 1;
+    return x;
+  };
+
+
+  /*
+   * Return 1 if the value of this Big is greater than the value of Big y,
+   *       -1 if the value of this Big is less than the value of Big y, or
+   *        0 if they have the same value.
+   */
+  P$2.cmp = function (y) {
+    var isneg,
+      x = this,
+      xc = x.c,
+      yc = (y = new x.constructor(y)).c,
+      i = x.s,
+      j = y.s,
+      k = x.e,
+      l = y.e;
+
+    // Either zero?
+    if (!xc[0] || !yc[0]) return !xc[0] ? !yc[0] ? 0 : -j : i;
+
+    // Signs differ?
+    if (i != j) return i;
+
+    isneg = i < 0;
+
+    // Compare exponents.
+    if (k != l) return k > l ^ isneg ? 1 : -1;
+
+    j = (k = xc.length) < (l = yc.length) ? k : l;
+
+    // Compare digit by digit.
+    for (i = -1; ++i < j;) {
+      if (xc[i] != yc[i]) return xc[i] > yc[i] ^ isneg ? 1 : -1;
+    }
+
+    // Compare lengths.
+    return k == l ? 0 : k > l ^ isneg ? 1 : -1;
+  };
+
+
+  /*
+   * Return a new Big whose value is the value of this Big divided by the value of Big y, rounded,
+   * if necessary, to a maximum of Big.DP decimal places using rounding mode Big.RM.
+   */
+  P$2.div = function (y) {
+    var x = this,
+      Big = x.constructor,
+      a = x.c,                  // dividend
+      b = (y = new Big(y)).c,   // divisor
+      k = x.s == y.s ? 1 : -1,
+      dp = Big.DP;
+
+    if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
+      throw Error(INVALID_DP);
+    }
+
+    // Divisor is zero?
+    if (!b[0]) {
+      throw Error(DIV_BY_ZERO);
+    }
+
+    // Dividend is 0? Return +-0.
+    if (!a[0]) {
+      y.s = k;
+      y.c = [y.e = 0];
+      return y;
+    }
+
+    var bl, bt, n, cmp, ri,
+      bz = b.slice(),
+      ai = bl = b.length,
+      al = a.length,
+      r = a.slice(0, bl),   // remainder
+      rl = r.length,
+      q = y,                // quotient
+      qc = q.c = [],
+      qi = 0,
+      p = dp + (q.e = x.e - y.e) + 1;    // precision of the result
+
+    q.s = k;
+    k = p < 0 ? 0 : p;
+
+    // Create version of divisor with leading zero.
+    bz.unshift(0);
+
+    // Add zeros to make remainder as long as divisor.
+    for (; rl++ < bl;) r.push(0);
+
+    do {
+
+      // n is how many times the divisor goes into current remainder.
+      for (n = 0; n < 10; n++) {
+
+        // Compare divisor and remainder.
+        if (bl != (rl = r.length)) {
+          cmp = bl > rl ? 1 : -1;
+        } else {
+          for (ri = -1, cmp = 0; ++ri < bl;) {
+            if (b[ri] != r[ri]) {
+              cmp = b[ri] > r[ri] ? 1 : -1;
+              break;
+            }
+          }
+        }
+
+        // If divisor < remainder, subtract divisor from remainder.
+        if (cmp < 0) {
+
+          // Remainder can't be more than 1 digit longer than divisor.
+          // Equalise lengths using divisor with extra leading zero?
+          for (bt = rl == bl ? b : bz; rl;) {
+            if (r[--rl] < bt[rl]) {
+              ri = rl;
+              for (; ri && !r[--ri];) r[ri] = 9;
+              --r[ri];
+              r[rl] += 10;
+            }
+            r[rl] -= bt[rl];
+          }
+
+          for (; !r[0];) r.shift();
+        } else {
+          break;
+        }
+      }
+
+      // Add the digit n to the result array.
+      qc[qi++] = cmp ? n : ++n;
+
+      // Update the remainder.
+      if (r[0] && cmp) r[rl] = a[ai] || 0;
+      else r = [a[ai]];
+
+    } while ((ai++ < al || r[0] !== UNDEFINED) && k--);
+
+    // Leading zero? Do not remove if result is simply zero (qi == 1).
+    if (!qc[0] && qi != 1) {
+
+      // There can't be more than one zero.
+      qc.shift();
+      q.e--;
+      p--;
+    }
+
+    // Round?
+    if (qi > p) round$1(q, p, Big.RM, r[0] !== UNDEFINED);
+
+    return q;
+  };
+
+
+  /*
+   * Return true if the value of this Big is equal to the value of Big y, otherwise return false.
+   */
+  P$2.eq = function (y) {
+    return this.cmp(y) === 0;
+  };
+
+
+  /*
+   * Return true if the value of this Big is greater than the value of Big y, otherwise return
+   * false.
+   */
+  P$2.gt = function (y) {
+    return this.cmp(y) > 0;
+  };
+
+
+  /*
+   * Return true if the value of this Big is greater than or equal to the value of Big y, otherwise
+   * return false.
+   */
+  P$2.gte = function (y) {
+    return this.cmp(y) > -1;
+  };
+
+
+  /*
+   * Return true if the value of this Big is less than the value of Big y, otherwise return false.
+   */
+  P$2.lt = function (y) {
+    return this.cmp(y) < 0;
+  };
+
+
+  /*
+   * Return true if the value of this Big is less than or equal to the value of Big y, otherwise
+   * return false.
+   */
+  P$2.lte = function (y) {
+    return this.cmp(y) < 1;
+  };
+
+
+  /*
+   * Return a new Big whose value is the value of this Big minus the value of Big y.
+   */
+  P$2.minus = P$2.sub = function (y) {
+    var i, j, t, xlty,
+      x = this,
+      Big = x.constructor,
+      a = x.s,
+      b = (y = new Big(y)).s;
+
+    // Signs differ?
+    if (a != b) {
+      y.s = -b;
+      return x.plus(y);
+    }
+
+    var xc = x.c.slice(),
+      xe = x.e,
+      yc = y.c,
+      ye = y.e;
+
+    // Either zero?
+    if (!xc[0] || !yc[0]) {
+      if (yc[0]) {
+        y.s = -b;
+      } else if (xc[0]) {
+        y = new Big(x);
+      } else {
+        y.s = 1;
+      }
+      return y;
+    }
+
+    // Determine which is the bigger number. Prepend zeros to equalise exponents.
+    if (a = xe - ye) {
+
+      if (xlty = a < 0) {
+        a = -a;
+        t = xc;
+      } else {
+        ye = xe;
+        t = yc;
+      }
+
+      t.reverse();
+      for (b = a; b--;) t.push(0);
+      t.reverse();
+    } else {
+
+      // Exponents equal. Check digit by digit.
+      j = ((xlty = xc.length < yc.length) ? xc : yc).length;
+
+      for (a = b = 0; b < j; b++) {
+        if (xc[b] != yc[b]) {
+          xlty = xc[b] < yc[b];
+          break;
+        }
+      }
+    }
+
+    // x < y? Point xc to the array of the bigger number.
+    if (xlty) {
+      t = xc;
+      xc = yc;
+      yc = t;
+      y.s = -y.s;
+    }
+
+    /*
+     * Append zeros to xc if shorter. No need to add zeros to yc if shorter as subtraction only
+     * needs to start at yc.length.
+     */
+    if ((b = (j = yc.length) - (i = xc.length)) > 0) for (; b--;) xc[i++] = 0;
+
+    // Subtract yc from xc.
+    for (b = i; j > a;) {
+      if (xc[--j] < yc[j]) {
+        for (i = j; i && !xc[--i];) xc[i] = 9;
+        --xc[i];
+        xc[j] += 10;
+      }
+
+      xc[j] -= yc[j];
+    }
+
+    // Remove trailing zeros.
+    for (; xc[--b] === 0;) xc.pop();
+
+    // Remove leading zeros and adjust exponent accordingly.
+    for (; xc[0] === 0;) {
+      xc.shift();
+      --ye;
+    }
+
+    if (!xc[0]) {
+
+      // n - n = +0
+      y.s = 1;
+
+      // Result must be zero.
+      xc = [ye = 0];
+    }
+
+    y.c = xc;
+    y.e = ye;
+
+    return y;
+  };
+
+
+  /*
+   * Return a new Big whose value is the value of this Big modulo the value of Big y.
+   */
+  P$2.mod = function (y) {
+    var ygtx,
+      x = this,
+      Big = x.constructor,
+      a = x.s,
+      b = (y = new Big(y)).s;
+
+    if (!y.c[0]) {
+      throw Error(DIV_BY_ZERO);
+    }
+
+    x.s = y.s = 1;
+    ygtx = y.cmp(x) == 1;
+    x.s = a;
+    y.s = b;
+
+    if (ygtx) return new Big(x);
+
+    a = Big.DP;
+    b = Big.RM;
+    Big.DP = Big.RM = 0;
+    x = x.div(y);
+    Big.DP = a;
+    Big.RM = b;
+
+    return this.minus(x.times(y));
+  };
+
+
+  /*
+   * Return a new Big whose value is the value of this Big negated.
+   */
+  P$2.neg = function () {
+    var x = new this.constructor(this);
+    x.s = -x.s;
+    return x;
+  };
+
+
+  /*
+   * Return a new Big whose value is the value of this Big plus the value of Big y.
+   */
+  P$2.plus = P$2.add = function (y) {
+    var e, k, t,
+      x = this,
+      Big = x.constructor;
+
+    y = new Big(y);
+
+    // Signs differ?
+    if (x.s != y.s) {
+      y.s = -y.s;
+      return x.minus(y);
+    }
+
+    var xe = x.e,
+      xc = x.c,
+      ye = y.e,
+      yc = y.c;
+
+    // Either zero?
+    if (!xc[0] || !yc[0]) {
+      if (!yc[0]) {
+        if (xc[0]) {
+          y = new Big(x);
+        } else {
+          y.s = x.s;
+        }
+      }
+      return y;
+    }
+
+    xc = xc.slice();
+
+    // Prepend zeros to equalise exponents.
+    // Note: reverse faster than unshifts.
+    if (e = xe - ye) {
+      if (e > 0) {
+        ye = xe;
+        t = yc;
+      } else {
+        e = -e;
+        t = xc;
+      }
+
+      t.reverse();
+      for (; e--;) t.push(0);
+      t.reverse();
+    }
+
+    // Point xc to the longer array.
+    if (xc.length - yc.length < 0) {
+      t = yc;
+      yc = xc;
+      xc = t;
+    }
+
+    e = yc.length;
+
+    // Only start adding at yc.length - 1 as the further digits of xc can be left as they are.
+    for (k = 0; e; xc[e] %= 10) k = (xc[--e] = xc[e] + yc[e] + k) / 10 | 0;
+
+    // No need to check for zero, as +x + +y != 0 && -x + -y != 0
+
+    if (k) {
+      xc.unshift(k);
+      ++ye;
+    }
+
+    // Remove trailing zeros.
+    for (e = xc.length; xc[--e] === 0;) xc.pop();
+
+    y.c = xc;
+    y.e = ye;
+
+    return y;
+  };
+
+
+  /*
+   * Return a Big whose value is the value of this Big raised to the power n.
+   * If n is negative, round to a maximum of Big.DP decimal places using rounding
+   * mode Big.RM.
+   *
+   * n {number} Integer, -MAX_POWER to MAX_POWER inclusive.
+   */
+  P$2.pow = function (n) {
+    var x = this,
+      one = new x.constructor('1'),
+      y = one,
+      isneg = n < 0;
+
+    if (n !== ~~n || n < -MAX_POWER || n > MAX_POWER) {
+      throw Error(INVALID$3 + 'exponent');
+    }
+
+    if (isneg) n = -n;
+
+    for (;;) {
+      if (n & 1) y = y.times(x);
+      n >>= 1;
+      if (!n) break;
+      x = x.times(x);
+    }
+
+    return isneg ? one.div(y) : y;
+  };
+
+
+  /*
+   * Return a new Big whose value is the value of this Big rounded to a maximum precision of sd
+   * significant digits using rounding mode rm, or Big.RM if rm is not specified.
+   *
+   * sd {number} Significant digits: integer, 1 to MAX_DP inclusive.
+   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
+   */
+  P$2.prec = function (sd, rm) {
+    if (sd !== ~~sd || sd < 1 || sd > MAX_DP) {
+      throw Error(INVALID$3 + 'precision');
+    }
+    return round$1(new this.constructor(this), sd, rm);
+  };
+
+
+  /*
+   * Return a new Big whose value is the value of this Big rounded to a maximum of dp decimal places
+   * using rounding mode rm, or Big.RM if rm is not specified.
+   * If dp is negative, round to an integer which is a multiple of 10**-dp.
+   * If dp is not specified, round to 0 decimal places.
+   *
+   * dp? {number} Integer, -MAX_DP to MAX_DP inclusive.
+   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
+   */
+  P$2.round = function (dp, rm) {
+    if (dp === UNDEFINED) dp = 0;
+    else if (dp !== ~~dp || dp < -MAX_DP || dp > MAX_DP) {
+      throw Error(INVALID_DP);
+    }
+    return round$1(new this.constructor(this), dp + this.e + 1, rm);
+  };
+
+
+  /*
+   * Return a new Big whose value is the square root of the value of this Big, rounded, if
+   * necessary, to a maximum of Big.DP decimal places using rounding mode Big.RM.
+   */
+  P$2.sqrt = function () {
+    var r, c, t,
+      x = this,
+      Big = x.constructor,
+      s = x.s,
+      e = x.e,
+      half = new Big('0.5');
+
+    // Zero?
+    if (!x.c[0]) return new Big(x);
+
+    // Negative?
+    if (s < 0) {
+      throw Error(NAME + 'No square root');
+    }
+
+    // Estimate.
+    s = Math.sqrt(x + '');
+
+    // Math.sqrt underflow/overflow?
+    // Re-estimate: pass x coefficient to Math.sqrt as integer, then adjust the result exponent.
+    if (s === 0 || s === 1 / 0) {
+      c = x.c.join('');
+      if (!(c.length + e & 1)) c += '0';
+      s = Math.sqrt(c);
+      e = ((e + 1) / 2 | 0) - (e < 0 || e & 1);
+      r = new Big((s == 1 / 0 ? '5e' : (s = s.toExponential()).slice(0, s.indexOf('e') + 1)) + e);
+    } else {
+      r = new Big(s + '');
+    }
+
+    e = r.e + (Big.DP += 4);
+
+    // Newton-Raphson iteration.
+    do {
+      t = r;
+      r = half.times(t.plus(x.div(t)));
+    } while (t.c.slice(0, e).join('') !== r.c.slice(0, e).join(''));
+
+    return round$1(r, (Big.DP -= 4) + r.e + 1, Big.RM);
+  };
+
+
+  /*
+   * Return a new Big whose value is the value of this Big times the value of Big y.
+   */
+  P$2.times = P$2.mul = function (y) {
+    var c,
+      x = this,
+      Big = x.constructor,
+      xc = x.c,
+      yc = (y = new Big(y)).c,
+      a = xc.length,
+      b = yc.length,
+      i = x.e,
+      j = y.e;
+
+    // Determine sign of result.
+    y.s = x.s == y.s ? 1 : -1;
+
+    // Return signed 0 if either 0.
+    if (!xc[0] || !yc[0]) {
+      y.c = [y.e = 0];
+      return y;
+    }
+
+    // Initialise exponent of result as x.e + y.e.
+    y.e = i + j;
+
+    // If array xc has fewer digits than yc, swap xc and yc, and lengths.
+    if (a < b) {
+      c = xc;
+      xc = yc;
+      yc = c;
+      j = a;
+      a = b;
+      b = j;
+    }
+
+    // Initialise coefficient array of result with zeros.
+    for (c = new Array(j = a + b); j--;) c[j] = 0;
+
+    // Multiply.
+
+    // i is initially xc.length.
+    for (i = b; i--;) {
+      b = 0;
+
+      // a is yc.length.
+      for (j = a + i; j > i;) {
+
+        // Current sum of products at this digit position, plus carry.
+        b = c[j] + yc[i] * xc[j - i - 1] + b;
+        c[j--] = b % 10;
+
+        // carry
+        b = b / 10 | 0;
+      }
+
+      c[j] = b;
+    }
+
+    // Increment result exponent if there is a final carry, otherwise remove leading zero.
+    if (b) ++y.e;
+    else c.shift();
+
+    // Remove trailing zeros.
+    for (i = c.length; !c[--i];) c.pop();
+    y.c = c;
+
+    return y;
+  };
+
+
+  /*
+   * Return a string representing the value of this Big in exponential notation rounded to dp fixed
+   * decimal places using rounding mode rm, or Big.RM if rm is not specified.
+   *
+   * dp? {number} Decimal places: integer, 0 to MAX_DP inclusive.
+   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
+   */
+  P$2.toExponential = function (dp, rm) {
+    var x = this,
+      n = x.c[0];
+
+    if (dp !== UNDEFINED) {
+      if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
+        throw Error(INVALID_DP);
+      }
+      x = round$1(new x.constructor(x), ++dp, rm);
+      for (; x.c.length < dp;) x.c.push(0);
+    }
+
+    return stringify(x, true, !!n);
+  };
+
+
+  /*
+   * Return a string representing the value of this Big in normal notation rounded to dp fixed
+   * decimal places using rounding mode rm, or Big.RM if rm is not specified.
+   *
+   * dp? {number} Decimal places: integer, 0 to MAX_DP inclusive.
+   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
+   *
+   * (-0).toFixed(0) is '0', but (-0.1).toFixed(0) is '-0'.
+   * (-0).toFixed(1) is '0.0', but (-0.01).toFixed(1) is '-0.0'.
+   */
+  P$2.toFixed = function (dp, rm) {
+    var x = this,
+      n = x.c[0];
+
+    if (dp !== UNDEFINED) {
+      if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
+        throw Error(INVALID_DP);
+      }
+      x = round$1(new x.constructor(x), dp + x.e + 1, rm);
+
+      // x.e may have changed if the value is rounded up.
+      for (dp = dp + x.e + 1; x.c.length < dp;) x.c.push(0);
+    }
+
+    return stringify(x, false, !!n);
+  };
+
+
+  /*
+   * Return a string representing the value of this Big.
+   * Return exponential notation if this Big has a positive exponent equal to or greater than
+   * Big.PE, or a negative exponent equal to or less than Big.NE.
+   * Omit the sign for negative zero.
+   */
+  P$2[Symbol.for('nodejs.util.inspect.custom')] = P$2.toJSON = P$2.toString = function () {
+    var x = this,
+      Big = x.constructor;
+    return stringify(x, x.e <= Big.NE || x.e >= Big.PE, !!x.c[0]);
+  };
+
+
+  /*
+   * Return the value of this Big as a primitve number.
+   */
+  P$2.toNumber = function () {
+    var n = Number(stringify(this, true, true));
+    if (this.constructor.strict === true && !this.eq(n.toString())) {
+      throw Error(NAME + 'Imprecise conversion');
+    }
+    return n;
+  };
+
+
+  /*
+   * Return a string representing the value of this Big rounded to sd significant digits using
+   * rounding mode rm, or Big.RM if rm is not specified.
+   * Use exponential notation if sd is less than the number of digits necessary to represent
+   * the integer part of the value in normal notation.
+   *
+   * sd {number} Significant digits: integer, 1 to MAX_DP inclusive.
+   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
+   */
+  P$2.toPrecision = function (sd, rm) {
+    var x = this,
+      Big = x.constructor,
+      n = x.c[0];
+
+    if (sd !== UNDEFINED) {
+      if (sd !== ~~sd || sd < 1 || sd > MAX_DP) {
+        throw Error(INVALID$3 + 'precision');
+      }
+      x = round$1(new Big(x), sd, rm);
+      for (; x.c.length < sd;) x.c.push(0);
+    }
+
+    return stringify(x, sd <= x.e || x.e <= Big.NE || x.e >= Big.PE, !!n);
+  };
+
+
+  /*
+   * Return a string representing the value of this Big.
+   * Return exponential notation if this Big has a positive exponent equal to or greater than
+   * Big.PE, or a negative exponent equal to or less than Big.NE.
+   * Include the sign for negative zero.
+   */
+  P$2.valueOf = function () {
+    var x = this,
+      Big = x.constructor;
+    if (Big.strict === true) {
+      throw Error(NAME + 'valueOf disallowed');
+    }
+    return stringify(x, x.e <= Big.NE || x.e >= Big.PE, true);
+  };
+
+
+  // Export
+
+
+  var Big = _Big_();
 
   // these aren't really private, but nor are they really useful to document
 
@@ -1643,13 +2705,13 @@
       return defaultZone;
     } else if (input instanceof Zone) {
       return input;
-    } else if (isString$2(input)) {
+    } else if (isString$1(input)) {
       const lowered = input.toLowerCase();
       if (lowered === "default") return defaultZone;
       else if (lowered === "local" || lowered === "system") return SystemZone.instance;
       else if (lowered === "utc" || lowered === "gmt") return FixedOffsetZone.utcInstance;
       else return FixedOffsetZone.parseSpecifier(lowered) || IANAZone.create(input);
-    } else if (isNumber$2(input)) {
+    } else if (isNumber$1(input)) {
       return FixedOffsetZone.instance(input);
     } else if (typeof input === "object" && input.offset && typeof input.offset === "number") {
       // This is dumb, but the instanceof check above doesn't seem to really work
@@ -1819,7 +2881,7 @@
     return typeof o === "undefined";
   }
 
-  function isNumber$2(o) {
+  function isNumber$1(o) {
     return typeof o === "number";
   }
 
@@ -1827,7 +2889,7 @@
     return typeof o === "number" && o % 1 === 0;
   }
 
-  function isString$2(o) {
+  function isString$1(o) {
     return typeof o === "string";
   }
 
@@ -2670,7 +3732,7 @@
         .slice(0, 2);
   }
 
-  function parse$1(s, ...patterns) {
+  function parse(s, ...patterns) {
     if (s == null) {
       return [null, null];
     }
@@ -2915,7 +3977,7 @@
    */
 
   function parseISODate(s) {
-    return parse$1(
+    return parse(
       s,
       [isoYmdWithTimeExtensionRegex, extractISOYmdTimeAndOffset],
       [isoWeekWithTimeExtensionRegex, extractISOWeekTimeAndOffset],
@@ -2925,11 +3987,11 @@
   }
 
   function parseRFC2822Date(s) {
-    return parse$1(preprocessRFC2822(s), [rfc2822, extractRFC2822]);
+    return parse(preprocessRFC2822(s), [rfc2822, extractRFC2822]);
   }
 
   function parseHTTPDate(s) {
-    return parse$1(
+    return parse(
       s,
       [rfc1123, extractRFC1123Or850],
       [rfc850, extractRFC1123Or850],
@@ -2938,13 +4000,13 @@
   }
 
   function parseISODuration(s) {
-    return parse$1(s, [isoDuration, extractISODuration]);
+    return parse(s, [isoDuration, extractISODuration]);
   }
 
   const extractISOTimeOnly = combineExtractors(extractISOTime);
 
   function parseISOTimeOnly(s) {
-    return parse$1(s, [isoTimeOnly, extractISOTimeOnly]);
+    return parse(s, [isoTimeOnly, extractISOTimeOnly]);
   }
 
   const sqlYmdWithTimeExtensionRegex = combineRegexes(sqlYmdRegex, sqlTimeExtensionRegex);
@@ -2957,14 +4019,14 @@
   );
 
   function parseSQL(s) {
-    return parse$1(
+    return parse(
       s,
       [sqlYmdWithTimeExtensionRegex, extractISOYmdTimeAndOffset],
       [sqlTimeCombinedRegex, extractISOTimeOffsetAndIANAZone]
     );
   }
 
-  const INVALID$3 = "Invalid Duration";
+  const INVALID$2 = "Invalid Duration";
 
   // unit conversion constants
   const lowOrderMatrix = {
@@ -3229,7 +4291,7 @@
      * @return {Duration}
      */
     static fromDurationLike(durationLike) {
-      if (isNumber$2(durationLike)) {
+      if (isNumber$1(durationLike)) {
         return Duration.fromMillis(durationLike);
       } else if (Duration.isDuration(durationLike)) {
         return durationLike;
@@ -3396,7 +4458,7 @@
       };
       return this.isValid
         ? Formatter.create(this.loc, fmtOpts).formatDurationFromString(this, fmt)
-        : INVALID$3;
+        : INVALID$2;
     }
 
     /**
@@ -3706,7 +4768,7 @@
           }
 
           // plus anything that's already in this unit
-          if (isNumber$2(vals[k])) {
+          if (isNumber$1(vals[k])) {
             own += vals[k];
           }
 
@@ -3721,7 +4783,7 @@
             }
           }
           // otherwise, keep it in the wings to boil it later
-        } else if (isNumber$2(vals[k])) {
+        } else if (isNumber$1(vals[k])) {
           accumulated[k] = vals[k];
         }
       }
@@ -3898,7 +4960,7 @@
     }
   }
 
-  const INVALID$2 = "Invalid Interval";
+  const INVALID$1 = "Invalid Interval";
 
   // checks if the start is equal to or before the end
   function validateStartEnd(start, end) {
@@ -4419,7 +5481,7 @@
      * @return {string}
      */
     toString() {
-      if (!this.isValid) return INVALID$2;
+      if (!this.isValid) return INVALID$1;
       return `[${this.s.toISO()} – ${this.e.toISO()})`;
     }
 
@@ -4444,7 +5506,7 @@
     toLocaleString(formatOpts = DATE_SHORT, opts = {}) {
       return this.isValid
         ? Formatter.create(this.s.loc.clone(opts), formatOpts).formatInterval(this)
-        : INVALID$2;
+        : INVALID$1;
     }
 
     /**
@@ -4454,7 +5516,7 @@
      * @return {string}
      */
     toISO(opts) {
-      if (!this.isValid) return INVALID$2;
+      if (!this.isValid) return INVALID$1;
       return `${this.s.toISO(opts)}/${this.e.toISO(opts)}`;
     }
 
@@ -4465,7 +5527,7 @@
      * @return {string}
      */
     toISODate() {
-      if (!this.isValid) return INVALID$2;
+      if (!this.isValid) return INVALID$1;
       return `${this.s.toISODate()}/${this.e.toISODate()}`;
     }
 
@@ -4477,7 +5539,7 @@
      * @return {string}
      */
     toISOTime(opts) {
-      if (!this.isValid) return INVALID$2;
+      if (!this.isValid) return INVALID$1;
       return `${this.s.toISOTime(opts)}/${this.e.toISOTime(opts)}`;
     }
 
@@ -4493,7 +5555,7 @@
      * @return {string}
      */
     toFormat(dateFormat, { separator = " – " } = {}) {
-      if (!this.isValid) return INVALID$2;
+      if (!this.isValid) return INVALID$1;
       return `${this.s.toFormat(dateFormat)}${separator}${this.e.toFormat(dateFormat)}`;
     }
 
@@ -5423,7 +6485,7 @@
     } else return false;
   }
 
-  const INVALID$1 = "Invalid DateTime";
+  const INVALID = "Invalid DateTime";
   const MAX_DATE = 8.64e15;
 
   function unsupportedZone(zone) {
@@ -5973,7 +7035,7 @@
      * @return {DateTime}
      */
     static fromMillis(milliseconds, options = {}) {
-      if (!isNumber$2(milliseconds)) {
+      if (!isNumber$1(milliseconds)) {
         throw new InvalidArgumentError(
           `fromMillis requires a numerical input, but received a ${typeof milliseconds} with value ${milliseconds}`
         );
@@ -6000,7 +7062,7 @@
      * @return {DateTime}
      */
     static fromSeconds(seconds, options = {}) {
-      if (!isNumber$2(seconds)) {
+      if (!isNumber$1(seconds)) {
         throw new InvalidArgumentError("fromSeconds requires a numerical input");
       } else {
         return new DateTime({
@@ -6913,7 +7975,7 @@
     toFormat(fmt, opts = {}) {
       return this.isValid
         ? Formatter.create(this.loc.redefaultToEN(opts)).formatDateTimeFromString(this, fmt)
-        : INVALID$1;
+        : INVALID;
     }
 
     /**
@@ -6938,7 +8000,7 @@
     toLocaleString(formatOpts = DATE_SHORT, opts = {}) {
       return this.isValid
         ? Formatter.create(this.loc.clone(opts), formatOpts).formatDateTime(this)
-        : INVALID$1;
+        : INVALID;
     }
 
     /**
@@ -7147,7 +8209,7 @@
      * @return {string}
      */
     toString() {
-      return this.isValid ? this.toISO() : INVALID$1;
+      return this.isValid ? this.toISO() : INVALID;
     }
 
     /**
@@ -7609,7 +8671,7 @@
   function friendlyDateTime(dateTimeish) {
     if (DateTime.isDateTime(dateTimeish)) {
       return dateTimeish;
-    } else if (dateTimeish && dateTimeish.valueOf && isNumber$2(dateTimeish.valueOf())) {
+    } else if (dateTimeish && dateTimeish.valueOf && isNumber$1(dateTimeish.valueOf())) {
       return DateTime.fromJSDate(dateTimeish);
     } else if (dateTimeish && typeof dateTimeish === "object") {
       return DateTime.fromObject(dateTimeish);
@@ -7625,7 +8687,7 @@
   /// The default maximum length of a `TreeBuffer` node.
   const DefaultBufferLength = 1024;
   let nextPropID = 0;
-  let Range$3 = class Range {
+  let Range$2 = class Range {
       constructor(from, to) {
           this.from = from;
           this.to = to;
@@ -7712,8 +8774,8 @@
       /// Define a node type.
       static define(spec) {
           let props = spec.props && spec.props.length ? Object.create(null) : noProps;
-          let flags = (spec.top ? 1 /* Top */ : 0) | (spec.skipped ? 2 /* Skipped */ : 0) |
-              (spec.error ? 4 /* Error */ : 0) | (spec.name == null ? 8 /* Anonymous */ : 0);
+          let flags = (spec.top ? 1 /* NodeFlag.Top */ : 0) | (spec.skipped ? 2 /* NodeFlag.Skipped */ : 0) |
+              (spec.error ? 4 /* NodeFlag.Error */ : 0) | (spec.name == null ? 8 /* NodeFlag.Anonymous */ : 0);
           let type = new NodeType(spec.name || "", props, spec.id, flags);
           if (spec.props)
               for (let src of spec.props) {
@@ -7731,14 +8793,14 @@
       /// the prop isn't present on this node.
       prop(prop) { return this.props[prop.id]; }
       /// True when this is the top node of a grammar.
-      get isTop() { return (this.flags & 1 /* Top */) > 0; }
+      get isTop() { return (this.flags & 1 /* NodeFlag.Top */) > 0; }
       /// True when this node is produced by a skip rule.
-      get isSkipped() { return (this.flags & 2 /* Skipped */) > 0; }
+      get isSkipped() { return (this.flags & 2 /* NodeFlag.Skipped */) > 0; }
       /// Indicates whether this is an error node.
-      get isError() { return (this.flags & 4 /* Error */) > 0; }
+      get isError() { return (this.flags & 4 /* NodeFlag.Error */) > 0; }
       /// When true, this node type doesn't correspond to a user-declared
       /// named node, for example because it is used to cache repetition.
-      get isAnonymous() { return (this.flags & 8 /* Anonymous */) > 0; }
+      get isAnonymous() { return (this.flags & 8 /* NodeFlag.Anonymous */) > 0; }
       /// Returns true when this node's name or one of its
       /// [groups](#common.NodeProp^group) matches the given string.
       is(name) {
@@ -7771,7 +8833,7 @@
       }
   }
   /// An empty dummy node type to use when no actual type is available.
-  NodeType.none = new NodeType("", Object.create(null), 0, 8 /* Anonymous */);
+  NodeType.none = new NodeType("", Object.create(null), 0, 8 /* NodeFlag.Anonymous */);
   /// A node set holds a collection of node types. It is used to
   /// compactly represent trees by storing their type ids, rather than a
   /// full pointer to the type object, in a numeric array. Each parser
@@ -7943,15 +9005,16 @@
       /// not have its children iterated over (or `leave` called).
       iterate(spec) {
           let { enter, leave, from = 0, to = this.length } = spec;
-          for (let c = this.cursor((spec.mode || 0) | IterMode.IncludeAnonymous);;) {
+          let mode = spec.mode || 0, anon = (mode & IterMode.IncludeAnonymous) > 0;
+          for (let c = this.cursor(mode | IterMode.IncludeAnonymous);;) {
               let entered = false;
-              if (c.from <= to && c.to >= from && (c.type.isAnonymous || enter(c) !== false)) {
+              if (c.from <= to && c.to >= from && (!anon && c.type.isAnonymous || enter(c) !== false)) {
                   if (c.firstChild())
                       continue;
                   entered = true;
               }
               for (;;) {
-                  if (entered && leave && !c.type.isAnonymous)
+                  if (entered && leave && (anon || !c.type.isAnonymous))
                       leave(c);
                   if (c.nextSibling())
                       break;
@@ -7980,7 +9043,7 @@
       /// which may have children grouped into subtrees with type
       /// [`NodeType.none`](#common.NodeType^none).
       balance(config = {}) {
-          return this.children.length <= 8 /* BranchFactor */ ? this :
+          return this.children.length <= 8 /* Balance.BranchFactor */ ? this :
               balanceRange(NodeType.none, this.children, this.positions, 0, this.children.length, 0, this.length, (children, positions, length) => new Tree(this.type, children, positions, length, this.propValues), config.makeTree || ((children, positions, length) => new Tree(NodeType.none, children, positions, length)));
       }
       /// Build a tree from a postfix-ordered buffer of node information,
@@ -8059,26 +9122,27 @@
           return pick;
       }
       /// @internal
-      slice(startI, endI, from, to) {
+      slice(startI, endI, from) {
           let b = this.buffer;
-          let copy = new Uint16Array(endI - startI);
+          let copy = new Uint16Array(endI - startI), len = 0;
           for (let i = startI, j = 0; i < endI;) {
               copy[j++] = b[i++];
               copy[j++] = b[i++] - from;
-              copy[j++] = b[i++] - from;
+              let to = copy[j++] = b[i++] - from;
               copy[j++] = b[i++] - startI;
+              len = Math.max(len, to);
           }
-          return new TreeBuffer(copy, to - from, this.set);
+          return new TreeBuffer(copy, len, this.set);
       }
   }
   function checkSide(side, pos, from, to) {
       switch (side) {
-          case -2 /* Before */: return from < pos;
-          case -1 /* AtOrBefore */: return to >= pos && from < pos;
-          case 0 /* Around */: return from < pos && to > pos;
-          case 1 /* AtOrAfter */: return from <= pos && to > pos;
-          case 2 /* After */: return to > pos;
-          case 4 /* DontCare */: return true;
+          case -2 /* Side.Before */: return from < pos;
+          case -1 /* Side.AtOrBefore */: return to >= pos && from < pos;
+          case 0 /* Side.Around */: return from < pos && to > pos;
+          case 1 /* Side.AtOrAfter */: return from <= pos && to > pos;
+          case 2 /* Side.After */: return to > pos;
+          case 4 /* Side.DontCare */: return true;
       }
   }
   function enterUnfinishedNodesBefore(node, pos) {
@@ -8168,10 +9232,10 @@
                   return null;
           }
       }
-      get firstChild() { return this.nextChild(0, 1, 0, 4 /* DontCare */); }
-      get lastChild() { return this.nextChild(this._tree.children.length - 1, -1, 0, 4 /* DontCare */); }
-      childAfter(pos) { return this.nextChild(0, 1, pos, 2 /* After */); }
-      childBefore(pos) { return this.nextChild(this._tree.children.length - 1, -1, pos, -2 /* Before */); }
+      get firstChild() { return this.nextChild(0, 1, 0, 4 /* Side.DontCare */); }
+      get lastChild() { return this.nextChild(this._tree.children.length - 1, -1, 0, 4 /* Side.DontCare */); }
+      childAfter(pos) { return this.nextChild(0, 1, pos, 2 /* Side.After */); }
+      childBefore(pos) { return this.nextChild(this._tree.children.length - 1, -1, pos, -2 /* Side.Before */); }
       enter(pos, side, mode = 0) {
           let mounted;
           if (!(mode & IterMode.IgnoreOverlays) && (mounted = this._tree.prop(NodeProp.mounted)) && mounted.overlay) {
@@ -8194,10 +9258,10 @@
           return this._parent ? this._parent.nextSignificantParent() : null;
       }
       get nextSibling() {
-          return this._parent && this.index >= 0 ? this._parent.nextChild(this.index + 1, 1, 0, 4 /* DontCare */) : null;
+          return this._parent && this.index >= 0 ? this._parent.nextChild(this.index + 1, 1, 0, 4 /* Side.DontCare */) : null;
       }
       get prevSibling() {
-          return this._parent && this.index >= 0 ? this._parent.nextChild(this.index - 1, -1, 0, 4 /* DontCare */) : null;
+          return this._parent && this.index >= 0 ? this._parent.nextChild(this.index - 1, -1, 0, 4 /* Side.DontCare */) : null;
       }
       cursor(mode = 0) { return new TreeCursor(this, mode); }
       get tree() { return this._tree; }
@@ -8259,24 +9323,24 @@
       }
   }
   class BufferNode {
+      get name() { return this.type.name; }
+      get from() { return this.context.start + this.context.buffer.buffer[this.index + 1]; }
+      get to() { return this.context.start + this.context.buffer.buffer[this.index + 2]; }
       constructor(context, _parent, index) {
           this.context = context;
           this._parent = _parent;
           this.index = index;
           this.type = context.buffer.set.types[context.buffer.buffer[index]];
       }
-      get name() { return this.type.name; }
-      get from() { return this.context.start + this.context.buffer.buffer[this.index + 1]; }
-      get to() { return this.context.start + this.context.buffer.buffer[this.index + 2]; }
       child(dir, pos, side) {
           let { buffer } = this.context;
           let index = buffer.findChild(this.index + 4, buffer.buffer[this.index + 3], dir, pos - this.context.start, side);
           return index < 0 ? null : new BufferNode(this.context, this, index);
       }
-      get firstChild() { return this.child(1, 0, 4 /* DontCare */); }
-      get lastChild() { return this.child(-1, 0, 4 /* DontCare */); }
-      childAfter(pos) { return this.child(1, pos, 2 /* After */); }
-      childBefore(pos) { return this.child(-1, pos, -2 /* Before */); }
+      get firstChild() { return this.child(1, 0, 4 /* Side.DontCare */); }
+      get lastChild() { return this.child(-1, 0, 4 /* Side.DontCare */); }
+      childAfter(pos) { return this.child(1, pos, 2 /* Side.After */); }
+      childBefore(pos) { return this.child(-1, pos, -2 /* Side.Before */); }
       enter(pos, side, mode = 0) {
           if (mode & IterMode.ExcludeBuffers)
               return null;
@@ -8288,7 +9352,7 @@
           return this._parent || this.context.parent.nextSignificantParent();
       }
       externalSibling(dir) {
-          return this._parent ? null : this.context.parent.nextChild(this.context.index + dir, dir, 0, 4 /* DontCare */);
+          return this._parent ? null : this.context.parent.nextChild(this.context.index + dir, dir, 0, 4 /* Side.DontCare */);
       }
       get nextSibling() {
           let { buffer } = this.context;
@@ -8302,7 +9366,7 @@
           let parentStart = this._parent ? this._parent.index + 4 : 0;
           if (this.index == parentStart)
               return this.externalSibling(-1);
-          return new BufferNode(this.context, this._parent, buffer.findChild(parentStart, this.index, -1, 0, 4 /* DontCare */));
+          return new BufferNode(this.context, this._parent, buffer.findChild(parentStart, this.index, -1, 0, 4 /* Side.DontCare */));
       }
       cursor(mode = 0) { return new TreeCursor(this, mode); }
       get tree() { return null; }
@@ -8311,8 +9375,8 @@
           let { buffer } = this.context;
           let startI = this.index + 4, endI = buffer.buffer[this.index + 3];
           if (endI > startI) {
-              let from = buffer.buffer[this.index + 1], to = buffer.buffer[this.index + 2];
-              children.push(buffer.slice(startI, endI, from, to));
+              let from = buffer.buffer[this.index + 1];
+              children.push(buffer.slice(startI, endI, from));
               positions.push(0);
           }
           return new Tree(this.type, children, positions, this.to - this.from);
@@ -8339,6 +9403,8 @@
   /// A tree cursor object focuses on a given node in a syntax tree, and
   /// allows you to move to adjacent nodes.
   class TreeCursor {
+      /// Shorthand for `.type.name`.
+      get name() { return this.type.name; }
       /// @internal
       constructor(node, 
       /// @internal
@@ -8362,8 +9428,6 @@
               this.yieldBuf(node.index);
           }
       }
-      /// Shorthand for `.type.name`.
-      get name() { return this.type.name; }
       yieldNode(node) {
           if (!node)
               return false;
@@ -8408,13 +9472,13 @@
       }
       /// Move the cursor to this node's first child. When this returns
       /// false, the node has no child, and the cursor has not been moved.
-      firstChild() { return this.enterChild(1, 0, 4 /* DontCare */); }
+      firstChild() { return this.enterChild(1, 0, 4 /* Side.DontCare */); }
       /// Move the cursor to this node's last child.
-      lastChild() { return this.enterChild(-1, 0, 4 /* DontCare */); }
+      lastChild() { return this.enterChild(-1, 0, 4 /* Side.DontCare */); }
       /// Move the cursor to the first child that ends after `pos`.
-      childAfter(pos) { return this.enterChild(1, pos, 2 /* After */); }
+      childAfter(pos) { return this.enterChild(1, pos, 2 /* Side.After */); }
       /// Move to the last child that starts before `pos`.
-      childBefore(pos) { return this.enterChild(-1, pos, -2 /* Before */); }
+      childBefore(pos) { return this.enterChild(-1, pos, -2 /* Side.Before */); }
       /// Move the cursor to the child around `pos`. If side is -1 the
       /// child may end at that position, when 1 it may start there. This
       /// will also enter [overlaid](#common.MountedTree.overlay)
@@ -8440,19 +9504,19 @@
           if (!this.buffer)
               return !this._tree._parent ? false
                   : this.yield(this._tree.index < 0 ? null
-                      : this._tree._parent.nextChild(this._tree.index + dir, dir, 0, 4 /* DontCare */, this.mode));
+                      : this._tree._parent.nextChild(this._tree.index + dir, dir, 0, 4 /* Side.DontCare */, this.mode));
           let { buffer } = this.buffer, d = this.stack.length - 1;
           if (dir < 0) {
               let parentStart = d < 0 ? 0 : this.stack[d] + 4;
               if (this.index != parentStart)
-                  return this.yieldBuf(buffer.findChild(parentStart, this.index, -1, 0, 4 /* DontCare */));
+                  return this.yieldBuf(buffer.findChild(parentStart, this.index, -1, 0, 4 /* Side.DontCare */));
           }
           else {
               let after = buffer.buffer[this.index + 3];
               if (after < (d < 0 ? buffer.buffer.length : buffer.buffer[this.stack[d] + 3]))
                   return this.yieldBuf(after);
           }
-          return d < 0 ? this.yield(this.buffer.parent.nextChild(this.buffer.index + dir, dir, 0, 4 /* DontCare */, this.mode)) : false;
+          return d < 0 ? this.yield(this.buffer.parent.nextChild(this.buffer.index + dir, dir, 0, 4 /* Side.DontCare */, this.mode)) : false;
       }
       /// Move to this node's next sibling, if any.
       nextSibling() { return this.sibling(1); }
@@ -8489,7 +9553,7 @@
           return true;
       }
       move(dir, enter) {
-          if (enter && this.enterChild(dir, 0, 4 /* DontCare */))
+          if (enter && this.enterChild(dir, 0, 4 /* Side.DontCare */))
               return true;
           for (;;) {
               if (this.sibling(dir))
@@ -8499,7 +9563,7 @@
           }
       }
       /// Move to the next node in a
-      /// [pre-order](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_(NLR))
+      /// [pre-order](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)
       /// traversal, going from a node to its first child or, if the
       /// current node is empty or `enter` is false, its next sibling or
       /// the next sibling of the first parent node that has one.
@@ -8615,17 +9679,17 @@
           let lookAheadAtStart = lookAhead;
           while (size < 0) {
               cursor.next();
-              if (size == -1 /* Reuse */) {
+              if (size == -1 /* SpecialRecord.Reuse */) {
                   let node = reused[id];
                   children.push(node);
                   positions.push(start - parentStart);
                   return;
               }
-              else if (size == -3 /* ContextChange */) { // Context change
+              else if (size == -3 /* SpecialRecord.ContextChange */) { // Context change
                   contextHash = id;
                   return;
               }
-              else if (size == -4 /* LookAhead */) {
+              else if (size == -4 /* SpecialRecord.LookAhead */) {
                   lookAhead = id;
                   return;
               }
@@ -8742,7 +9806,7 @@
               fork.next();
               while (fork.pos > startPos) {
                   if (fork.size < 0) {
-                      if (fork.size == -3 /* ContextChange */)
+                      if (fork.size == -3 /* SpecialRecord.ContextChange */)
                           localSkipped += 4;
                       else
                           break scan;
@@ -8778,10 +9842,10 @@
               buffer[--index] = start - bufferStart;
               buffer[--index] = id;
           }
-          else if (size == -3 /* ContextChange */) {
+          else if (size == -3 /* SpecialRecord.ContextChange */) {
               contextHash = id;
           }
-          else if (size == -4 /* LookAhead */) {
+          else if (size == -4 /* SpecialRecord.LookAhead */) {
               lookAhead = id;
           }
           return index;
@@ -8828,7 +9892,7 @@
       let total = 0;
       for (let i = from; i < to; i++)
           total += nodeSize(balanceType, children[i]);
-      let maxChild = Math.ceil((total * 1.5) / 8 /* BranchFactor */);
+      let maxChild = Math.ceil((total * 1.5) / 8 /* Balance.BranchFactor */);
       let localChildren = [], localPositions = [];
       function divide(children, positions, from, to, offset) {
           for (let i = from; i < to;) {
@@ -8889,16 +9953,16 @@
           this.to = to;
           this.tree = tree;
           this.offset = offset;
-          this.open = (openStart ? 1 /* Start */ : 0) | (openEnd ? 2 /* End */ : 0);
+          this.open = (openStart ? 1 /* Open.Start */ : 0) | (openEnd ? 2 /* Open.End */ : 0);
       }
       /// Whether the start of the fragment represents the start of a
       /// parse, or the end of a change. (In the second case, it may not
       /// be safe to reuse some nodes at the start, depending on the
       /// parsing algorithm.)
-      get openStart() { return (this.open & 1 /* Start */) > 0; }
+      get openStart() { return (this.open & 1 /* Open.Start */) > 0; }
       /// Whether the end of the fragment represents the end of a
       /// full-document parse, or the start of a change.
-      get openEnd() { return (this.open & 2 /* End */) > 0; }
+      get openEnd() { return (this.open & 2 /* Open.End */) > 0; }
       /// Create a set of fragments from a freshly parsed tree, or update
       /// an existing set of fragments by replacing the ones that overlap
       /// with a tree with content from the new tree. When `partial` is
@@ -8957,7 +10021,7 @@
       startParse(input, fragments, ranges) {
           if (typeof input == "string")
               input = new StringInput(input);
-          ranges = !ranges ? [new Range$3(0, input.length)] : ranges.length ? ranges.map(r => new Range$3(r.from, r.to)) : [new Range$3(0, 0)];
+          ranges = !ranges ? [new Range$2(0, input.length)] : ranges.length ? ranges.map(r => new Range$2(r.from, r.to)) : [new Range$2(0, 0)];
           return this.createParse(input, fragments || [], ranges);
       }
       /// Run a full parse, returning the resulting tree.
@@ -9066,7 +10130,8 @@
       // Apply a reduce action
       /// @internal
       reduce(action) {
-          let depth = action >> 19 /* ReduceDepthShift */, type = action & 65535 /* ValueMask */;
+          var _a;
+          let depth = action >> 19 /* Action.ReduceDepthShift */, type = action & 65535 /* Action.ValueMask */;
           let { parser } = this.p;
           let dPrec = parser.dynamicPrecedence(type);
           if (dPrec)
@@ -9085,15 +10150,29 @@
           // consume two extra frames (the dummy parent node for the skipped
           // expression and the state that we'll be staying in, which should
           // be moved to `this.state`).
-          let base = this.stack.length - ((depth - 1) * 3) - (action & 262144 /* StayFlag */ ? 6 : 0);
-          let start = this.stack[base - 2];
-          let bufferBase = this.stack[base - 1], count = this.bufferBase + this.buffer.length - bufferBase;
+          let base = this.stack.length - ((depth - 1) * 3) - (action & 262144 /* Action.StayFlag */ ? 6 : 0);
+          let start = base ? this.stack[base - 2] : this.p.ranges[0].from, size = this.reducePos - start;
+          // This is a kludge to try and detect overly deep left-associative
+          // trees, which will not increase the parse stack depth and thus
+          // won't be caught by the regular stack-depth limit check.
+          if (size >= 2000 /* Recover.MinBigReduction */ && !((_a = this.p.parser.nodeSet.types[type]) === null || _a === void 0 ? void 0 : _a.isAnonymous)) {
+              if (start == this.p.lastBigReductionStart) {
+                  this.p.bigReductionCount++;
+                  this.p.lastBigReductionSize = size;
+              }
+              else if (this.p.lastBigReductionSize < size) {
+                  this.p.bigReductionCount = 1;
+                  this.p.lastBigReductionStart = start;
+                  this.p.lastBigReductionSize = size;
+              }
+          }
+          let bufferBase = base ? this.stack[base - 1] : 0, count = this.bufferBase + this.buffer.length - bufferBase;
           // Store normal terms or `R -> R R` repeat reductions
-          if (type < parser.minRepeatTerm || (action & 131072 /* RepeatFlag */)) {
-              let pos = parser.stateFlag(this.state, 1 /* Skipped */) ? this.pos : this.reducePos;
+          if (type < parser.minRepeatTerm || (action & 131072 /* Action.RepeatFlag */)) {
+              let pos = parser.stateFlag(this.state, 1 /* StateFlag.Skipped */) ? this.pos : this.reducePos;
               this.storeNode(type, start, pos, count + 4, true);
           }
-          if (action & 262144 /* StayFlag */) {
+          if (action & 262144 /* Action.StayFlag */) {
               this.state = this.stack[base];
           }
           else {
@@ -9107,7 +10186,7 @@
       // Shift a value into the buffer
       /// @internal
       storeNode(term, start, end, size = 4, isReduce = false) {
-          if (term == 0 /* Err */ &&
+          if (term == 0 /* Term.Err */ &&
               (!this.stack.length || this.stack[this.stack.length - 1] < this.buffer.length + this.bufferBase)) {
               // Try to omit/merge adjacent error nodes
               let cur = this, top = this.buffer.length;
@@ -9115,7 +10194,7 @@
                   top = cur.bufferBase - cur.parent.bufferBase;
                   cur = cur.parent;
               }
-              if (top > 0 && cur.buffer[top - 4] == 0 /* Err */ && cur.buffer[top - 1] > -1) {
+              if (top > 0 && cur.buffer[top - 4] == 0 /* Term.Err */ && cur.buffer[top - 1] > -1) {
                   if (start == end)
                       return;
                   if (cur.buffer[top - 2] >= start) {
@@ -9129,7 +10208,7 @@
           }
           else { // There may be skipped nodes that have to be moved forward
               let index = this.buffer.length;
-              if (index > 0 && this.buffer[index - 4] != 0 /* Err */)
+              if (index > 0 && this.buffer[index - 4] != 0 /* Term.Err */)
                   while (index > 0 && this.buffer[index - 2] > end) {
                       // Move this record forward
                       this.buffer[index] = this.buffer[index - 4];
@@ -9150,14 +10229,14 @@
       /// @internal
       shift(action, next, nextEnd) {
           let start = this.pos;
-          if (action & 131072 /* GotoFlag */) {
-              this.pushState(action & 65535 /* ValueMask */, this.pos);
+          if (action & 131072 /* Action.GotoFlag */) {
+              this.pushState(action & 65535 /* Action.ValueMask */, this.pos);
           }
-          else if ((action & 262144 /* StayFlag */) == 0) { // Regular shift
+          else if ((action & 262144 /* Action.StayFlag */) == 0) { // Regular shift
               let nextState = action, { parser } = this.p;
               if (nextEnd > this.pos || next <= parser.maxNode) {
                   this.pos = nextEnd;
-                  if (!parser.stateFlag(nextState, 1 /* Skipped */))
+                  if (!parser.stateFlag(nextState, 1 /* StateFlag.Skipped */))
                       this.reducePos = nextEnd;
               }
               this.pushState(nextState, start);
@@ -9175,7 +10254,7 @@
       // Apply an action
       /// @internal
       apply(action, next, nextEnd) {
-          if (action & 65536 /* ReduceFlag */)
+          if (action & 65536 /* Action.ReduceFlag */)
               this.reduce(action);
           else
               this.shift(action, next, nextEnd);
@@ -9220,9 +10299,9 @@
           let isNode = next <= this.p.parser.maxNode;
           if (isNode)
               this.storeNode(next, this.pos, nextEnd, 4);
-          this.storeNode(0 /* Err */, this.pos, nextEnd, isNode ? 8 : 4);
+          this.storeNode(0 /* Term.Err */, this.pos, nextEnd, isNode ? 8 : 4);
           this.pos = this.reducePos = nextEnd;
-          this.score -= 190 /* Delete */;
+          this.score -= 190 /* Recover.Delete */;
       }
       /// Check if the given term would be able to be shifted (optionally
       /// after some reductions) on this stack. This can be useful for
@@ -9230,10 +10309,10 @@
       /// given token when it applies.
       canShift(term) {
           for (let sim = new SimulatedStack(this);;) {
-              let action = this.p.parser.stateSlot(sim.state, 4 /* DefaultReduce */) || this.p.parser.hasAction(sim.state, term);
+              let action = this.p.parser.stateSlot(sim.state, 4 /* ParseState.DefaultReduce */) || this.p.parser.hasAction(sim.state, term);
               if (action == 0)
                   return false;
-              if ((action & 65536 /* ReduceFlag */) == 0)
+              if ((action & 65536 /* Action.ReduceFlag */) == 0)
                   return true;
               sim.reduce(action);
           }
@@ -9242,17 +10321,17 @@
       // inserts some missing token or rule.
       /// @internal
       recoverByInsert(next) {
-          if (this.stack.length >= 300 /* MaxInsertStackDepth */)
+          if (this.stack.length >= 300 /* Recover.MaxInsertStackDepth */)
               return [];
           let nextStates = this.p.parser.nextStates(this.state);
-          if (nextStates.length > 4 /* MaxNext */ << 1 || this.stack.length >= 120 /* DampenInsertStackDepth */) {
+          if (nextStates.length > 4 /* Recover.MaxNext */ << 1 || this.stack.length >= 120 /* Recover.DampenInsertStackDepth */) {
               let best = [];
               for (let i = 0, s; i < nextStates.length; i += 2) {
                   if ((s = nextStates[i + 1]) != this.state && this.p.parser.hasAction(s, next))
                       best.push(nextStates[i], s);
               }
-              if (this.stack.length < 120 /* DampenInsertStackDepth */)
-                  for (let i = 0; best.length < 4 /* MaxNext */ << 1 && i < nextStates.length; i += 2) {
+              if (this.stack.length < 120 /* Recover.DampenInsertStackDepth */)
+                  for (let i = 0; best.length < 4 /* Recover.MaxNext */ << 1 && i < nextStates.length; i += 2) {
                       let s = nextStates[i + 1];
                       if (!best.some((v, i) => (i & 1) && v == s))
                           best.push(nextStates[i], s);
@@ -9260,15 +10339,15 @@
               nextStates = best;
           }
           let result = [];
-          for (let i = 0; i < nextStates.length && result.length < 4 /* MaxNext */; i += 2) {
+          for (let i = 0; i < nextStates.length && result.length < 4 /* Recover.MaxNext */; i += 2) {
               let s = nextStates[i + 1];
               if (s == this.state)
                   continue;
               let stack = this.split();
               stack.pushState(s, this.pos);
-              stack.storeNode(0 /* Err */, stack.pos, stack.pos, 4, true);
+              stack.storeNode(0 /* Term.Err */, stack.pos, stack.pos, 4, true);
               stack.shiftContext(nextStates[i], this.pos);
-              stack.score -= 200 /* Insert */;
+              stack.score -= 200 /* Recover.Insert */;
               result.push(stack);
           }
           return result;
@@ -9277,27 +10356,59 @@
       // be done.
       /// @internal
       forceReduce() {
-          let reduce = this.p.parser.stateSlot(this.state, 5 /* ForcedReduce */);
-          if ((reduce & 65536 /* ReduceFlag */) == 0)
-              return false;
           let { parser } = this.p;
+          let reduce = parser.stateSlot(this.state, 5 /* ParseState.ForcedReduce */);
+          if ((reduce & 65536 /* Action.ReduceFlag */) == 0)
+              return false;
           if (!parser.validAction(this.state, reduce)) {
-              let depth = reduce >> 19 /* ReduceDepthShift */, term = reduce & 65535 /* ValueMask */;
+              let depth = reduce >> 19 /* Action.ReduceDepthShift */, term = reduce & 65535 /* Action.ValueMask */;
               let target = this.stack.length - depth * 3;
-              if (target < 0 || parser.getGoto(this.stack[target], term, false) < 0)
-                  return false;
-              this.storeNode(0 /* Err */, this.reducePos, this.reducePos, 4, true);
-              this.score -= 100 /* Reduce */;
+              if (target < 0 || parser.getGoto(this.stack[target], term, false) < 0) {
+                  let backup = this.findForcedReduction();
+                  if (backup == null)
+                      return false;
+                  reduce = backup;
+              }
+              this.storeNode(0 /* Term.Err */, this.pos, this.pos, 4, true);
+              this.score -= 100 /* Recover.Reduce */;
           }
           this.reducePos = this.pos;
           this.reduce(reduce);
           return true;
       }
+      /// Try to scan through the automaton to find some kind of reduction
+      /// that can be applied. Used when the regular ForcedReduce field
+      /// isn't a valid action. @internal
+      findForcedReduction() {
+          let { parser } = this.p, seen = [];
+          let explore = (state, depth) => {
+              if (seen.includes(state))
+                  return;
+              seen.push(state);
+              return parser.allActions(state, (action) => {
+                  if (action & (262144 /* Action.StayFlag */ | 131072 /* Action.GotoFlag */)) ;
+                  else if (action & 65536 /* Action.ReduceFlag */) {
+                      let rDepth = (action >> 19 /* Action.ReduceDepthShift */) - depth;
+                      if (rDepth > 1) {
+                          let term = action & 65535 /* Action.ValueMask */, target = this.stack.length - rDepth * 3;
+                          if (target >= 0 && parser.getGoto(this.stack[target], term, false) >= 0)
+                              return (rDepth << 19 /* Action.ReduceDepthShift */) | 65536 /* Action.ReduceFlag */ | term;
+                      }
+                  }
+                  else {
+                      let found = explore(action, depth + 1);
+                      if (found != null)
+                          return found;
+                  }
+              });
+          };
+          return explore(this.state, 0);
+      }
       /// @internal
       forceAll() {
-          while (!this.p.parser.stateFlag(this.state, 2 /* Accepting */)) {
+          while (!this.p.parser.stateFlag(this.state, 2 /* StateFlag.Accepting */)) {
               if (!this.forceReduce()) {
-                  this.storeNode(0 /* Err */, this.pos, this.pos, 4, true);
+                  this.storeNode(0 /* Term.Err */, this.pos, this.pos, 4, true);
                   break;
               }
           }
@@ -9310,8 +10421,8 @@
           if (this.stack.length != 3)
               return false;
           let { parser } = this.p;
-          return parser.data[parser.stateSlot(this.state, 1 /* Actions */)] == 65535 /* End */ &&
-              !parser.stateSlot(this.state, 4 /* DefaultReduce */);
+          return parser.data[parser.stateSlot(this.state, 1 /* ParseState.Actions */)] == 65535 /* Seq.End */ &&
+              !parser.stateSlot(this.state, 4 /* ParseState.DefaultReduce */);
       }
       /// Restart the stack (put it back in its start state). Only safe
       /// when this.stack.length == 3 (state is directly below the top
@@ -9346,13 +10457,13 @@
       emitContext() {
           let last = this.buffer.length - 1;
           if (last < 0 || this.buffer[last] != -3)
-              this.buffer.push(this.curContext.hash, this.reducePos, this.reducePos, -3);
+              this.buffer.push(this.curContext.hash, this.pos, this.pos, -3);
       }
       /// @internal
       emitLookAhead() {
           let last = this.buffer.length - 1;
           if (last < 0 || this.buffer[last] != -4)
-              this.buffer.push(this.lookAhead, this.reducePos, this.reducePos, -4);
+              this.buffer.push(this.lookAhead, this.pos, this.pos, -4);
       }
       updateContext(context) {
           if (context != this.curContext.context) {
@@ -9392,6 +10503,7 @@
       Recover[Recover["MaxNext"] = 4] = "MaxNext";
       Recover[Recover["MaxInsertStackDepth"] = 300] = "MaxInsertStackDepth";
       Recover[Recover["DampenInsertStackDepth"] = 120] = "DampenInsertStackDepth";
+      Recover[Recover["MinBigReduction"] = 2000] = "MinBigReduction";
   })(Recover || (Recover = {}));
   // Used to cheaply run some reductions to scan ahead without mutating
   // an entire stack
@@ -9403,7 +10515,7 @@
           this.base = this.stack.length;
       }
       reduce(action) {
-          let term = action & 65535 /* ValueMask */, depth = action >> 19 /* ReduceDepthShift */;
+          let term = action & 65535 /* Action.ValueMask */, depth = action >> 19 /* Action.ReduceDepthShift */;
           if (depth == 0) {
               if (this.stack == this.start.stack)
                   this.stack = this.stack.slice();
@@ -9452,6 +10564,42 @@
       fork() {
           return new StackBufferCursor(this.stack, this.pos, this.index);
       }
+  }
+
+  // See lezer-generator/src/encode.ts for comments about the encoding
+  // used here
+  function decodeArray(input, Type = Uint16Array) {
+      if (typeof input != "string")
+          return input;
+      let array = null;
+      for (let pos = 0, out = 0; pos < input.length;) {
+          let value = 0;
+          for (;;) {
+              let next = input.charCodeAt(pos++), stop = false;
+              if (next == 126 /* Encode.BigValCode */) {
+                  value = 65535 /* Encode.BigVal */;
+                  break;
+              }
+              if (next >= 92 /* Encode.Gap2 */)
+                  next--;
+              if (next >= 34 /* Encode.Gap1 */)
+                  next--;
+              let digit = next - 32 /* Encode.Start */;
+              if (digit >= 46 /* Encode.Base */) {
+                  digit -= 46 /* Encode.Base */;
+                  stop = true;
+              }
+              value += digit;
+              if (stop)
+                  break;
+              value *= 46 /* Encode.Base */;
+          }
+          if (array)
+              array[out++] = value;
+          else
+              array = new Type(value);
+      }
+      return array;
   }
 
   class CachedToken {
@@ -9678,9 +10826,13 @@
           this.data = data;
           this.id = id;
       }
-      token(input, stack) { readToken(this.data, input, stack, this.id); }
+      token(input, stack) {
+          let { parser } = stack.p;
+          readToken(this.data, input, stack, this.id, parser.data, parser.tokenPrecTable);
+      }
   }
   TokenGroup.prototype.contextual = TokenGroup.prototype.fallback = TokenGroup.prototype.extend = false;
+  TokenGroup.prototype.fallback = TokenGroup.prototype.extend = false;
   /// `@external tokens` declarations in the grammar should resolve to
   /// an instance of this class.
   class ExternalTokenizer {
@@ -9718,8 +10870,8 @@
   // This function interprets that data, running through a stream as
   // long as new states with the a matching group mask can be reached,
   // and updating `input.token` when it matches a token.
-  function readToken(data, input, stack, group) {
-      let state = 0, groupMask = 1 << group, { parser } = stack.p, { dialect } = parser;
+  function readToken(data, input, stack, group, precTable, precOffset) {
+      let state = 0, groupMask = 1 << group, { dialect } = stack.p.parser;
       scan: for (;;) {
           if ((groupMask & data[state]) == 0)
               break;
@@ -9731,14 +10883,15 @@
               if ((data[i + 1] & groupMask) > 0) {
                   let term = data[i];
                   if (dialect.allows(term) &&
-                      (input.token.value == -1 || input.token.value == term || parser.overrides(term, input.token.value))) {
+                      (input.token.value == -1 || input.token.value == term ||
+                          overrides(term, input.token.value, precTable, precOffset))) {
                       input.acceptToken(term);
                       break;
                   }
               }
           let next = input.next, low = 0, high = data[state + 2];
           // Special case for EOF
-          if (input.next < 0 && high > low && data[accEnd + high * 3 - 3] == 65535 /* End */ && data[accEnd + high * 3 - 3] == 65535 /* End */) {
+          if (input.next < 0 && high > low && data[accEnd + high * 3 - 3] == 65535 /* Seq.End */ && data[accEnd + high * 3 - 3] == 65535 /* Seq.End */) {
               state = data[accEnd + high * 3 - 1];
               continue scan;
           }
@@ -9760,41 +10913,15 @@
           break;
       }
   }
-
-  // See lezer-generator/src/encode.ts for comments about the encoding
-  // used here
-  function decodeArray(input, Type = Uint16Array) {
-      if (typeof input != "string")
-          return input;
-      let array = null;
-      for (let pos = 0, out = 0; pos < input.length;) {
-          let value = 0;
-          for (;;) {
-              let next = input.charCodeAt(pos++), stop = false;
-              if (next == 126 /* BigValCode */) {
-                  value = 65535 /* BigVal */;
-                  break;
-              }
-              if (next >= 92 /* Gap2 */)
-                  next--;
-              if (next >= 34 /* Gap1 */)
-                  next--;
-              let digit = next - 32 /* Start */;
-              if (digit >= 46 /* Base */) {
-                  digit -= 46 /* Base */;
-                  stop = true;
-              }
-              value += digit;
-              if (stop)
-                  break;
-              value *= 46 /* Base */;
-          }
-          if (array)
-              array[out++] = value;
-          else
-              array = new Type(value);
-      }
-      return array;
+  function findOffset(data, start, term) {
+      for (let i = start, next; (next = data[i]) != 65535 /* Seq.End */; i++)
+          if (next == term)
+              return i - start;
+      return -1;
+  }
+  function overrides(token, prev, tableData, tableOffset) {
+      let iPrev = findOffset(tableData, tableOffset, prev);
+      return iPrev < 0 || findOffset(tableData, tableOffset, token) < iPrev;
   }
 
   // Environment variable used to control console output
@@ -9811,8 +10938,8 @@
           if (!(side < 0 ? cursor.childBefore(pos) : cursor.childAfter(pos)))
               for (;;) {
                   if ((side < 0 ? cursor.to < pos : cursor.from > pos) && !cursor.type.isError)
-                      return side < 0 ? Math.max(0, Math.min(cursor.to - 1, pos - 25 /* Margin */))
-                          : Math.min(tree.length, Math.max(cursor.from + 1, pos + 25 /* Margin */));
+                      return side < 0 ? Math.max(0, Math.min(cursor.to - 1, pos - 25 /* Safety.Margin */))
+                          : Math.min(tree.length, Math.max(cursor.from + 1, pos + 25 /* Safety.Margin */));
                   if (side < 0 ? cursor.prevSibling() : cursor.nextSibling())
                       break;
                   if (!cursor.parent())
@@ -9916,7 +11043,7 @@
           let actionIndex = 0;
           let main = null;
           let { parser } = stack.p, { tokenizers } = parser;
-          let mask = parser.stateSlot(stack.state, 3 /* TokenizerMask */);
+          let mask = parser.stateSlot(stack.state, 3 /* ParseState.TokenizerMask */);
           let context = stack.curContext ? stack.curContext.hash : 0;
           let lookAhead = 0;
           for (let i = 0; i < tokenizers.length; i++) {
@@ -9930,9 +11057,9 @@
                   token.mask = mask;
                   token.context = context;
               }
-              if (token.lookAhead > token.end + 25 /* Margin */)
+              if (token.lookAhead > token.end + 25 /* Safety.Margin */)
                   lookAhead = Math.max(token.lookAhead, lookAhead);
-              if (token.value != 0 /* Err */) {
+              if (token.value != 0 /* Term.Err */) {
                   let startIndex = actionIndex;
                   if (token.extended > -1)
                       actionIndex = this.addActions(stack, token.extended, token.end, actionIndex);
@@ -9963,7 +11090,7 @@
           let main = new CachedToken, { pos, p } = stack;
           main.start = pos;
           main.end = Math.min(pos + 1, p.stream.end);
-          main.value = pos == p.stream.end ? p.parser.eofTerm : 0 /* Err */;
+          main.value = pos == p.stream.end ? p.parser.eofTerm : 0 /* Term.Err */;
           return main;
       }
       updateCachedToken(token, tokenizer, stack) {
@@ -9975,7 +11102,7 @@
                   if (parser.specialized[i] == token.value) {
                       let result = parser.specializers[i](this.stream.read(token.start, token.end), stack);
                       if (result >= 0 && stack.p.parser.dialect.allows(result >> 1)) {
-                          if ((result & 1) == 0 /* Specialize */)
+                          if ((result & 1) == 0 /* Specialize.Specialize */)
                               token.value = result >> 1;
                           else
                               token.extended = result >> 1;
@@ -9984,7 +11111,7 @@
                   }
           }
           else {
-              token.value = 0 /* Err */;
+              token.value = 0 /* Term.Err */;
               token.end = this.stream.clipPos(start + 1);
           }
       }
@@ -10001,13 +11128,13 @@
       addActions(stack, token, end, index) {
           let { state } = stack, { parser } = stack.p, { data } = parser;
           for (let set = 0; set < 2; set++) {
-              for (let i = parser.stateSlot(state, set ? 2 /* Skip */ : 1 /* Actions */);; i += 3) {
-                  if (data[i] == 65535 /* End */) {
-                      if (data[i + 1] == 1 /* Next */) {
+              for (let i = parser.stateSlot(state, set ? 2 /* ParseState.Skip */ : 1 /* ParseState.Actions */);; i += 3) {
+                  if (data[i] == 65535 /* Seq.End */) {
+                      if (data[i + 1] == 1 /* Seq.Next */) {
                           i = pair(data, i + 2);
                       }
                       else {
-                          if (index == 0 && data[i + 1] == 2 /* Other */)
+                          if (index == 0 && data[i + 1] == 2 /* Seq.Other */)
                               index = this.putAction(pair(data, i + 2), token, end, index);
                           break;
                       }
@@ -10032,6 +11159,11 @@
       // on recursive traversal.
       Rec[Rec["CutDepth"] = 15000] = "CutDepth";
       Rec[Rec["CutTo"] = 9000] = "CutTo";
+      Rec[Rec["MaxLeftAssociativeReductionCount"] = 300] = "MaxLeftAssociativeReductionCount";
+      // The maximum number of non-recovering stacks to explore (to avoid
+      // getting bogged down with exponentially multiplying stacks in
+      // ambiguous content)
+      Rec[Rec["MaxStackCount"] = 12] = "MaxStackCount";
   })(Rec || (Rec = {}));
   class Parse {
       constructor(parser, input, fragments, ranges) {
@@ -10043,6 +11175,9 @@
           this.minStackPos = 0;
           this.reused = [];
           this.stoppedAt = null;
+          this.lastBigReductionStart = -1;
+          this.lastBigReductionSize = 0;
+          this.bigReductionCount = 0;
           this.stream = new InputStream(input, ranges);
           this.tokens = new TokenCache(parser, this.stream);
           this.topTerm = parser.top[1];
@@ -10065,6 +11200,18 @@
           // This will hold stacks beyond `pos`.
           let newStacks = this.stacks = [];
           let stopped, stoppedTokens;
+          // If a large amount of reductions happened with the same start
+          // position, force the stack out of that production in order to
+          // avoid creating a tree too deep to recurse through.
+          // (This is an ugly kludge, because unfortunately there is no
+          // straightforward, cheap way to check for this happening, due to
+          // the history of reductions only being available in an
+          // expensive-to-access format in the stack buffers.)
+          if (this.bigReductionCount > 300 /* Rec.MaxLeftAssociativeReductionCount */ && stacks.length == 1) {
+              let [s] = stacks;
+              while (s.forceReduce() && s.stack.length && s.stack[s.stack.length - 2] >= this.lastBigReductionStart) { }
+              this.bigReductionCount = this.lastBigReductionSize = 0;
+          }
           // Keep advancing any stacks at `pos` until they either move
           // forward or can't be advanced. Gather stacks that can't be
           // advanced further in `stopped`.
@@ -10100,7 +11247,7 @@
                   throw new SyntaxError("No parse at " + pos);
               }
               if (!this.recovering)
-                  this.recovering = 5 /* Distance */;
+                  this.recovering = 5 /* Rec.Distance */;
           }
           if (this.recovering && stopped) {
               let finished = this.stoppedAt != null && stopped[0].pos > this.stoppedAt ? stopped[0]
@@ -10109,7 +11256,7 @@
                   return this.stackToTree(finished.forceAll());
           }
           if (this.recovering) {
-              let maxRemaining = this.recovering == 1 ? 1 : this.recovering * 3 /* MaxRemainingPerStep */;
+              let maxRemaining = this.recovering == 1 ? 1 : this.recovering * 3 /* Rec.MaxRemainingPerStep */;
               if (newStacks.length > maxRemaining) {
                   newStacks.sort((a, b) => b.score - a.score);
                   while (newStacks.length > maxRemaining)
@@ -10127,7 +11274,7 @@
                   for (let j = i + 1; j < newStacks.length; j++) {
                       let other = newStacks[j];
                       if (stack.sameState(other) ||
-                          stack.buffer.length > 500 /* MinBufferLengthPrune */ && other.buffer.length > 500 /* MinBufferLengthPrune */) {
+                          stack.buffer.length > 500 /* Rec.MinBufferLengthPrune */ && other.buffer.length > 500 /* Rec.MinBufferLengthPrune */) {
                           if (((stack.score - other.score) || (stack.buffer.length - other.buffer.length)) > 0) {
                               newStacks.splice(j--, 1);
                           }
@@ -10138,6 +11285,8 @@
                       }
                   }
               }
+              if (newStacks.length > 12 /* Rec.MaxStackCount */)
+                  newStacks.splice(12 /* Rec.MaxStackCount */, newStacks.length - 12 /* Rec.MaxStackCount */);
           }
           this.minStackPos = newStacks[0].pos;
           for (let i = 1; i < newStacks.length; i++)
@@ -10178,15 +11327,15 @@
                       break;
               }
           }
-          let defaultReduce = parser.stateSlot(stack.state, 4 /* DefaultReduce */);
+          let defaultReduce = parser.stateSlot(stack.state, 4 /* ParseState.DefaultReduce */);
           if (defaultReduce > 0) {
               stack.reduce(defaultReduce);
               if (verbose)
-                  console.log(base + this.stackID(stack) + ` (via always-reduce ${parser.getName(defaultReduce & 65535 /* ValueMask */)})`);
+                  console.log(base + this.stackID(stack) + ` (via always-reduce ${parser.getName(defaultReduce & 65535 /* Action.ValueMask */)})`);
               return true;
           }
-          if (stack.stack.length >= 15000 /* CutDepth */) {
-              while (stack.stack.length > 9000 /* CutTo */ && stack.forceReduce()) { }
+          if (stack.stack.length >= 15000 /* Rec.CutDepth */) {
+              while (stack.stack.length > 9000 /* Rec.CutTo */ && stack.forceReduce()) { }
           }
           let actions = this.tokens.getActions(stack);
           for (let i = 0; i < actions.length;) {
@@ -10195,8 +11344,8 @@
               let localStack = last ? stack : stack.split();
               localStack.apply(action, term, end);
               if (verbose)
-                  console.log(base + this.stackID(localStack) + ` (via ${(action & 65536 /* ReduceFlag */) == 0 ? "shift"
-                    : `reduce of ${parser.getName(action & 65535 /* ValueMask */)}`} for ${parser.getName(term)} @ ${start}${localStack == stack ? "" : ", split"})`);
+                  console.log(base + this.stackID(localStack) + ` (via ${(action & 65536 /* Action.ReduceFlag */) == 0 ? "shift"
+                    : `reduce of ${parser.getName(action & 65535 /* Action.ValueMask */)}`} for ${parser.getName(term)} @ ${start}${localStack == stack ? "" : ", split"})`);
               if (last)
                   return true;
               else if (localStack.pos > start)
@@ -10237,7 +11386,7 @@
                       continue;
               }
               let force = stack.split(), forceBase = base;
-              for (let j = 0; force.forceReduce() && j < 10 /* ForceReduceLimit */; j++) {
+              for (let j = 0; force.forceReduce() && j < 10 /* Rec.ForceReduceLimit */; j++) {
                   if (verbose)
                       console.log(forceBase + this.stackID(force) + " (via force-reduce)");
                   let done = this.advanceFully(force, newStacks);
@@ -10254,7 +11403,7 @@
               if (this.stream.end > stack.pos) {
                   if (tokenEnd == stack.pos) {
                       tokenEnd++;
-                      token = 0 /* Err */;
+                      token = 0 /* Term.Err */;
                   }
                   stack.recoverByDelete(token, tokenEnd);
                   if (verbose)
@@ -10336,8 +11485,8 @@
           super();
           /// @internal
           this.wrappers = [];
-          if (spec.version != 14 /* Version */)
-              throw new RangeError(`Parser version (${spec.version}) doesn't match runtime version (${14 /* Version */})`);
+          if (spec.version != 14 /* File.Version */)
+              throw new RangeError(`Parser version (${spec.version}) doesn't match runtime version (${14 /* File.Version */})`);
           let nodeNames = spec.nodeNames.split(" ");
           this.minRepeatTerm = nodeNames.length;
           for (let i = 0; i < spec.repeatNodeCount; i++)
@@ -10427,16 +11576,16 @@
       hasAction(state, terminal) {
           let data = this.data;
           for (let set = 0; set < 2; set++) {
-              for (let i = this.stateSlot(state, set ? 2 /* Skip */ : 1 /* Actions */), next;; i += 3) {
-                  if ((next = data[i]) == 65535 /* End */) {
-                      if (data[i + 1] == 1 /* Next */)
+              for (let i = this.stateSlot(state, set ? 2 /* ParseState.Skip */ : 1 /* ParseState.Actions */), next;; i += 3) {
+                  if ((next = data[i]) == 65535 /* Seq.End */) {
+                      if (data[i + 1] == 1 /* Seq.Next */)
                           next = data[i = pair(data, i + 2)];
-                      else if (data[i + 1] == 2 /* Other */)
+                      else if (data[i + 1] == 2 /* Seq.Other */)
                           return pair(data, i + 2);
                       else
                           break;
                   }
-                  if (next == terminal || next == 0 /* Err */)
+                  if (next == terminal || next == 0 /* Term.Err */)
                       return pair(data, i + 1);
               }
           }
@@ -10444,50 +11593,49 @@
       }
       /// @internal
       stateSlot(state, slot) {
-          return this.states[(state * 6 /* Size */) + slot];
+          return this.states[(state * 6 /* ParseState.Size */) + slot];
       }
       /// @internal
       stateFlag(state, flag) {
-          return (this.stateSlot(state, 0 /* Flags */) & flag) > 0;
+          return (this.stateSlot(state, 0 /* ParseState.Flags */) & flag) > 0;
       }
       /// @internal
       validAction(state, action) {
-          if (action == this.stateSlot(state, 4 /* DefaultReduce */))
-              return true;
-          for (let i = this.stateSlot(state, 1 /* Actions */);; i += 3) {
-              if (this.data[i] == 65535 /* End */) {
-                  if (this.data[i + 1] == 1 /* Next */)
+          return !!this.allActions(state, a => a == action ? true : null);
+      }
+      /// @internal
+      allActions(state, action) {
+          let deflt = this.stateSlot(state, 4 /* ParseState.DefaultReduce */);
+          let result = deflt ? action(deflt) : undefined;
+          for (let i = this.stateSlot(state, 1 /* ParseState.Actions */); result == null; i += 3) {
+              if (this.data[i] == 65535 /* Seq.End */) {
+                  if (this.data[i + 1] == 1 /* Seq.Next */)
                       i = pair(this.data, i + 2);
                   else
-                      return false;
+                      break;
               }
-              if (action == pair(this.data, i + 1))
-                  return true;
+              result = action(pair(this.data, i + 1));
           }
+          return result;
       }
       /// Get the states that can follow this one through shift actions or
       /// goto jumps. @internal
       nextStates(state) {
           let result = [];
-          for (let i = this.stateSlot(state, 1 /* Actions */);; i += 3) {
-              if (this.data[i] == 65535 /* End */) {
-                  if (this.data[i + 1] == 1 /* Next */)
+          for (let i = this.stateSlot(state, 1 /* ParseState.Actions */);; i += 3) {
+              if (this.data[i] == 65535 /* Seq.End */) {
+                  if (this.data[i + 1] == 1 /* Seq.Next */)
                       i = pair(this.data, i + 2);
                   else
                       break;
               }
-              if ((this.data[i + 2] & (65536 /* ReduceFlag */ >> 16)) == 0) {
+              if ((this.data[i + 2] & (65536 /* Action.ReduceFlag */ >> 16)) == 0) {
                   let value = this.data[i + 1];
                   if (!result.some((v, i) => (i & 1) && v == value))
                       result.push(this.data[i], value);
               }
           }
           return result;
-      }
-      /// @internal
-      overrides(token, prev) {
-          let iPrev = findOffset(this.data, this.tokenPrecTable, prev);
-          return iPrev < 0 || findOffset(this.data, this.tokenPrecTable, token) < iPrev;
       }
       /// Configure the parser. Returns a new parser instance that has the
       /// given settings modified. Settings not provided in `config` are
@@ -10566,30 +11714,24 @@
           let disabled = null;
           for (let i = 0; i < values.length; i++)
               if (!flags[i]) {
-                  for (let j = this.dialects[values[i]], id; (id = this.data[j++]) != 65535 /* End */;)
+                  for (let j = this.dialects[values[i]], id; (id = this.data[j++]) != 65535 /* Seq.End */;)
                       (disabled || (disabled = new Uint8Array(this.maxTerm + 1)))[id] = 1;
               }
           return new Dialect(dialect, flags, disabled);
       }
       /// Used by the output of the parser generator. Not available to
-      /// user code.
+      /// user code. @hide
       static deserialize(spec) {
           return new LRParser(spec);
       }
   }
   function pair(data, off) { return data[off] | (data[off + 1] << 16); }
-  function findOffset(data, start, term) {
-      for (let i = start, next; (next = data[i]) != 65535 /* End */; i++)
-          if (next == term)
-              return i - start;
-      return -1;
-  }
   function findFinished(stacks) {
       let best = null;
       for (let stack of stacks) {
           let stopped = stack.p.stoppedAt;
           if ((stack.pos == stack.p.stream.end || stopped != null && stack.pos > stopped) &&
-              stack.p.parser.stateFlag(stack.state, 2 /* Accepting */) &&
+              stack.p.parser.stateFlag(stack.state, 2 /* StateFlag.Accepting */) &&
               (!best || best.score < stack.score))
               best = stack;
       }
@@ -10597,7 +11739,7 @@
   }
   function getSpecializer(spec) {
       if (spec.external) {
-          let mask = spec.extend ? 1 /* Extend */ : 0 /* Specialize */;
+          let mask = spec.extend ? 1 /* Specialize.Extend */ : 0 /* Specialize.Specialize */;
           return (value, stack) => (spec.external(value, stack) << 1) | mask;
       }
       return spec.get;
@@ -10933,7 +12075,7 @@
               if (rule.mode == 1 /* Inherit */)
                   inheritedClass += (inheritedClass ? " " : "") + tagCls;
           }
-          this.startSpan(cursor.from, cls);
+          this.startSpan(Math.max(from, start), cls);
           if (rule.opaque)
               return;
           let mounted = cursor.tree && cursor.tree.prop(NodeProp.mounted);
@@ -10957,14 +12099,16 @@
                       break;
                   pos = next.to + start;
                   if (pos > from) {
-                      this.highlightRange(inner.cursor(), Math.max(from, next.from + start), Math.min(to, pos), inheritedClass, innerHighlighters);
-                      this.startSpan(pos, cls);
+                      this.highlightRange(inner.cursor(), Math.max(from, next.from + start), Math.min(to, pos), "", innerHighlighters);
+                      this.startSpan(Math.min(to, pos), cls);
                   }
               }
               if (hasChild)
                   cursor.parent();
           }
           else if (cursor.firstChild()) {
+              if (mounted)
+                  inheritedClass = "";
               do {
                   if (cursor.to <= from)
                       continue;
@@ -11458,2720 +12602,47 @@
   ]);
 
   // This file was generated by lezer-generator. You probably shouldn't edit it.
-  const propertyIdentifier$1 = 147,
-    identifier$1 = 148,
-    nameIdentifier$1 = 149,
-    insertSemi$1 = 150,
-    expression0$1 = 154,
-    ForExpression$1 = 4,
-    forExpressionStart$1 = 157,
-    ForInExpression$1 = 7,
-    Name$1 = 8,
-    Identifier$1 = 9,
-    AdditionalIdentifier$1 = 10,
-    forExpressionBodyStart$1 = 165,
-    IfExpression$1 = 18,
-    ifExpressionStart$1 = 166,
-    QuantifiedExpression$1 = 22,
-    quantifiedExpressionStart$1 = 167,
-    QuantifiedInExpression$1 = 26,
-    PositiveUnaryTest$1 = 36,
-    ArithmeticExpression$1 = 40,
-    arithmeticPlusStart$1 = 171,
-    arithmeticTimesStart$1 = 172,
-    arithmeticExpStart$1 = 173,
-    arithmeticUnaryStart$1 = 174,
-    VariableName$1 = 47,
-    PathExpression$1 = 67,
-    pathExpressionStart$1 = 179,
-    FilterExpression$1 = 69,
-    filterExpressionStart$1 = 180,
-    FunctionInvocation$1 = 71,
-    functionInvocationStart$1 = 181,
-    ParameterName$1 = 103,
-    nil$1 = 186,
-    NumericLiteral$1 = 106,
-    StringLiteral$1 = 107,
-    BooleanLiteral$1 = 108,
-    FunctionDefinition$1 = 117,
-    functionDefinitionStart$1 = 194,
-    Context$1 = 124,
-    contextStart$1 = 196,
-    ContextEntry$1 = 125,
-    PropertyName$1 = 127,
-    PropertyIdentifier$1 = 128;
-
-  const LOG_PARSE$1 = typeof process != 'undefined' && process.env && /\bfparse(:dbg)?\b/.test(process.env.LOG);
-  const LOG_PARSE_DEBUG$1 = typeof process != 'undefined' && process.env && /\fparse:dbg\b/.test(process.env.LOG);
-  const LOG_VARS$1 = typeof process != 'undefined' && process.env && /\bcontext?\b/.test(process.env.LOG);
-
-  const spaceChars$1 = [
-    9, 11, 12, 32, 133, 160,
-    5760, 8192, 8193, 8194, 8195, 8196, 8197, 8198,
-    8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, 12288
-  ];
-
-  const newlineChars$1 = chars$3('\n\r');
-
-  const additionalNameChars$1 = chars$3("'./-+*");
-
-  /**
-   * @param { string } str
-   * @return { number[] }
-   */
-  function chars$3(str) {
-    return Array.from(str).map(s => s.charCodeAt(0));
-  }
-
-  /**
-   * @param { number } ch
-   * @return { boolean }
-   */
-  function isStartChar$1(ch) {
-    return (
-      ch === 63 // ?
-    ) || (
-      ch === 95 // _
-    ) || (
-      ch >= 65 && ch <= 90 // A-Z
-    ) || (
-      ch >= 97 && ch <= 122 // a-z
-    ) || (
-      ch >= 161 && !isPartChar$1(ch) && !isSpace$1(ch)
-    );
-  }
-
-  /**
-   * @param { number } ch
-   * @return { boolean }
-   */
-  function isAdditional$1(ch) {
-    return additionalNameChars$1.includes(ch);
-  }
-
-  /**
-   * @param { number } ch
-   * @return { boolean }
-   */
-  function isPartChar$1(ch) {
-    return (
-      ch >= 48 && ch <= 57 // 0-9
-    ) || (
-      ch === 0xB7
-    ) || (
-      ch >= 0x0300 && ch <= 0x036F
-    ) || (
-      ch >= 0x203F && ch <= 0x2040
-    );
-  }
-
-  /**
-   * @param { number } ch
-   * @return { boolean }
-   */
-  function isSpace$1(ch) {
-    return spaceChars$1.includes(ch);
-  }
-
-  // eslint-disable-next-line
-  function indent$1(str, spaces) {
-    return spaces.concat(
-      str.split(/\n/g).join('\n' + spaces)
-    );
-  }
-
-  /**
-   * @param { import('@lezer/lr').InputStream } input
-   * @param  { number } [offset]
-   * @param { boolean } [includeOperators]
-   *
-   * @return { { token: string, offset: number } | null }
-   */
-  function parseAdditionalSymbol$1(input, offset = 0) {
-
-    const next = input.peek(offset);
-
-    if (isAdditional$1(next)) {
-      return {
-        offset: 1,
-        token: String.fromCharCode(next)
-      };
-    }
-
-    return null;
-  }
-
-  /**
-   * @param { import('@lezer/lr').InputStream } input
-   * @param { number } [offset]
-   * @param { boolean } [namePart]
-   *
-   * @return { { token: string, offset: number } | null }
-   */
-  function parseIdentifier$1(input, offset = 0, namePart = false) {
-    for (let inside = false, chars = [], i = 0;; i++) {
-      const next = input.peek(offset + i);
-
-      if (isStartChar$1(next) || ((inside || namePart) && isPartChar$1(next))) {
-        if (!inside) {
-          inside = true;
-        }
-
-        chars.push(next);
-      } else {
-
-        if (chars.length) {
-          return {
-            token: String.fromCharCode(...chars),
-            offset: i
-          };
-        }
-
-        return null;
-      }
-    }
-  }
-
-  /**
-   * @param { import('@lezer/lr').InputStream } input
-   * @param  { number } offset
-   *
-   * @return { { token: string, offset: number } | null }
-   */
-  function parseSpaces$1(input, offset) {
-
-    for (let inside = false, i = 0;; i++) {
-      let next = input.peek(offset + i);
-
-      if (isSpace$1(next)) {
-        if (!inside) {
-          inside = true;
-        }
-      } else {
-        if (inside) {
-          return {
-            token: ' ',
-            offset: i
-          };
-        }
-
-        return null;
-      }
-    }
-  }
-
-  /**
-   * Parse a name from the input and return the first match, if any.
-   *
-   * @param { import('@lezer/lr').InputStream } input
-   * @param { Variables } variables
-   *
-   * @return { { token: string, offset: number, term: number } | null }
-   */
-  function parseName$1(input, variables) {
-    const contextKeys = variables.contextKeys();
-
-    const start = variables.tokens;
-
-    for (let i = 0, tokens = [], nextMatch = null;;) {
-
-      const namePart = (start.length + tokens.length) > 0;
-      const maybeSpace = tokens.length > 0;
-
-      const match = (
-        parseIdentifier$1(input, i, namePart) ||
-        namePart && parseAdditionalSymbol$1(input, i) ||
-        maybeSpace && parseSpaces$1(input, i)
-      );
-
-      // match is required
-      if (!match) {
-        return nextMatch;
-      }
-
-      const {
-        token,
-        offset
-      } = match;
-
-      i += offset;
-
-      if (token === ' ') {
-        continue;
-      }
-
-      tokens = [ ...tokens, token ];
-
-      const name = [ ...start, ...tokens ].join(' ');
-
-      if (contextKeys.some(el => el === name)) {
-        const token = tokens[0];
-
-        nextMatch = {
-          token,
-          offset: token.length,
-          term: nameIdentifier$1
-        };
-      }
-
-      if (dateTimeIdentifiers$1.some(el => el === name)) {
-        const token = tokens[0];
-
-        // parse date time identifiers as normal
-        // identifiers to allow specialization to kick in
-        //
-        // cf. https://github.com/nikku/lezer-feel/issues/8
-        nextMatch = {
-          token,
-          offset: token.length,
-          term: identifier$1
-        };
-      }
-
-      if (
-        !contextKeys.some(el => el.startsWith(name)) &&
-        !dateTimeIdentifiers$1.some(el => el.startsWith(name))
-      ) {
-        return nextMatch;
-      }
-    }
-
-  }
-
-  const identifiersMap$1 = {
-    [ identifier$1 ]: 'identifier',
-    [ nameIdentifier$1 ]: 'nameIdentifier'
-  };
-
-  const identifiers$1 = new ExternalTokenizer((input, stack) => {
-
-    LOG_PARSE_DEBUG$1 && console.log('%s: T <identifier | nameIdentifier>', input.pos);
-
-    const nameMatch = parseName$1(input, stack.context);
-
-    const start = stack.context.tokens;
-
-    const match = nameMatch || parseIdentifier$1(input, 0, start.length > 0);
-
-    if (match) {
-      input.advance(match.offset);
-      input.acceptToken(nameMatch ? nameMatch.term : identifier$1);
-
-      LOG_PARSE$1 && console.log('%s: MATCH <%s> <%s>', input.pos, nameMatch ? identifiersMap$1[nameMatch.term] : 'identifier', match.token);
-    }
-  }, { contextual: true });
-
-
-  const propertyIdentifiers$1 = new ExternalTokenizer((input, stack) => {
-
-    LOG_PARSE_DEBUG$1 && console.log('%s: T <propertyIdentifier>', input.pos);
-
-    const start = stack.context.tokens;
-
-    const match = parseIdentifier$1(input, 0, start.length > 0);
-
-    if (match) {
-      input.advance(match.offset);
-      input.acceptToken(propertyIdentifier$1);
-
-      LOG_PARSE$1 && console.log('%s: MATCH <propertyIdentifier> <%s>', input.pos, match.token);
-    }
-  });
-
-
-  const insertSemicolon$1 = new ExternalTokenizer((input, stack) => {
-
-    LOG_PARSE_DEBUG$1 && console.log('%s: T <insertSemi>', input.pos);
-
-    let offset;
-    let insert = false;
-
-    for (offset = 0;; offset++) {
-      const char = input.peek(offset);
-
-      if (spaceChars$1.includes(char)) {
-        continue;
-      }
-
-      if (newlineChars$1.includes(char)) {
-        insert = true;
-      }
-
-      break;
-    }
-
-    if (insert) {
-
-      const identifier = parseIdentifier$1(input, offset + 1);
-      const spaces = parseSpaces$1(input, offset + 1);
-
-      if (spaces || identifier && /^(then|else|return|satisfies)$/.test(identifier.token)) {
-        return;
-      }
-
-      LOG_PARSE$1 && console.log('%s: MATCH <insertSemi>', input.pos);
-      input.acceptToken(insertSemi$1);
-    }
-  });
-
-  const prefixedContextStarts$1 = {
-    [ functionInvocationStart$1 ]: 'FunctionInvocation',
-    [ filterExpressionStart$1 ]: 'FilterExpression',
-    [ pathExpressionStart$1 ]: 'PathExpression'
-  };
-
-  const contextStarts$1 = {
-    [ contextStart$1 ]: 'Context',
-    [ functionDefinitionStart$1 ]: 'FunctionDefinition',
-    [ forExpressionStart$1 ]: 'ForExpression',
-    [ ifExpressionStart$1 ]: 'IfExpression',
-    [ quantifiedExpressionStart$1 ]: 'QuantifiedExpression'
-  };
-
-  const contextEnds$1 = {
-    [ Context$1 ]: 'Context',
-    [ FunctionDefinition$1 ]: 'FunctionDefinition',
-    [ ForExpression$1 ]: 'ForExpression',
-    [ IfExpression$1 ]: 'IfExpression',
-    [ QuantifiedExpression$1 ]: 'QuantifiedExpression',
-    [ PathExpression$1 ]: 'PathExpression',
-    [ FunctionInvocation$1 ]: 'FunctionInvocation',
-    [ FilterExpression$1 ]: 'FilterExpression',
-    [ ArithmeticExpression$1 ]: 'ArithmeticExpression'
-  };
-
-  let ValueProducer$1 = class ValueProducer {
-
-    /**
-     * @param { Function } fn
-     */
-    constructor(fn) {
-      this.fn = fn;
-    }
-
-    get(variables) {
-      return this.fn(variables);
-    }
-
-    /**
-     * @param { Function }
-     *
-     * @return { ValueProducer }
-     */
-    static of(fn) {
-      return new ValueProducer(fn);
-    }
-
-  };
-
-  const dateTimeLiterals$1 = {
-    'date and time': 1,
-    'date': 1,
-    'time': 1,
-    'duration': 1
-  };
-
-  const dateTimeIdentifiers$1 = Object.keys(dateTimeLiterals$1);
-
-  let Variables$1 = class Variables {
-
-    constructor({
-      name = 'Expressions',
-      tokens = [],
-      children = [],
-      parent = null,
-      context = { },
-      value,
-      raw
-    } = {}) {
-      this.name = name;
-      this.tokens = tokens;
-      this.children = children;
-      this.parent = parent;
-      this.context = context;
-      this.value = value;
-      this.raw = raw;
-    }
-
-    enterScope(name) {
-
-      const childScope = this.of({
-        name,
-        parent: this
-      });
-
-      LOG_VARS$1 && console.log('[%s] enter', childScope.path, childScope.context);
-
-      return childScope;
-    }
-
-    exitScope(str) {
-
-      if (!this.parent) {
-        LOG_VARS$1 && console.log('[%s] NO exit %o\n%s', this.path, this.context, indent$1(str, '  '));
-
-        return this;
-      }
-
-      LOG_VARS$1 && console.log('[%s] exit %o\n%s', this.path, this.context, indent$1(str, '  '));
-
-      return this.parent.pushChild(this);
-    }
-
-    token(part) {
-
-      LOG_VARS$1 && console.log('[%s] token <%s> + <%s>', this.path, this.tokens.join(' '), part);
-
-      return this.assign({
-        tokens: [ ...this.tokens, part ]
-      });
-    }
-
-    literal(value) {
-
-      LOG_VARS$1 && console.log('[%s] literal %o', this.path, value);
-
-      return this.pushChild(this.of({
-        name: 'Literal',
-        value
-      }));
-    }
-
-    /**
-     * Return computed scope value
-     *
-     * @return {any}
-     */
-    computedValue() {
-      for (let scope = this;;scope = scope.children.slice(-1)[0]) {
-
-        if (!scope) {
-          return null;
-        }
-
-        if (scope.value) {
-          return scope.value;
-        }
-      }
-    }
-
-    contextKeys() {
-      return Object.keys(this.context).map(normalizeContextKey$1);
-    }
-
-    get path() {
-      return this.parent?.path?.concat(' > ', this.name) || this.name;
-    }
-
-    /**
-     * Return value of variable.
-     *
-     * @param { string } variable
-     * @return { any } value
-     */
-    get(variable) {
-
-      const names = [ variable, variable && normalizeContextKey$1(variable) ];
-
-      const contextKey = Object.keys(this.context).find(
-        key => names.includes(normalizeContextKey$1(key))
-      );
-
-      if (typeof contextKey === 'undefined') {
-        return undefined;
-      }
-
-      const val = this.context[contextKey];
-
-      if (val instanceof ValueProducer$1) {
-        return val.get(this);
-      } else {
-        return val;
-      }
-    }
-
-    resolveName() {
-
-      const variable = this.tokens.join(' ');
-      const tokens = [];
-
-      const parentScope = this.assign({
-        tokens
-      });
-
-      const variableScope = this.of({
-        name: 'VariableName',
-        parent: parentScope,
-        value: this.get(variable),
-        raw: variable
-      });
-
-      LOG_VARS$1 && console.log('[%s] resolve name <%s=%s>', variableScope.path, variable, this.get(variable));
-
-      return parentScope.pushChild(variableScope);
-    }
-
-    pushChild(child) {
-
-      if (!child) {
-        return this;
-      }
-
-      const parent = this.assign({
-        children: [ ...this.children, child ]
-      });
-
-      child.parent = parent;
-
-      return parent;
-    }
-
-    pushChildren(children) {
-
-      let parent = this;
-
-      for (const child of children) {
-        parent = parent.pushChild(child);
-      }
-
-      return parent;
-    }
-
-    declareName() {
-
-      if (this.tokens.length === 0) {
-        throw Error('no tokens to declare name');
-      }
-
-      const variableName = this.tokens.join(' ');
-
-      LOG_VARS$1 && console.log('[%s] declareName <%s>', this.path, variableName);
-
-      return this.assign({
-        tokens: []
-      }).pushChild(
-        this.of({
-          name: 'Name',
-          value: variableName
-        })
-      );
-    }
-
-    define(name, value) {
-
-      if (typeof name !== 'string') {
-        LOG_VARS$1 && console.log('[%s] no define <%s=%s>', this.path, name, value);
-
-        return this;
-      }
-
-      LOG_VARS$1 && console.log('[%s] define <%s=%s>', this.path, name, value);
-
-      const context = {
-        ...this.context,
-        [name]: value
-      };
-
-      return this.assign({
-        context
-      });
-    }
-
-    /**
-     * @param { Record<string, any> } [options]
-     *
-     * @return { Variables }
-     */
-    assign(options = {}) {
-
-      return Variables.of({
-        ...this,
-        ...options
-      });
-    }
-
-    /**
-     * @param { Record<string, any> } [options]
-     *
-     * @return { Variables }
-     */
-    of(options = {}) {
-
-      const defaultOptions = {
-        context: this.context,
-        parent: this.parent
-      };
-
-      return Variables.of({
-        ...defaultOptions,
-        ...options
-      });
-    }
-
-    static of(options) {
-      const {
-        name,
-        tokens = [],
-        children = [],
-        parent = null,
-        context = {},
-        value,
-        raw
-      } = options;
-
-      return new Variables({
-        name,
-        tokens: [ ...tokens ],
-        children: [ ...children ],
-        context: {
-          ...context
-        },
-        parent,
-        value,
-        raw
-      });
-    }
-
-  };
-
-  /**
-   * @param { string } name
-   *
-   * @return { string } normalizedName
-   */
-  function normalizeContextKey$1(name) {
-    return name.replace(/\s*([./\-'+*])\s*/g, ' $1 ').replace(/\s{2,}/g, ' ').trim();
-  }
-
-  /**
-   * Wrap children of variables under the given named child.
-   *
-   * @param { Variables } variables
-   * @param { string } name
-   * @param { string } code
-   * @return { Variables }
-   */
-  function wrap$1(variables, scopeName, code) {
-
-    const parts = variables.children.filter(c => c.name !== scopeName);
-    const children = variables.children.filter(c => c.name === scopeName);
-
-    const namePart = parts[0];
-    const valuePart = parts[Math.max(1, parts.length - 1)];
-
-    const name = namePart.computedValue();
-    const value = valuePart?.computedValue() || null;
-
-    return variables
-      .assign({
-        children
-      })
-      .enterScope(scopeName)
-      .pushChildren(parts)
-      .exitScope(code)
-      .define(name, value);
-  }
-
-  /**
-   * @param { any } context
-   *
-   * @return { ContextTracker<Variables> }
-   */
-  function trackVariables$1(context = {}) {
-
-    const start = Variables$1.of({
-      context
-    });
-
-    return new ContextTracker({
-      start,
-      reduce(variables, term, stack, input) {
-
-        if (term === Context$1) {
-          variables = variables.assign({
-            value: variables.context
-          });
-        }
-
-        if (term === IfExpression$1) {
-          const [ thenPart, elsePart ] = variables.children.slice(-2);
-
-          variables = variables.assign({
-            value: {
-              ...thenPart?.computedValue(),
-              ...elsePart?.computedValue()
-            }
-          });
-        }
-
-        if (term === FilterExpression$1) {
-          const [ sourcePart, _ ] = variables.children.slice(-2);
-
-          variables = variables.assign({
-            value: sourcePart?.computedValue()
-          });
-        }
-
-        if (term === FunctionInvocation$1) {
-
-          const [
-            name,
-            ...args
-          ] = variables.children;
-
-          // preserve type information through `get value(context, key)` utility
-          if (name?.raw === 'get value') {
-            variables = getContextValue$1(variables, args);
-          }
-        }
-
-        const start = contextStarts$1[term];
-
-        if (start) {
-          return variables.enterScope(start);
-        }
-
-        const prefixedStart = prefixedContextStarts$1[term];
-
-        // pull <expression> into new <prefixedStart> context
-        if (prefixedStart) {
-
-          const children = variables.children.slice(0, -1);
-          const lastChild = variables.children.slice(-1)[0];
-
-          return variables.assign({
-            children
-          }).enterScope(prefixedStart).pushChild(lastChild).assign({
-            context: {
-              ...variables.context,
-              ...lastChild?.computedValue()
-            }
-          });
-        }
-
-        const code = input.read(input.pos, stack.pos);
-
-        const end = contextEnds$1[term];
-
-        if (end) {
-          return variables.exitScope(code);
-        }
-
-        if (term === ContextEntry$1) {
-          return wrap$1(variables, 'ContextEntry', code);
-        }
-
-        if (
-          term === ForInExpression$1 ||
-          term === QuantifiedInExpression$1
-        ) {
-          return wrap$1(variables, 'InExpression', code);
-        }
-
-        // define <partial> within ForExpression body
-        if (term === forExpressionBodyStart$1) {
-
-          return variables.define(
-            'partial',
-            ValueProducer$1.of(variables => {
-              return variables.children[variables.children.length - 1]?.computedValue();
-            })
-          );
-        }
-
-        if (
-          term === ParameterName$1
-        ) {
-          const [ left ] = variables.children.slice(-1);
-
-          const name = left.computedValue();
-
-          // TODO: attach type information
-          return variables.define(name, 1);
-        }
-
-        // pull <expression> into ArithmeticExpression child
-        if (
-          term === arithmeticPlusStart$1 ||
-          term === arithmeticTimesStart$1 ||
-          term === arithmeticExpStart$1
-        ) {
-          const children = variables.children.slice(0, -1);
-          const lastChild = variables.children.slice(-1)[0];
-
-          return variables.assign({
-            children
-          }).enterScope('ArithmeticExpression').pushChild(lastChild);
-        }
-
-        if (term === arithmeticUnaryStart$1) {
-          return variables.enterScope('ArithmeticExpression');
-        }
-
-        if (
-          term === Identifier$1 ||
-          term === AdditionalIdentifier$1 ||
-          term === PropertyIdentifier$1
-        ) {
-          return variables.token(code);
-        }
-
-        if (
-          term === StringLiteral$1
-        ) {
-          return variables.literal(code.replace(/^"|"$/g, ''));
-        }
-
-        if (term === BooleanLiteral$1) {
-          return variables.literal(code === 'true' ? true : false);
-        }
-
-        if (term === NumericLiteral$1) {
-          return variables.literal(parseFloat(code));
-        }
-
-        if (term === nil$1) {
-          return variables.literal(null);
-        }
-
-        if (
-          term === VariableName$1
-        ) {
-          return variables.resolveName();
-        }
-
-        if (
-          term === Name$1 ||
-          term === PropertyName$1
-        ) {
-          return variables.declareName();
-        }
-
-        if (
-          term === expression0$1 ||
-          term === PositiveUnaryTest$1
-        ) {
-          if (variables.tokens.length > 0) {
-            throw new Error('uncleared name');
-          }
-        }
-
-        if (term === expression0$1) {
-
-          let parent = variables;
-
-          while (parent.parent) {
-            parent = parent.exitScope(code);
-          }
-
-          return parent;
-        }
-
-        return variables;
-      }
-    });
-  }
-
-  const variableTracker$1 = trackVariables$1({});
-
-
-  // helpers //////////////
-
-  function getContextValue$1(variables, args) {
-
-    if (!args.length) {
-      return variables.assign({
-        value: null
-      });
-    }
-
-    if (args[0].name === 'Name') {
-      args = extractNamedArgs$1(args, [ 'm', 'key' ]);
-    }
-
-    if (args.length !== 2) {
-      return variables.assign({
-        value: null
-      });
-    }
-
-    const [
-      context,
-      key
-    ] = args;
-
-    const keyValue = key?.computedValue();
-    const contextValue = context?.computedValue();
-
-    if (
-      (!contextValue || typeof contextValue !== 'object') || typeof keyValue !== 'string'
-    ) {
-      return variables.assign({
-        value: null
-      });
-    }
-
-    return variables.assign({
-      value: [ normalizeContextKey$1(keyValue), keyValue ].reduce((value, keyValue) => {
-        if (keyValue in contextValue) {
-          return contextValue[keyValue];
-        }
-
-        return value;
-      }, null)
-    });
-  }
-
-  function extractNamedArgs$1(args, argNames) {
-
-    const context = {};
-
-    for (let i = 0; i < args.length; i += 2) {
-      const [ name, value ] = args.slice(i, i + 2);
-
-      context[name.value] = value;
-    }
-
-    return argNames.map(name => context[name]);
-  }
-
-  const feelHighlighting$1 = styleTags({
-    'StringLiteral': tags.string,
-    'NumericLiteral': tags.number,
-    'BooleanLiteral': tags.bool,
-    'Name QualifiedName': tags.name,
-    'CompareOp': tags.compareOperator,
-    'ArithOp': tags.arithmeticOperator,
-    'PropertyName PathExpression/Name Key': tags.propertyName,
-    'for if then else some every satisfies between': tags.controlKeyword,
-    'in return instance of and or': tags.operatorKeyword,
-    'function': tags.definitionKeyword,
-    'FormalParameter/Type!': tags.typeName,
-    'as': tags.keyword,
-    'Wildcard': tags.special,
-    'null': tags.null,
-    ',': tags.separator,
-    '[ ]': tags.squareBracket,
-    '{ }': tags.brace,
-    '( )': tags.paren,
-    'LineComment': tags.lineComment,
-    'BlockComment': tags.blockComment,
-    'ParameterName VariableName ?': tags.variableName,
-    'DateTimeConstructor! SpecialFunctionName BuiltInFunctionName': tags.function(tags.special(tags.variableName)),
-    'FunctionInvocation/VariableName': tags.function(tags.variableName),
-    'List Interval': tags.list,
-    'BuiltInType ListType ContextType FunctionType': tags.function(tags.typeName),
-    'Context': tags.definition(tags.literal),
-    'ContextEntry/Key': tags.variableName,
-    'InExpression/Name': tags.local(tags.variableName),
-    'ParameterName/Name': tags.local(tags.variableName),
-    'IterationContext/".." Interval/".." "."': tags.punctuation
-  });
-
-  // This file was generated by lezer-generator. You probably shouldn't edit it.
-  const spec_identifier$1 = {__proto__:null,for:10, in:30, return:34, if:38, then:40, else:42, some:46, every:48, satisfies:55, or:58, and:62, between:70, instance:86, of:89, days:99, time:101, duration:103, years:105, months:107, date:109, list:115, context:121, function:128, string:147, length:149, upper:151, case:153, lower:155, substring:157, before:159, after:161, starts:163, with:165, ends:167, contains:169, insert:171, index:173, distinct:175, values:177, met:179, by:181, overlaps:183, finished:185, started:187, day:189, year:191, week:193, month:195, get:197, value:199, entries:201, null:210, true:380, false:380, "?":224, external:240, not:263};
-  const parser$2 = LRParser.deserialize({
-    version: 14,
-    states: "!&nO`QYOOO&wQYOOOOQU'#Ce'#CeO'RQYO'#C`O([Q^O'#FlOOQQ'#GQ'#GQO*|QYO'#GQO`QYO'#DUOOQU'#FZ'#FZO-rQ^O'#D]OOQO'#GX'#GXO1yQWO'#DuOOQU'#Ej'#EjOOQU'#Ek'#EkOOQU'#El'#ElO2OOWO'#EoO1yQWO'#EmOOQU'#Em'#EmOOQU'#G_'#G_OOQU'#G]'#G]O2TQYO'#ErO`QYO'#EsO2uQYO'#EtO2TQYO'#EqOOQU'#Eq'#EqOOQU'#Fn'#FnO4ZQ^O'#FnO6uQWO'#EuOOQP'#Gh'#GhO6zQXO'#E|OOQU'#Ge'#GeOOQU'#Fm'#FmOOQQ'#FU'#FUQ`QYOOOOQQ'#Fo'#FoOOQQ'#Fx'#FxO`QYO'#CnOOQQ'#Fy'#FyO'RQYO'#CrO7VQYO'#DvO7[QYO'#DvO7aQYO'#DvO7fQYO'#DvO7nQYO'#DvO7sQYO'#DvO7xQYO'#DvO7}QYO'#DvO8SQYO'#DvO8XQYO'#DvO8^QYO'#DvO8cQYO'#DvO8hQYO'#DvOOQU'#G^'#G^O8pQYO'#EnOOQO'#En'#EnOOQO'#Gf'#GfO:SQYO'#DQO:jQWO'#F|OOQO'#DS'#DSO:uQYO'#GQQOQWOOO:|QWOOO;pQYO'#CdO;}QYO'#FqOOQQ'#Cc'#CcO<SQYO'#FpOOQQ'#Cb'#CbO<[QYO,58zO`QYO,59hOOQQ'#F}'#F}OOQQ'#GO'#GOOOQQ'#GP'#GPO`QYO,59pO`QYO,59pO`QYO,59pOOQQ'#GV'#GVO'RQYO,5:]OOQQ'#GW'#GWO`QYO,5:_OOQQ,5<W,5<WO`QYO,59dO`QYO,59fO`QYO,59hO<aQYO,59hO?VQYO,59rOOQU,5;U,5;UO?[Q^O,59pOOQU-E9X-E9XOCcQYO'#GYOOQU,5:a,5:aOOQU,5;Z,5;ZOOQU,5;X,5;XOCjQ^O'#D[OGqQWO'#EjOOQU'#Gd'#GdOGvQWO,5;^OG{QYO,5;_OJZQ^O'#D[OJeQYO'#G]OLsQYO'#G[OMQQWO,5;`OOQU,5;],5;]OOQU,5<Y,5<YOMVQYO,5;aOOQP'#FQ'#FQOMyQXO'#FPOOQO'#FO'#FOONQQWO'#E}ONVQWO'#GiON_QWO,5;hOOQQ-E9S-E9SONdQYO,59YO;}QYO'#F{OOQQ'#Cv'#CvONkQYO'#FzOOQQ'#Cu'#CuONsQYO,59^ONxQYO,5:bOOQO,5:b,5:bON}QYO,5:bO! VQYO,5:bO! [QYO,5;YO`QYO'#FYO! aQWO,5<hO`QYOOOOQR'#Cf'#CfOOQQ'#FV'#FVO!!WQYO,59OO`QYO,5<]OOQQ'#Ft'#FtO'RQYO'#FWO!!hQYO,5<[O`QYO1G.fOOQQ'#Fw'#FwO!!pQ^O1G/SO!&_Q^O1G/[O!)|Q^O1G/[O!1YQ^O1G/[OOQU1G/w1G/wO!1vQYO1G/yO!5]Q^O1G/OO!9RQ^O1G/QO!:aQYO1G/SO`QYO1G/SOOQU1G/S1G/SO!:hQYO1G/^O!;SQ^O'#CdOOQO'#Eg'#EgO!<fQWO'#EfO!<kQWO'#GZOOQO'#Ee'#EeOOQO'#Eh'#EhO!<sQWO,5<tO'RQYO'#F[O!<xQ^O,59vO2TQYO1G0xOOQU1G0y1G0yO`QYO'#F`O!APQWO,5<vOOQU1G0z1G0zO!A[QWO'#EwO!AgQWO'#GgOOQO'#Ev'#EvO!AoQWO1G0{OOQP'#Fb'#FbO!AtQXO,5;kO`QYO,5;iO!A{QXO'#FcO!BTQWO,5=TOOQU1G1S1G1SO`QYO1G.tO`QYO,5<gO'RQYO'#FXO!B]QYO,5<fO`QYO1G.xO!BeQYO1G/|OOQO1G/|1G/|OOQO1G0t1G0tOOQO,5;t,5;tOOQO-E9W-E9WO!BjQWOOOOQQ-E9T-E9TO!BoQYO'#ClOOQQ1G1w1G1wOOQQ,5;r,5;rOOQQ-E9U-E9UO!B|Q^O7+$QOOQU7+%e7+%eO`QYO7+$nO!EnQYO,5;_O!EuQWO7+$nOOQU'#DZ'#DZO!EzQYO'#D^O!FPQYO'#D^O!FUQYO'#D^O!FZQ`O'#DfO!F`Q`O'#DiO!FeQ`O'#DmOOQU7+$x7+$xO`QYO,5;QO'RQYO'#F_O!FjQWO,5<uOOQU1G2`1G2`OOQU,5;v,5;vOOQU-E9Y-E9YO!FrQWO7+&dO!F}QYO,5;zOOQO-E9^-E9^O!:hQYO,5;cO'RQYO'#FaO!G[QWO,5=RO!GdQYO7+&gOOQP-E9`-E9`O!GkQYO1G1TOOQO,5;},5;}OOQO-E9a-E9aO!KdQ^O7+$`O!KkQYO1G2ROOQQ,5;s,5;sOOQQ-E9V-E9VO!KuQ^O7+$dOOQO7+%h7+%hO`QYO,59WO!NgQ^O<<HYOOQU<<HY<<HYO#$UQYO,59xO#$ZQYO,59xO#$`QYO,59xO#$eQYO,5:QO'RQYO,5:TO#%PQbO,5:XO#%WQYO1G0lOOQO,5;y,5;yOOQO-E9]-E9]OOQU<<JO<<JOOOQO1G0}1G0}OOQO,5;{,5;{OOQO-E9_-E9_O#%bQ^O'#EyOOQU<<JR<<JRO`QYO<<JRO`QYO<<GzO#(SQYO1G.rO#(^QYO1G/dOOQU1G/d1G/dO#(cQbO'#D]O#(tQ`O'#D[O#)PQ`O1G/lO#)UQWO'#DlO#)ZQ`O'#GROOQO'#Dk'#DkO#)cQ`O1G/oOOQO'#Dp'#DpO#)hQ`O'#GTOOQO'#Do'#DoO#)pQ`O1G/sOOQUAN?mAN?mO#)uQ^OAN=fOOQU7+%O7+%OO#,gQ`O,59vOOQU7+%W7+%WO#$eQYO,5:WO'RQYO'#F]O#,rQ`O,5<mOOQU7+%Z7+%ZO#$eQYO'#F^O#,zQ`O,5<oO#-SQ`O7+%_OOQO1G/r1G/rOOQO,5;w,5;wOOQO-E9Z-E9ZOOQO,5;x,5;xOOQO-E9[-E9[O!:hQYO<<HyOOQUAN>eAN>eO#-XQ^O'#FnO`QYO,59hO`QYO,59pO`QYO,59pO`QYO,59pO`QYO,59dO`QYO,59fO<aQYO,59hO`QYO1G.fO#-rQYO1G/SO#/`QYO1G/[O#0|QYO1G/[O#3wQYO1G/OO#5lQYO1G/QO'RQYO'#F[O`QYO1G.tO`QYO1G.xO#5|QYO7+$QO`QYO7+$nO#6mQYO7+&gO#8bQYO7+$`O#8iQYO7+$`O#8pQ^O7+$`O#8wQYO7+$dO#9hQYO<<HYO#;UQYO'#EyO`QYO<<JRO`QYO<<GzO#;uQYOAN=fO#$eQYO<<HyO`QYO'#DUO#<fQ^O'#DQO<[QYO,58zO#?WQYO,59YO#?_QYO,59^O#?dQYO1G/SO#?kQWO1G0{O`QYO1G.tO#?pQ`O7+%_O`QYO1G.tO'RQYO'#C`O`QYO'#CnO'RQYO'#CrO`QYO,59hOMVQYO,5;aO#?uQYO,59YO#?|Q`O1G/sO#@RQYO,59YO#@YQWO'#EuO`QYO'#CnO`QYO,59hO`QYO,59pO`QYO,59pO`QYO,59pO`QYO,59dO`QYO,59fO<aQYO,59hO`QYO1G.fO#@_Q^O1G/SO#@fQ^O1G/[O#@mQ^O1G/[O#@tQ^O1G/OO#A[Q^O1G/QO`QYO1G.xO#BpQ^O7+$QO`QYO7+$nO#EeQYO7+&gO#ElQ^O7+$dO#HaQ^O<<HYO#%PQbO,5:XO#HhQ^O'#EyO`QYO<<JRP`QYO<<GzP#K]Q^OAN=fO#L`Q^O'#DQO`QYO'#CnO`QYO'#DUO<[QYO,58zO$ TQYO,59^O$ YQYO1G/SO$ aQWO1G0{O$ fQ`O'#DmO`QYO,59hO`QYO,59pO`QYO,59pO`QYO,59pO`QYO,59dO`QYO,59fO<aQYO,59hO`QYO1G.fO$ kQYO1G/SO$ rQYO1G/[O$ yQYO1G/[O$!QQYO1G/OO$!hQYO1G/QO`QYO1G.xO$#|QYO7+$QO`QYO7+$nO$$pQYO7+&gO$$wQYO7+$dO$%kQYO<<HYO$%rQYO'#EyO`QYO<<JRP`QYO<<GzP$&fQYOAN=fO`QYO'#DUO<[QYO,58zO$'iQYO,59^O$'nQYO1G/SO$'uQWO1G0{O'RQYO'#C`O'RQYO'#CrO`QYO,59hOMVQYO,5;aO$'zQWO'#EuO'RQYO'#C`O'RQYO'#CrO$(PQYO'#DQO`QYO,59hOMVQYO,5;aO$(jQWO'#Eu",
-    stateData: "$(o~O$^OS$_OSPOSQOS~OTrOZUO[TOcsOguOhuOrgOueO!S!WO!T!WO!UwO!W!VO!Z|O!b!XO!fdO!hfO!kxO!myO!oyO!pzO!s{O!u{O!w}O!x!OO!y!PO!{!QO!}zO#O!QO#P!QO#Q!RO#S!SO#T!SO#U!TO#]!UO#diO#olO$YQO$ZQO%S[O%T]O%U^O%V_O~OTrO[TOcsOguOhuOrgOueO!S!WO!T!WO!UwO!W!VO!Z|O!b!XO!fdO!hfO!kxO!myO!oyO!pzO!s{O!u{O!w}O!x!OO!y!PO!{!QO!}zO#O!QO#P!QO#Q!RO#S!SO#T!SO#U!TO#]!UO#diO#olO$YQO$ZQO%S[O%T]O%U^O%V_O~OZ!]O#w!_O~P$UO$YQO$ZQO~OZ!gO[!gO]!hO^!hO_!uOm!rOo!sOq!fOr!fOs!tOy!iO{!vO!h!oO$f!mOu${X~O$[!qO%^!qOT$`Xc$`Xg$`Xh$`X!S$`X!T$`X!U$`X!W$`X!Z$`X!b$`X!f$`X!k$`X!m$`X!o$`X!p$`X!s$`X!u$`X!w$`X!x$`X!y$`X!{$`X!}$`X#O$`X#P$`X#Q$`X#S$`X#T$`X#U$`X#]$`X#d$`X#o$`X$W$`X$Y$`X$Z$`X%S$`X%T$`X%U$`X%V$`X~P'ZO%S!wOT$tXZ$tX[$tXc$tXg$tXh$tXr$tXu$tX!S$tX!T$tX!U$tX!W$tX!Z$tX!b$tX!f$tX!h$tX!k$tX!m$tX!o$tX!p$tX!s$tX!u$tX!w$tX!x$tX!y$tX!{$tX!}$tX#O$tX#P$tX#Q$tX#S$tX#T$tX#U$tX#]$tX#d$tX#o$tX$Y$tX$Z$tX%T$tX%U$tX%V$tX~O$YQO$ZQOT!PXZ!PX[!PX]!PX^!PX_!PXc!PXg!PXh!PXm!PXo!PXq!PXr!PXs!PXu!PXy!PX{!PX!S!PX!T!PX!U!PX!W!PX!Z!PX!b!PX!f!PX!h!PX!k!PX!m!PX!o!PX!p!PX!s!PX!u!PX!w!PX!x!PX!y!PX!{!PX!}!PX#O!PX#P!PX#Q!PX#S!PX#T!PX#U!PX#]!PX#d!PX#o!PX$W!PX$[!PX$f!PX%S!PX%T!PX%U!PX%V!PX%^!PX$j!PX$i!PXw!PXd!PXa!PX#n!PXe!PXk!PX~Ou!zO~O%T]O~OZ#PO!S!WO!T!WO!W!VO$YQO$ZQO%S[O%T]O%U^O%V_O~O!f%OP~P`O$[#YOZ$bX[$bX]$bX^$bX_$bXm$bXo$bXq$bXr$bXs$bXu$bXy$bX{$bX!f$bX!h$bX$W$bX$f$bXe$bX~OT$bXc$bXg$bXh$bX!S$bX!T$bX!U$bX!W$bX!Z$bX!b$bX!k$bX!m$bX!o$bX!p$bX!s$bX!u$bX!w$bX!x$bX!y$bX!{$bX!}$bX#O$bX#P$bX#Q$bX#S$bX#T$bX#U$bX#]$bX#d$bX#o$bX$Y$bX$Z$bX$[$bX%S$bX%T$bX%U$bX%V$bX%^$bX~P2|Ou#ZO~O$X#[O%T]O#n%]P~Oo#iO~O!l#jO~O!n#jO~O!q#jO!r#jO~O!t#jO~O!v#jO~O!q#jO~O|#jO~O!z#jO~O!|#jO~O|#kO~O|#lO~O#V#jO#W#jO~Oo#mOu#bX~OZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mOu${X$WtX$jtXwtX!ftXdtXatX$itX#ntXktX~O_'UOm'SOo'TOq'OOr'OOs'zO~P8xO$j#nO$W$pXw$pX~O$W#vX~P*|Ou#pO~OZ#qO[#qO]#qO^#qO$YQO$ZQO$f#qO$g#qO$vWX~O_WXwWX$jWX~P;RO_#uO~O$j#vOa$dX~Oa#yO~OTrOZUO[TOcsOguOhuOrgOu$TO!S!WO!T!WO!UwO!W!VO!Z|O!b!XO!fdO!hfO!kxO!myO!oyO!pzO!s{O!u{O!w}O!x!OO!y!PO!{!QO!}zO#O!QO#P!QO#Q!RO#S!SO#T!SO#U!TO#]!UO#diO#olO$YQO$ZQO%S[O%T]O%U^O%V_O~O|$VO~O{!vO!h!oO$f!mOTxaZxa[xa]xa^xa_xacxagxahxamxaoxaqxarxasxau${Xyxa!Sxa!Txa!Uxa!Wxa!Zxa!bxa!fxa!kxa!mxa!oxa!pxa!sxa!uxa!wxa!xxa!yxa!{xa!}xa#Oxa#Pxa#Qxa#Sxa#Txa#Uxa#]xa#dxa#oxa$Wxa$Yxa$Zxa$[xa%Sxa%Txa%Uxa%Vxa%^xa$jxawxadxaaxa$ixa#nxaexakxa~Ow%OP~P`O$f$_O$i!OXT!OXZ!OX[!OX]!OX^!OX_!OXc!OXg!OXh!OXm!OXo!OXq!OXr!OXs!OXu!OXy!OX{!OX!S!OX!T!OX!U!OX!W!OX!Z!OX!b!OX!f!OX!h!OX!k!OX!m!OX!o!OX!p!OX!s!OX!u!OX!w!OX!x!OX!y!OX!{!OX!}!OX#O!OX#P!OX#Q!OX#S!OX#T!OX#U!OX#]!OX#d!OX#o!OX$W!OX$Y!OX$Z!OX$[!OX%S!OX%T!OX%U!OX%V!OX%^!OX$j!OXw!OXd!OXa!OX#n!OXe!OXk!OX~O%S!wO~O$i$aO~OZ!gO[!gO]!hO^!hO_'UOm'SOo'TOq'OOr'OOs'zOw$bOy!iO{!vO!h!oO$f!mOu${X~O$[#YOZ$bX[$bX]$bX^$bX_$bXm$bXo$bXq$bXr$bXs$bXu$bXw$bXy$bX{$bX!h$bX!f$bX$j$bX~O$f$_O$i!OX~PIPOZ%PX[%PX]%PX^%PX_%PXm%PXo%PXq%PXr%PXs%PXu%PXw%PXy%PX{%PX!h%PX$f%PX$i%WX!f%PX$j%PX~OZ!gO[!gO]!hO^!hO_'UOm'SOo'TOq'OOr'OOs'zOy!iO{!vO!h!oO$f!mOu${X~O$j$cO!f%OXw%OX~PKrO!f$eO~O$YQO$ZQOw%ZP~OZ#qO[#qO]#qO^#qO$X#[O$f#qO$g#qO~O$v#sX~PMbO$v$lO~O$j$mO#n%]X~O#n$oO~Od$pO~PKrO$j$rOk$nX~Ok$tO~O!V$uO~O#R$vO#S$vO~O#R$vO~O!S$wO~O$j#nO$W$paw$pa~OZ#qO[#qO]#qO^#qO$YQO$ZQO$f#qO$g#qO~O_Wa$vWawWa$jWa~P! lO$j#vOa$da~OZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mOTpi_picpigpihpimpiopiqpirpispiu${X!Spi!Tpi!Upi!Wpi!Zpi!bpi!fpi!kpi!mpi!opi!ppi!spi!upi!wpi!xpi!ypi!{pi!}pi#Opi#Ppi#Qpi#Spi#Tpi#Upi#]pi#dpi#opi$Wpi$Ypi$Zpi$[pi%Spi%Tpi%Upi%Vpi%^pi~O]!hO^!hOy!iO{!vO!h!oO$f!mOTxiZxi[xi_xicxigxihximxioxiqxirxisxiu${X!Sxi!Txi!Uxi!Wxi!Zxi!bxi!fxi!kxi!mxi!oxi!pxi!sxi!uxi!wxi!xxi!yxi!{xi!}xi#Oxi#Pxi#Qxi#Sxi#Txi#Uxi#]xi#dxi#oxi$Wxi$Yxi$Zxi$[xi%Sxi%Txi%Uxi%Vxi%^xi~Oy!iO{!vO!h!oO$f!mOTxiZxi[xi]xi^xi_xicxigxihximxioxiqxirxisxiu${X!Sxi!Txi!Uxi!Wxi!Zxi!bxi!fxi!kxi!mxi!oxi!pxi!sxi!uxi!wxi!xxi!yxi!{xi!}xi#Oxi#Pxi#Qxi#Sxi#Txi#Uxi#]xi#dxi#oxi$Wxi$Yxi$Zxi$[xi%Sxi%Txi%Uxi%Vxi%^xi~O{!vO!h!oO$f!mOTxiZxi[xi]xi^xi_xicxigxihximxioxiqxirxisxiu${X!Sxi!Txi!Uxi!Wxi!Zxi!bxi!fxi!kxi!mxi!oxi!pxi!sxi!uxi!wxi!xxi!yxi!{xi!}xi#Oxi#Pxi#Qxi#Sxi#Txi#Uxi#]xi#dxi#oxi$Wxi$Yxi$Zxi$[xi%Sxi%Txi%Uxi%Vxi%^xiexi~Oyxi$jxiwxidxiaxi$ixi#nxikxi~P!-kO!f%RO~PKrOZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mOTlicliglihlimliu${X!Sli!Tli!Uli!Wli!Zli!bli!fli!kli!mli!oli!pli!sli!uli!wli!xli!yli!{li!}li#Oli#Pli#Qli#Sli#Tli#Uli#]li#dli#oli$Wli$Yli$Zli$[li%Sli%Tli%Uli%Vli%^li~O_!uOo!sOq!fOr!fOs!tO~P!1}OZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mOTnicnignihnimnioniu${X!Sni!Tni!Uni!Wni!Zni!bni!fni!kni!mni!oni!pni!sni!uni!wni!xni!yni!{ni!}ni#Oni#Pni#Qni#Sni#Tni#Uni#]ni#dni#oni$Wni$Yni$Zni$[ni%Sni%Tni%Uni%Vni%^ni~O_!uOq!fOr!fOs!tO~P!5pOZ!gO[!gO]!hO^!hO_'UOm'SOq'OOr'OOs'zOy!iO{!vO!h!oO$f!mOu${X~Oo%SO~P!9cO!R%WO!U%XO!W%YO!Z%ZO!^%[O!b%]O$YQO$ZQO~OZ#}X[#}X]#}X^#}X_#}Xm#}Xo#}Xq#}Xr#}Xs#}Xu#}Xw#}Xy#}X{#}X!h#}X$Y#}X$Z#}X$[#}X$f#}X$j#}X~P;RO$v%_O~O$j%`Ow$}X~Ow%bO~O$f$_O$i!OaT!OaZ!Oa[!Oa]!Oa^!Oa_!Oac!Oag!Oah!Oam!Oao!Oaq!Oar!Oas!Oau!Oay!Oa{!Oa!S!Oa!T!Oa!U!Oa!W!Oa!Z!Oa!b!Oa!f!Oa!h!Oa!k!Oa!m!Oa!o!Oa!p!Oa!s!Oa!u!Oa!w!Oa!x!Oa!y!Oa!{!Oa!}!Oa#O!Oa#P!Oa#Q!Oa#S!Oa#T!Oa#U!Oa#]!Oa#d!Oa#o!Oa$W!Oa$Y!Oa$Z!Oa$[!Oa%S!Oa%T!Oa%U!Oa%V!Oa%^!Oa$j!Oaw!Oad!Oaa!Oa#n!Oae!Oak!Oa~O$j$cO!f%Oaw%Oa~O$v%hOw#kX$j#kX~O$j%iOw%ZX~Ow%kO~O$v#sa~PMbO$X#[O%T]O~O$j$mO#n%]a~O$j$rOk$na~O!T%uO~Ow!^O~O$i%vOa`X$j`X~PKrOTSqcSqgSqhSq!SSq!TSq!USq!WSq!ZSq!bSq!fSq!kSq!mSq!oSq!pSq!sSq!uSq!wSq!xSq!ySq!{Sq!}Sq#OSq#PSq#QSq#SSq#TSq#USq#]Sq#dSq#oSq$WSq$YSq$ZSq$[Sq%SSq%TSq%USq%VSq%^Sq~P'ZO$jtX~PG{Ow%xO~Oo%yO~Oo%zO~Oo%{O~O![%|O~O![%}O~O![&OO~O$j%`Ow$}a~Ow&SO!f&SO!h&SO~O!f$Sa$j$Saw$Sa~PKrO$j%iOw%Za~O#l&YO~P`O#n#qi$j#qi~PKrOZ!gO[!gO]!hO^!hO_(XOm(VOo(WOq(ROr(ROs)iOy!iO{!vO!h!oO$f!mOTbqcbqgbqhbqu${X!Sbq!Tbq!Ubq!Wbq!Zbq!bbq!fbq!kbq!mbq!obq!pbq!sbq!ubq!wbq!xbq!ybq!{bq!}bq#Obq#Pbq#Qbq#Sbq#Tbq#Ubq#]bq#dbq#obq$Wbq$Ybq$Zbq$[bq%Sbq%Tbq%Ubq%Vbq%^bq~Oe&ZO~P!GuOk$oi$j$oi~PKrOTfqcfqgfqhfq!Sfq!Tfq!Ufq!Wfq!Zfq!bfq!ffq!kfq!mfq!ofq!pfq!sfq!ufq!wfq!xfq!yfq!{fq!}fq#Ofq#Pfq#Qfq#Sfq#Tfq#Ufq#]fq#dfq#ofq$Wfq$Yfq$Zfq$[fq%Sfq%Tfq%Ufq%Vfq%^fq~P'ZOZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mOTpy_pycpygpyhpympyopyqpyrpyspyu${X!Spy!Tpy!Upy!Wpy!Zpy!bpy!fpy!kpy!mpy!opy!ppy!spy!upy!wpy!xpy!ypy!{py!}py#Opy#Ppy#Qpy#Spy#Tpy#Upy#]py#dpy#opy$Wpy$Ypy$Zpy$[py%Spy%Tpy%Upy%Vpy%^py~O!S&]O~O!V&]O~O!S&^O~O!R%WO!U%XO!W%YO!Z%ZO!^%[O!b(rO$YQO$ZQO~O!X$wP~P#$eOw#Yi$j#Yi~PKrOT#mXc#mXg#mXh#mX!S#mX!T#mX!U#mX!W#mX!Z#mX!b#mX!f#mX!k#mX!m#mX!o#mX!p#mX!s#mX!u#mX!w#mX!x#mX!y#mX!{#mX!}#mX#O#mX#P#mX#Q#mX#S#mX#T#mX#U#mX#]#mX#d#mX#o#mX$W#mX$Y#mX$Z#mX$[#mX%S#mX%T#mX%U#mX%V#mX%^#mX~P'ZOa`i$j`i~PKrO!T&lO~O$YQO$ZQO!X!PX$f!PX$j!PX~O$f']O!X!OX$j!OX~O!X&nO~O$v&oO~O$j&pO!X$uX~O!X&rO~O$j&sO!X$wX~O!X&uO~OTb!Rcb!Rgb!Rhb!R!Sb!R!Tb!R!Ub!R!Wb!R!Zb!R!bb!R!fb!R!kb!R!mb!R!ob!R!pb!R!sb!R!ub!R!wb!R!xb!R!yb!R!{b!R!}b!R#Ob!R#Pb!R#Qb!R#Sb!R#Tb!R#Ub!R#]b!R#db!R#ob!R$Wb!R$Yb!R$Zb!R$[b!R%Sb!R%Tb!R%Ub!R%Vb!R%^b!R~P'ZO$f']O!X!Oa$j!Oa~O$j&pO!X$ua~O$j&sO!X$wa~O$x&{O~O$j$bXd$bXw$bXa$bX$i$bX#n$bXk$bX~P2|OZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mO_pimpiopiqpirpispiu${X$Wpi$jpiwpi!fpidpiapi$ipi#npikpi~O]!hO^!hOy!iO{!vO!h!oO$f!mOZxi[xi_ximxioxiqxirxisxiu${X$Wxi$jxiwxi!fxidxiaxi$ixi#nxikxi~Oy!iO{!vO!h!oO$f!mOZxi[xi]xi^xi_ximxioxiqxirxisxiu${X$Wxi$jxiwxi!fxidxiaxi$ixi#nxikxi~OZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mOmliu${X$Wli$jliwli!flidliali$ili#nlikli~O_'UOo'TOq'OOr'OOs'zO~P#2jOZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mOmnioniu${X$Wni$jniwni!fnidniani$ini#nnikni~O_'UOq'OOr'OOs'zO~P#4[O$WSq$jSqwSq!fSqdSqaSq$iSq#nSqkSq~PKrO#l'iO~P`OZ!gO[!gO]!hO^!hO_(yOm(wOo(xOq(sOr(sOs)cOy!iO{!vO!h!oO$f!mOu${X$Wbq$jbqwbq!fbqdbqabq$ibq#nbqkbq~Oe'jO~P#6tOebq~P#6tOebq~P!GuO$Wfq$jfqwfq!ffqdfqafq$ifq#nfqkfq~PKrOZ!gO[!gO]!hO^!hOy!iO{!vO!h!oO$f!mO_pympyopyqpyrpyspyu${X$Wpy$jpywpy!fpydpyapy$ipy#npykpy~O$W#mX$j#mXw#mX!f#mXd#mXa#mX$i#mX#n#mXk#mX~PKrO$Wb!R$jb!Rwb!R!fb!Rdb!Rab!R$ib!R#nb!Rkb!R~PKrOTtXctXgtXhtX!StX!TtX!UtX!WtX!ZtX!btX!ftX!ktX!mtX!otX!ptX!stX!utX!wtX!xtX!ytX!{tX!}tX#OtX#PtX#QtX#StX#TtX#UtX#]tX#dtX#otX$WtX$YtX$ZtX$[tX%StX%TtX%UtX%VtX%^tX~P'ZOd'^O~PKrOk'_O~Oo'aO~P!9cOw'bO~O$x'lO~Od'tO~PKrO!X'uO~Od'vO~PKrOu'{O~Oepi~P!!pOexi~P!&_Oexi~P!)|O_(XOo(WOq(ROr(ROs)iOeli~P!1}O_(XOq(ROr(ROs)iOeni~P!5pOZ!gO[!gO]!hO^!hO_(XOm(VOo(WOq(ROr(ROs)iOy!iO{!vO!h!oO$f!mOu${X~OTSqcSqeSqgSqhSq!SSq!TSq!USq!WSq!ZSq!bSq!fSq!kSq!mSq!oSq!pSq!sSq!uSq!wSq!xSq!ySq!{Sq!}Sq#OSq#PSq#QSq#SSq#TSq#USq#]Sq#dSq#oSq$WSq$YSq$ZSq$[Sq%SSq%TSq%USq%VSq%^Sq~P#AoO#l(hO~P`OTfqcfqefqgfqhfq!Sfq!Tfq!Ufq!Wfq!Zfq!bfq!ffq!kfq!mfq!ofq!pfq!sfq!ufq!wfq!xfq!yfq!{fq!}fq#Ofq#Pfq#Qfq#Sfq#Tfq#Ufq#]fq#dfq#ofq$Wfq$Yfq$Zfq$[fq%Sfq%Tfq%Ufq%Vfq%^fq~P#AoOepy~P!NgOT#mXc#mXe#mXg#mXh#mX!S#mX!T#mX!U#mX!W#mX!Z#mX!b#mX!f#mX!k#mX!m#mX!o#mX!p#mX!s#mX!u#mX!w#mX!x#mX!y#mX!{#mX!}#mX#O#mX#P#mX#Q#mX#S#mX#T#mX#U#mX#]#mX#d#mX#o#mX$W#mX$Y#mX$Z#mX$[#mX%S#mX%T#mX%U#mX%V#mX%^#mX~P#AoOZ!gO[!gO]!hO^!hO_(XOm(VOo(WOq(ROr(ROs)iOy!iO{!vO!h!oO$f!mOu${X~Qb!RTtXctXetXgtXhtX!StX!TtX!UtX!WtX!ZtX!btX!ftX!ktX!mtX!otX!ptX!stX!utX!wtX!xtX!ytX!{tX!}tX#OtX#PtX#QtX#StX#TtX#UtX#]tX#dtX#otX$WtX$YtX$ZtX$[tX%StX%TtX%UtX%VtX%^tX~P#AoOk(`O~Oo(bO~P!9cOw(cO~O![(fO~Oepi~P#-rOexi~P#/`Oexi~P#0|O_(yOo(xOq(sOr(sOs)cOeli~P#2jO_(yOq(sOr(sOs)cOeni~P#4[OZ!gO[!gO]!hO^!hO_(yOm(wOo(xOq(sOr(sOs)cOy!iO{!vO!h!oO$f!mOu${X~OeSq$WSq$jSqwSq!fSqdSqaSq$iSq#nSqkSq~P$!{O#l)XO~P`Oefq$Wfq$jfqwfq!ffqdfqafq$ifq#nfqkfq~P$!{Oepy~P#9hOe#mX$W#mX$j#mXw#mX!f#mXd#mXa#mX$i#mX#n#mXk#mX~P$!{OZ!gO[!gO]!hO^!hO_(yOm(wOo(xOq(sOr(sOs)cOy!iO{!vO!h!oO$f!mOu${X~Qb!Rk)QO~Oo)SO~P!9cOw)TO~Ou)dO~O_(yOm(wOo(xOq(sOr(sOs)cOetX~P8xOu)jO~O",
-    goto: "!7f%^PPPP%_P'X'e'n(Z+RPPPPP+[P%_PPP%_PP+_+kP%_P%_P%_PPP+tP,SP%_P%_PP,],r-V,zPPPPPPP,zPP,zP/l/o,zP/u/{%_P%_P%_0SPPPPPPPPPPPPPPPPPPPPPPPPPPPP1|2P2V1|P2b4_2b2b6c8`P%_:]%_<V<V>P>]P>fPP<V>r>x6_>|P?UP?X?_?f?l?r?xBXBdBjBpBvB|CSCYPPPPPPPPC`CdH[JULUL[PPLcPPLiLuNu!!u!!{!#S!#X!$n!&X!'v!)vP!)yP!)}!+h!-R!.{!/R!/U%_!/[!1UPPPP!3VH[!3c!5c!5i!7c$oiOPVefqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iQ!eRQ'o'wQ(n)fR)])aW!cR'w)a)fR%O#vY!aR#v'w)a)fY#dv$r'y)b)g^$X!z#Z%`%i'{)d)jT&b%}&p%`WOPVXdefgqt!f!j!k!l!n!p!r!s!t!u#n#p#t#x$T$V$_$a$c$l$p$q$t%S%_%h%k%v%|&O&Y&Z&_&o&s&{'O'P'Q'R'S'T'U'V']'^'_'a'b'i'j'l'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(f(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)it!`Rv#Z#v$r%`%i%}&p'w'y'{)a)b)d)f)g)jU#r!`#s$WR$W!zU#r!`#s$WT$j#]$kR$}#tQ#hvQ'q'yQ(o)gR)^)bW#fv'y)b)gR%r$rU!ZP#p$TW$U!u'U(X(yR$x#nQ!^PQ$z#pR%U$TQ%^$VQ&T%hQ&a%|U&f&O&s(fQ&v&oT&|&{'l[#Qdefg$T$ac%V$V%h%|&O&o&s&{'l(f!bjOVq!f!j!k!l!r!s!u#x$p$t%S%k&Y&Z't(R(S(T(U(V(W(X(Y(`(b(c(h(i(m[#Odg$V$a%h&{U#Tef$TQ$O!nS%c$_'][&`%|&O&o&s'l(f#V&}Pt!p!t!z#n#p#t$c$l$q%_%v'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm'v'x'z(Q(l(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iR&e%}Q&c%}R&w&pQ&i&OR'}(fS&g&O(fR&y&s$oYOPVefqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iR$^!zQ$Z!zR&Q%`S$Y!z%`Z$f#Z%i'{)d)j$ubOPVdefgqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$a$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)i$tbOPVdefgqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$a$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iQ!|_T#^m$m$u`OPVdefgqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$a$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)i$uaOPVdefgqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$a$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)i$ohOPVefqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)i$onOPVefqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iQ$i#ZQ's'{Q(q)jR)`)dW$g#Z'{)d)jR&U%iW&X%k'b(c)TX&j&Y'i(h)XQ#`mR%n$mT#_m$mS#]m$mT$j#]$kR!^PQqOR#bqS#s!`$WR${#sQ#w!cR%P#wQ$s#fR%s$sQ#o!ZR$y#o%OXOPVdefgqt!f!j!k!l!n!p!r!s!t!u!z#n#p#t#x$T$V$_$a$c$l$p$q$t%S%_%h%k%v&Y&Z&{'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iS!yX&__&_%|&O&o&s']'l(fS$`#O#TS%d$`&mR&m&`Q&q&cR&x&qQ&t&gR&z&tQ%a$ZR&R%aQ$d#VR%g$dQ%j$gR&V%jQ$k#]R%l$kQ$n#`R%o$nTpOqSSOqW!YP#n#p'UW!xV'm(m)[Q#SeS#Vf!zQ#ctQ#z!fQ#{!jQ#|!kW#}!l'R(U(vQ$P!pQ$Q!rQ$R!sQ$S!tQ$|#tQ%Q#xQ%T$TQ%f$cQ%m$lQ%p$pQ%q$qQ%t$tQ%w%SQ&P%_S&W%k&YQ&[%vQ&k&ZQ'W'OQ'X'PQ'Y'QQ'Z'SQ'['TQ'`'VQ'c'^Q'd'vQ'e'tQ'f'_Q'g'aS'h'b'iQ'k'jQ'n!uQ'p'xQ'r'zQ'|(QQ(O(lQ(Z(RQ([(SQ(](TQ(^(VQ(_(WQ(a(YQ(d(`Q(e(bS(g(c(hQ(j(iQ(k(XQ(p)iQ({(sQ(|(tQ(}(uQ)O(wQ)P(xQ)R(zQ)U)QQ)V)SS)W)T)XQ)Z)YQ)_)cR)h(y$ooOPVefqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)ipROVq!f!j!k!l!r!s!u#x$t%S%k&Y&Z!j'wPeft!p!t!z#n#p#t$T$c$l$q%_%v'O'P'Q'R'S'T'U'V'_'a'b'i'j'm'x'z(Q(l)c)ip)a'^'v(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[q)f$p't(R(S(T(U(V(W(X(Y(`(b(c(h(i(mX!dR'w)a)fZ!bR#v'w)a)fQ#t!aR$q#dQ#x!eQ'V'oQ(Y(nR(z)]ptOVq!f!j!k!l!r!s!u#x$t%S%k&Y&Z!j'xPeft!p!t!z#n#p#t$T$c$l$q%_%v'O'P'Q'R'S'T'U'V'_'a'b'i'j'm'x'z(Q(l)c)ip(Q$p't(R(S(T(U(V(W(X(Y(`(b(c(h(i(mq(l'^'v(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[pvOVq!f!j!k!l!r!s!u#x$t%S%k&Y&Z!j'yPeft!p!t!z#n#p#t$T$c$l$q%_%v'O'P'Q'R'S'T'U'V'_'a'b'i'j'm'x'z(Q(l)c)ip)b'^'v(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[q)g$p't(R(S(T(U(V(W(X(Y(`(b(c(h(i(mX#gv'y)b)gZ#ev$r'y)b)gV![P#p$Td!jS#z$Q$R%Q%t%w&W&k'n!W'P!Y#S#V#c$P$S$|%T%f%m%q&P&['W'Z'['`'f'g'h'k'p'r'|(O(p)_f(S%p'e(Z(^(_(a(d(e(g(j(kg(t'c'd({)O)P)R)U)V)W)Z)hf!kS#z#{$Q$R%Q%t%w&W&k'n!Y'Q!Y#S#V#c$P$S$|%T%f%m%q&P&['W'X'Z'['`'f'g'h'k'p'r'|(O(p)_h(T%p'e(Z([(^(_(a(d(e(g(j(ki(u'c'd({(|)O)P)R)U)V)W)Z)hh!lS#z#{#|$Q$R%Q%t%w&W&k'n!['R!Y#S#V#c$P$S$|%T%f%m%q&P&['W'X'Y'Z'['`'f'g'h'k'p'r'|(O(p)_j(U%p'e(Z([(](^(_(a(d(e(g(j(kk(v'c'd({(|(})O)P)R)U)V)W)Z)hpVOVq!f!j!k!l!r!s!u#x$t%S%k&Y&Z!j'mPeft!p!t!z#n#p#t$T$c$l$q%_%v'O'P'Q'R'S'T'U'V'_'a'b'i'j'm'x'z(Q(l)c)ip(m$p't(R(S(T(U(V(W(X(Y(`(b(c(h(i(mq)['^'v(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[R&d%}T&h&O(f$P!nS!Y!x#S#V#c#z#{#|#}$P$Q$R$S$|%Q%T%f%m%p%q%t%w&P&W&[&k'W'X'Y'Z'['`'c'd'e'f'g'h'k'n'p'r'|(O(Z([(](^(_(a(d(e(g(j(k(p({(|(})O)P)R)U)V)W)Z)_)h$P!pS!Y!x#S#V#c#z#{#|#}$P$Q$R$S$|%Q%T%f%m%p%q%t%w&P&W&[&k'W'X'Y'Z'['`'c'd'e'f'g'h'k'n'p'r'|(O(Z([(](^(_(a(d(e(g(j(k(p({(|(})O)P)R)U)V)W)Z)_)h$oZOPVefqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iQ!{ZR!}`R$[!zQ#WfR$]!z$ocOPVefqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)i$hcOPVqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iU#Qdg$aV#Uef$TW#Rdef$TQ#XgR%e$apkOVq!f!j!k!l!r!s!u#x$t%S%k&Y&Z!j(PPeft!p!t!z#n#p#t$T$c$l$q%_%v'O'P'Q'R'S'T'U'V'_'a'b'i'j'm'x'z(Q(l)c)ip)e'^'v(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[q)k$p't(R(S(T(U(V(W(X(Y(`(b(c(h(i(mX$h#Z'{)d)j$omOPVefqt!f!j!k!l!p!r!s!t!u!z#n#p#t#x$T$c$l$p$q$t%S%_%k%v&Y&Z'O'P'Q'R'S'T'U'V'^'_'a'b'i'j'm't'v'x'z(Q(R(S(T(U(V(W(X(Y(`(b(c(h(i(l(m(s(t(u(v(w(x(y(z)Q)S)T)X)Y)[)c)iR#am",
-    nodeNames: "⚠ LineComment BlockComment Expressions ForExpression for InExpressions InExpression Name Identifier Identifier ArithOp ArithOp ArithOp ArithOp in IterationContext return IfExpression if then else QuantifiedExpression some every InExpressions InExpression satisfies Disjunction or Conjunction and Comparison CompareOp CompareOp between PositiveUnaryTest ( PositiveUnaryTests ) ArithmeticExpression ArithOp InstanceOfExpression instance of Type QualifiedName VariableName SpecialType days time duration years months date > ListType list < ContextType context ContextEntryTypes ContextEntryType FunctionType function ArgumentTypes ArgumentType PathExpression ] FilterExpression [ FunctionInvocation SpecialFunctionName string length upper case lower substring before after starts with ends contains insert index distinct values met by overlaps finished started day year week month get value entries NamedParameters NamedParameter ParameterName PositionalParameters null NumericLiteral StringLiteral BooleanLiteral DateTimeLiteral DateTimeConstructor AtLiteral ? SimplePositiveUnaryTest Interval ParenthesizedExpression List FunctionDefinition FormalParameters FormalParameter external FunctionBody } { Context ContextEntry Key Name Identifier UnaryTests Wildcard not",
-    maxTerm: 198,
-    context: variableTracker$1,
-    nodeProps: [
-      ["group", -17,4,18,22,28,30,32,40,42,67,69,71,112,113,115,116,117,124,"Expression",47,"Expression Expression",-5,105,106,107,108,109,"Expression Literal"],
-      ["closedBy", 37,")",70,"]",123,"}"],
-      ["openedBy", 39,"(",68,"[",122,"{"]
-    ],
-    propSources: [feelHighlighting$1],
-    skippedNodes: [0,1,2],
-    repeatNodeCount: 14,
-    tokenData: ")x~RuXY#fYZ$ZZ[#f]^$Zpq#fqr$`rs$kwx%_xy%dyz%iz{%n{|%{|}&Q}!O&V!O!P&d!P!Q&|!Q![(X![!](j!]!^(o!^!_(t!_!`$f!`!a)T!b!c)_!}#O)d#P#Q)i#Q#R%v#o#p)n#q#r)s$f$g#f#BY#BZ#f$IS$I_#f$I|$I}$Z$I}$JO$Z$JT$JU#f$KV$KW#f&FU&FV#f?HT?HU#f~#kY$^~XY#fZ[#fpq#f$f$g#f#BY#BZ#f$IS$I_#f$JT$JU#f$KV$KW#f&FU&FV#f?HT?HU#f~$`O$_~~$cP!_!`$f~$kOq~~$pU%T~OY$kZr$krs%Ss#O$k#O#P%X#P~$k~%XO%T~~%[PO~$k~%dO$g~~%iOu~~%nOw~~%sP^~z{%v~%{Oy~~&QO[~~&VO$j~R&[PZP!`!a&_Q&dO$xQ~&iQ$f~!O!P&o!Q![&t~&tO$i~~&yP%S~!Q![&t~'RQ]~z{'X!P!Q'|~'[ROz'Xz{'e{~'X~'hTOz'Xz{'e{!P'X!P!Q'w!Q~'X~'|OQ~~(RQP~OY'|Z~'|~(^Q%S~!O!P(d!Q![(X~(gP!Q![&t~(oO$v~~(tO%^~R({P![QrP!_!`)OP)TOrPR)[P!XQrP!_!`)O~)dO%V~~)iO!h~~)nO!f~~)sO#o~~)xO#n~",
-    tokenizers: [propertyIdentifiers$1, identifiers$1, insertSemicolon$1, 0, 1],
-    topRules: {"Expressions":[0,3],"UnaryTests":[1,129]},
-    dynamicPrecedences: {"30":-1,"71":-1,"101":-1,"154":-1},
-    specialized: [{term: 148, get: value => spec_identifier$1[value] || -1}],
-    tokenPrec: 0
-  });
-
-  function parseParameterNames$1(fn) {
-      if (Array.isArray(fn.$args)) {
-          return fn.$args;
-      }
-      const code = fn.toString();
-      const match = /^(?:[^(]*\s*)?\(([^)]+)?\)/.exec(code);
-      if (!match) {
-          throw new Error('failed to parse params: ' + code);
-      }
-      const [_, params] = match;
-      if (!params) {
-          return [];
-      }
-      return params.split(',').map(p => p.trim());
-  }
-  function notImplemented$1(thing) {
-      return new Error(`not implemented: ${thing}`);
-  }
-  /**
-   * @param {string} name
-   * @param {Record<string, any>} context
-   *
-   * @return {any}
-   */
-  function getFromContext$1(name, context) {
-      if (['nil', 'boolean', 'number', 'string'].includes(getType$1(context))) {
-          return null;
-      }
-      if (name in context) {
-          return context[name];
-      }
-      const normalizedName = normalizeContextKey$1(name);
-      if (normalizedName in context) {
-          return context[normalizedName];
-      }
-      const entry = Object.entries(context).find(([key]) => normalizedName === normalizeContextKey$1(key));
-      if (entry) {
-          return entry[1];
-      }
-      return null;
-  }
-
-  function isDateTime$1(obj) {
-      return DateTime.isDateTime(obj);
-  }
-  function isDuration$1(obj) {
-      return Duration.isDuration(obj);
-  }
-  function duration$2(opts) {
-      if (typeof opts === 'number') {
-          return Duration.fromMillis(opts);
-      }
-      return Duration.fromISO(opts);
-  }
-  function date$1(str = null, time = null, zone = null) {
-      if (time) {
-          if (str) {
-              throw new Error('<str> and <time> provided');
-          }
-          return date$1(`1900-01-01T${time}`);
-      }
-      if (typeof str === 'string') {
-          if (str.startsWith('-')) {
-              throw notImplemented$1('negative date');
-          }
-          if (!str.includes('T')) {
-              // raw dates are in UTC time zone
-              return date$1(str + 'T00:00:00.000Z');
-          }
-          if (str.includes('@')) {
-              if (zone) {
-                  throw new Error('<zone> already provided');
-              }
-              const [datePart, zonePart] = str.split('@');
-              return date$1(datePart, null, Info.normalizeZone(zonePart));
-          }
-          return DateTime.fromISO(str.toUpperCase(), {
-              setZone: true,
-              zone
-          });
-      }
-      return DateTime.now();
-  }
-
-  function isContext$1(e) {
-      return Object.getPrototypeOf(e) === Object.prototype;
-  }
-  function isArray$2(e) {
-      return Array.isArray(e);
-  }
-  function isBoolean$1(e) {
-      return typeof e === 'boolean';
-  }
-  function getType$1(e) {
-      if (e === null || e === undefined) {
-          return 'nil';
-      }
-      if (isBoolean$1(e)) {
-          return 'boolean';
-      }
-      if (isNumber$1(e)) {
-          return 'number';
-      }
-      if (isString$1(e)) {
-          return 'string';
-      }
-      if (isContext$1(e)) {
-          return 'context';
-      }
-      if (isArray$2(e)) {
-          return 'list';
-      }
-      if (isDuration$1(e)) {
-          return 'duration';
-      }
-      if (isDateTime$1(e)) {
-          if (e.year === 1900 &&
-              e.month === 1 &&
-              e.day === 1) {
-              return 'time';
-          }
-          if (e.hour === 0 &&
-              e.minute === 0 &&
-              e.second === 0 &&
-              e.millisecond === 0 &&
-              e.zone === FixedOffsetZone.utcInstance) {
-              return 'date';
-          }
-          return 'date time';
-      }
-      if (e instanceof Range$2) {
-          return 'range';
-      }
-      if (e instanceof FunctionWrapper$1) {
-          return 'function';
-      }
-      return 'literal';
-  }
-  function isType$1(el, type) {
-      return getType$1(el) === type;
-  }
-  function typeCast$1(obj, type) {
-      if (isDateTime$1(obj)) {
-          if (type === 'time') {
-              return obj.set({
-                  year: 1900,
-                  month: 1,
-                  day: 1
-              });
-          }
-          if (type === 'date') {
-              return obj.setZone('utc', { keepLocalTime: true }).startOf('day');
-          }
-          if (type === 'date time') {
-              return obj;
-          }
-      }
-      return null;
-  }
-  let Range$2 = class Range {
-      constructor(props) {
-          Object.assign(this, props);
-      }
-  };
-  function isNumber$1(obj) {
-      return typeof obj === 'number';
-  }
-  function isString$1(obj) {
-      return typeof obj === 'string';
-  }
-  function equals$1(a, b) {
-      if (a === null && b !== null ||
-          a !== null && b === null) {
-          return false;
-      }
-      if (isArray$2(a) && a.length < 2) {
-          a = a[0];
-      }
-      if (isArray$2(b) && b.length < 2) {
-          b = b[0];
-      }
-      const aType = getType$1(a);
-      const bType = getType$1(b);
-      if (aType !== bType) {
-          return null;
-      }
-      if (aType === 'nil') {
-          return true;
-      }
-      if (aType === 'list') {
-          if (a.length !== b.length) {
-              return false;
-          }
-          return a.every((element, idx) => equals$1(element, b[idx]));
-      }
-      if (aType === 'date time' || aType === 'time' || aType === 'date') {
-          return (a.toUTC().valueOf() === b.toUTC().valueOf());
-      }
-      if (aType === 'duration') {
-          // years and months duration -> months
-          if (Math.abs(a.as('days')) > 180) {
-              return Math.trunc(a.minus(b).as('months')) === 0;
-          }
-          // days and time duration -> seconds
-          else {
-              return Math.trunc(a.minus(b).as('seconds')) === 0;
-          }
-      }
-      if (aType === 'context') {
-          const aEntries = Object.entries(a);
-          const bEntries = Object.entries(b);
-          if (aEntries.length !== bEntries.length) {
-              return false;
-          }
-          return aEntries.every(([key, value]) => key in b && equals$1(value, b[key]));
-      }
-      if (aType === 'range') {
-          return [
-              [a.start, b.start],
-              [a.end, b.end],
-              [a['start included'], b['start included']],
-              [a['end included'], b['end included']]
-          ].every(([a, b]) => a === b);
-      }
-      if (a == b) {
-          return true;
-      }
-      return aType === bType ? false : null;
-  }
-  let FunctionWrapper$1 = class FunctionWrapper {
-      constructor(fn, parameterNames) {
-          this.fn = fn;
-          this.parameterNames = parameterNames;
-      }
-      invoke(contextOrArgs) {
-          let params;
-          if (isArray$2(contextOrArgs)) {
-              params = contextOrArgs;
-          }
-          else {
-              params = this.parameterNames.map(n => contextOrArgs[n]);
-          }
-          return this.fn.call(null, ...params);
-      }
-  };
-
-  // 10.3.4 Built-in functions
-  const builtins$1 = {
-      // 10.3.4.1 Conversion functions
-      'number': function () {
-          throw notImplemented$1('number');
-      },
-      'string': fn$1(function (from) {
-          if (arguments.length !== 1) {
-              return null;
-          }
-          return toString$1(from);
-      }, ['any']),
-      // date(from) => date string
-      // date(from) => date and time
-      // date(year, month, day)
-      'date': fn$1(function (year, month, day, from) {
-          if (!from && !isNumber$1(year)) {
-              from = year;
-              year = null;
-          }
-          let d;
-          if (isString$1(from)) {
-              d = date$1(from);
-          }
-          if (isDateTime$1(from)) {
-              d = from;
-          }
-          if (year) {
-              d = date$1().setZone('utc').set({
-                  year,
-                  month,
-                  day
-              });
-          }
-          return d && ifValid$1(d.setZone('utc').startOf('day')) || null;
-      }, ['any?', 'number?', 'number?', 'any?']),
-      // date and time(from) => date time string
-      // date and time(date, time)
-      'date and time': fn$1(function (d, time, from) {
-          let dt;
-          if (isDateTime$1(d) && isDateTime$1(time)) {
-              dt = time.set({
-                  year: d.year,
-                  month: d.month,
-                  day: d.day
-              });
-          }
-          if (isString$1(d)) {
-              from = d;
-              d = null;
-          }
-          if (isString$1(from)) {
-              dt = date$1(from);
-          }
-          return dt && ifValid$1(dt) || null;
-      }, ['any?', 'time?', 'string?'], ['date', 'time', 'from']),
-      // time(from) => time string
-      // time(from) => time, date and time
-      // time(hour, minute, second, offset?) => ...
-      'time': fn$1(function (hour, minute, second, offset, from) {
-          let t;
-          if (offset) {
-              throw notImplemented$1('time(..., offset)');
-          }
-          if (isString$1(hour) || isDateTime$1(hour)) {
-              from = hour;
-              hour = null;
-          }
-          if (isString$1(from)) {
-              t = date$1(null, from);
-          }
-          if (isDateTime$1(from)) {
-              t = from.set({
-                  year: 1900,
-                  month: 1,
-                  day: 1
-              });
-          }
-          if (isNumber$1(hour)) {
-              // TODO: support offset = days and time duration
-              t = date$1().set({
-                  hour,
-                  minute,
-                  second
-              }).set({
-                  year: 1900,
-                  month: 1,
-                  day: 1,
-                  millisecond: 0
-              });
-          }
-          return t && ifValid$1(t) || null;
-      }, ['any?', 'number?', 'number?', 'any?', 'any?']),
-      'duration': fn$1(function (from) {
-          return ifValid$1(duration$2(from));
-      }, ['string']),
-      'years and months duration': fn$1(function (from, to) {
-          return ifValid$1(to.diff(from, ['years', 'months']));
-      }, ['date', 'date']),
-      '@': fn$1(function (string) {
-          let t;
-          if (/^-?P/.test(string)) {
-              t = duration$2(string);
-          }
-          else if (/^[\d]{1,2}:[\d]{1,2}:[\d]{1,2}/.test(string)) {
-              t = date$1(null, string);
-          }
-          else {
-              t = date$1(string);
-          }
-          return t && ifValid$1(t) || null;
-      }, ['string']),
-      'now': fn$1(function () {
-          return date$1();
-      }, []),
-      'today': fn$1(function () {
-          return date$1().startOf('day');
-      }, []),
-      // 10.3.4.2 Boolean function
-      'not': fn$1(function (bool) {
-          return isType$1(bool, 'boolean') ? !bool : null;
-      }, ['any']),
-      // 10.3.4.3 String functions
-      'substring': fn$1(function (string, start, length) {
-          const _start = (start < 0 ? string.length + start : start - 1);
-          const arr = Array.from(string);
-          return (typeof length !== 'undefined'
-              ? arr.slice(_start, _start + length)
-              : arr.slice(_start)).join('');
-      }, ['string', 'number', 'number?'], ['string', 'start position', 'length']),
-      'string length': fn$1(function (string) {
-          return countSymbols$1(string);
-      }, ['string']),
-      'upper case': fn$1(function (string) {
-          return string.toUpperCase();
-      }, ['string']),
-      'lower case': fn$1(function (string) {
-          return string.toLowerCase();
-      }, ['string']),
-      'substring before': fn$1(function (string, match) {
-          const index = string.indexOf(match);
-          if (index === -1) {
-              return '';
-          }
-          return string.substring(0, index);
-      }, ['string', 'string']),
-      'substring after': fn$1(function (string, match) {
-          const index = string.indexOf(match);
-          if (index === -1) {
-              return '';
-          }
-          return string.substring(index + match.length);
-      }, ['string', 'string']),
-      'replace': fn$1(function (input, pattern, replacement, flags) {
-          return input.replace(new RegExp(pattern, 'ug' + (flags || '').replace(/[x]/g, '')), replacement.replace(/\$0/g, '$$&'));
-      }, ['string', 'string', 'string', 'string?']),
-      'contains': fn$1(function (string, match) {
-          return string.includes(match);
-      }, ['string', 'string']),
-      'starts with': fn$1(function (string, match) {
-          return string.startsWith(match);
-      }, ['string', 'string']),
-      'ends with': fn$1(function (string, match) {
-          return string.endsWith(match);
-      }, ['string', 'string']),
-      'split': fn$1(function (string, delimiter) {
-          return string.split(new RegExp(delimiter, 'u'));
-      }, ['string', 'string']),
-      // 10.3.4.4 List functions
-      'list contains': fn$1(function (list, element) {
-          return list.some(el => matches$1(el, element));
-      }, ['list', 'any?']),
-      'count': fn$1(function (list) {
-          return list.length;
-      }, ['list']),
-      'min': listFn$1(function (list) {
-          return list.reduce((min, el) => min === null ? el : Math.min(min, el), null);
-      }, 'number'),
-      'max': listFn$1(function (list) {
-          return list.reduce((max, el) => max === null ? el : Math.max(max, el), null);
-      }, 'number'),
-      'sum': listFn$1(function (list) {
-          return sum$1(list);
-      }, 'number'),
-      'mean': listFn$1(function (list) {
-          const s = sum$1(list);
-          return s === null ? s : s / list.length;
-      }, 'number'),
-      'all': listFn$1(function (list) {
-          let nonBool = false;
-          for (const o of list) {
-              if (o === false) {
-                  return false;
-              }
-              if (typeof o !== 'boolean') {
-                  nonBool = true;
-              }
-          }
-          return nonBool ? null : true;
-      }, 'any?'),
-      'any': listFn$1(function (list) {
-          let nonBool = false;
-          for (const o of list) {
-              if (o === true) {
-                  return true;
-              }
-              if (typeof o !== 'boolean') {
-                  nonBool = true;
-              }
-          }
-          return nonBool ? null : false;
-      }, 'any?'),
-      'sublist': fn$1(function (list, start, length) {
-          const _start = (start < 0 ? list.length + start : start - 1);
-          return (typeof length !== 'undefined'
-              ? list.slice(_start, _start + length)
-              : list.slice(_start));
-      }, ['list', 'number', 'number?']),
-      'append': fn$1(function (list, ...items) {
-          return list.concat(items);
-      }, ['list', 'any?']),
-      'concatenate': fn$1(function (...args) {
-          return args.reduce((result, arg) => {
-              return result.concat(arg);
-          }, []);
-      }, ['any']),
-      'insert before': fn$1(function (list, position, newItem) {
-          return list.slice(0, position - 1).concat([newItem], list.slice(position - 1));
-      }, ['list', 'number', 'any?']),
-      'remove': fn$1(function (list, position) {
-          return list.slice(0, position - 1).concat(list.slice(position));
-      }, ['list', 'number']),
-      'reverse': fn$1(function (list) {
-          return list.slice().reverse();
-      }, ['list']),
-      'index of': fn$1(function (list, match) {
-          return list.reduce(function (result, element, index) {
-              if (matches$1(element, match)) {
-                  result.push(index + 1);
-              }
-              return result;
-          }, []);
-      }, ['list', 'any']),
-      'union': fn$1(function (..._lists) {
-          throw notImplemented$1('union');
-      }, ['list']),
-      'distinct values': fn$1(function (_list) {
-          throw notImplemented$1('distinct values');
-      }, ['list']),
-      'flatten': fn$1(function (list) {
-          return flatten$2(list);
-      }, ['list']),
-      'product': listFn$1(function (list) {
-          if (list.length === 0) {
-              return null;
-          }
-          return list.reduce((result, n) => {
-              return result * n;
-          }, 1);
-      }, 'number'),
-      'median': listFn$1(function (list) {
-          if (list.length === 0) {
-              return null;
-          }
-          return median$1(list);
-      }, 'number'),
-      'stddev': listFn$1(function (list) {
-          if (list.length < 2) {
-              return null;
-          }
-          return stddev$1(list);
-      }, 'number'),
-      'mode': listFn$1(function (list) {
-          return mode$1(list);
-      }, 'number'),
-      // 10.3.4.5 Numeric functions
-      'decimal': fn$1(function (n, scale) {
-          if (!scale) {
-              return round$2(n);
-          }
-          const offset = Math.pow(10, scale);
-          return round$2(n * offset) / (offset);
-      }, ['number', 'number']),
-      'floor': fn$1(function (n) {
-          return Math.floor(n);
-      }, ['number']),
-      'ceiling': fn$1(function (n) {
-          return Math.ceil(n) + 0;
-      }, ['number']),
-      'abs': fn$1(function (n) {
-          if (typeof n !== 'number') {
-              return null;
-          }
-          return Math.abs(n);
-      }, ['number']),
-      'modulo': fn$1(function (dividend, divisor) {
-          if (!divisor) {
-              return null;
-          }
-          const adjust = 1000000000;
-          // cf. https://dustinpfister.github.io/2017/09/02/js-whats-wrong-with-modulo/
-          //
-          // need to round here as using this custom modulo
-          // variant is prone to rounding errors
-          return Math.round((dividend % divisor + divisor) % divisor * adjust) / adjust;
-      }, ['number', 'number']),
-      'sqrt': fn$1(function (number) {
-          if (number < 0) {
-              return null;
-          }
-          return Math.sqrt(number);
-      }, ['number']),
-      'log': fn$1(function (number) {
-          if (number <= 0) {
-              return null;
-          }
-          return Math.log(number);
-      }, ['number']),
-      'exp': fn$1(function (number) {
-          return Math.exp(number);
-      }, ['number']),
-      'odd': fn$1(function (number) {
-          return Math.abs(number) % 2 === 1;
-      }, ['number']),
-      'even': fn$1(function (number) {
-          return Math.abs(number) % 2 === 0;
-      }, ['number']),
-      // 10.3.4.6 Date and time functions
-      'is': fn$1(function (value1, value2) {
-          if (typeof value1 === 'undefined' || typeof value2 === 'undefined') {
-              return false;
-          }
-          return equals$1(value1, value2);
-      }, ['any?', 'any?']),
-      // 10.3.4.7 Range Functions
-      'before': fn$1(function (a, b) {
-          return before$1(a, b);
-      }, ['any', 'any']),
-      'after': fn$1(function (a, b) {
-          return before$1(b, a);
-      }, ['any', 'any']),
-      'meets': fn$1(function (a, b) {
-          return meets$1(a, b);
-      }, ['range', 'range']),
-      'met by': fn$1(function (a, b) {
-          return meets$1(b, a);
-      }, ['range', 'range']),
-      'overlaps': fn$1(function () {
-          throw notImplemented$1('overlaps');
-      }, ['any?']),
-      'overlaps before': fn$1(function () {
-          throw notImplemented$1('overlaps before');
-      }, ['any?']),
-      'overlaps after': fn$1(function () {
-          throw notImplemented$1('overlaps after');
-      }, ['any?']),
-      'finishes': fn$1(function () {
-          throw notImplemented$1('finishes');
-      }, ['any?']),
-      'finished by': fn$1(function () {
-          throw notImplemented$1('finished by');
-      }, ['any?']),
-      'includes': fn$1(function () {
-          throw notImplemented$1('includes');
-      }, ['any?']),
-      'during': fn$1(function () {
-          throw notImplemented$1('during');
-      }, ['any?']),
-      'starts': fn$1(function () {
-          throw notImplemented$1('starts');
-      }, ['any?']),
-      'started by': fn$1(function () {
-          throw notImplemented$1('started by');
-      }, ['any?']),
-      'coincides': fn$1(function () {
-          throw notImplemented$1('coincides');
-      }, ['any?']),
-      // 10.3.4.8 Temporal built-in functions
-      'day of year': fn$1(function () {
-          throw notImplemented$1('day of year');
-      }, ['any?']),
-      'day of week': fn$1(function () {
-          throw notImplemented$1('day of week');
-      }, ['any?']),
-      'month of year': fn$1(function () {
-          throw notImplemented$1('month of year');
-      }, ['any?']),
-      'week of year': fn$1(function () {
-          throw notImplemented$1('week of year');
-      }, ['any?']),
-      // 10.3.4.9 Sort
-      'sort': function () {
-          throw notImplemented$1('sort');
-      },
-      // 10.3.4.10 Context function
-      'get value': fn$1(function (m, key) {
-          return getFromContext$1(key, m);
-      }, ['context', 'string']),
-      'get entries': fn$1(function (m) {
-          if (arguments.length !== 1) {
-              return null;
-          }
-          if (Array.isArray(m)) {
-              return null;
-          }
-          return Object.entries(m).map(([key, value]) => ({ key, value }));
-      }, ['context']),
-      'context': listFn$1(function (_contexts) {
-          throw notImplemented$1('context');
-      }, 'context'),
-      'context merge': listFn$1(function (_contexts) {
-          throw notImplemented$1('context merge');
-      }, 'context'),
-      'context put': fn$1(function (_context, _keys, _value) {
-          throw notImplemented$1('context put');
-      }, ['context', 'list', 'any'])
-  };
-  function matches$1(a, b) {
-      return a === b;
-  }
-  const FALSE$1 = {};
-  function createArgTester$1(arg) {
-      const optional = arg.endsWith('?');
-      const type = optional ? arg.substring(0, arg.length - 1) : arg;
-      return function (obj) {
-          const arr = Array.isArray(obj);
-          if (type === 'list') {
-              if (arr || optional && typeof obj === 'undefined') {
-                  return obj;
-              }
-              else {
-                  // implicit conversion obj => [ obj ]
-                  return [obj];
-              }
-          }
-          if (type !== 'any' && arr && obj.length === 1) {
-              // implicit conversion [ obj ] => obj
-              obj = obj[0];
-          }
-          if (type === 'range') {
-              return obj instanceof Range$2 ? obj : FALSE$1;
-          }
-          const objType = getType$1(obj);
-          if (objType === 'nil') {
-              return (optional ? obj : FALSE$1);
-          }
-          if (type === 'any' || type === objType) {
-              return obj;
-          }
-          return typeCast$1(obj, type) || FALSE$1;
-      };
-  }
-  function createArgsValidator$1(argDefinitions) {
-      const tests = argDefinitions.map(createArgTester$1);
-      return function (args) {
-          while (args.length < argDefinitions.length) {
-              args.push(undefined);
-          }
-          return args.reduce((result, arg, index) => {
-              if (result === false) {
-                  return result;
-              }
-              const test = tests[index];
-              const conversion = test ? test(arg) : arg;
-              if (conversion === FALSE$1) {
-                  return false;
-              }
-              result.push(conversion);
-              return result;
-          }, []);
-      };
-  }
-  /**
-   * @param {Function} fnDefinition
-   * @param {string} type
-   * @param {string[]} [parameterNames]
-   *
-   * @return {Function}
-   */
-  function listFn$1(fnDefinition, type, parameterNames = null) {
-      const tester = createArgTester$1(type);
-      const wrappedFn = function (...args) {
-          if (args.length === 0) {
-              return null;
-          }
-          // unwrap first arg
-          if (Array.isArray(args[0]) && args.length === 1) {
-              args = args[0];
-          }
-          if (!args.every(arg => tester(arg) !== FALSE$1)) {
-              return null;
-          }
-          return fnDefinition(args);
-      };
-      wrappedFn.$args = parameterNames || parseParameterNames$1(fnDefinition);
-      return wrappedFn;
-  }
-  /**
-   * @param {Function} fnDefinition
-   * @param {string[]} argDefinitions
-   * @param {string[]} [parameterNames]
-   *
-   * @return {Function}
-   */
-  function fn$1(fnDefinition, argDefinitions, parameterNames = null) {
-      const checkArgs = createArgsValidator$1(argDefinitions);
-      parameterNames = parameterNames || parseParameterNames$1(fnDefinition);
-      const wrappedFn = function (...args) {
-          const convertedArgs = checkArgs(args);
-          if (!convertedArgs) {
-              return null;
-          }
-          return fnDefinition(...convertedArgs);
-      };
-      wrappedFn.$args = parameterNames;
-      return wrappedFn;
-  }
-  function meets$1(a, b) {
-      return [
-          (a.end === b.start),
-          (a['end included'] === true),
-          (b['start included'] === true)
-      ].every(v => v);
-  }
-  function before$1(a, b) {
-      if (a instanceof Range$2 && b instanceof Range$2) {
-          return (a.end < b.start || (!a['end included'] || !b['start included']) && a.end == b.start);
-      }
-      if (a instanceof Range$2) {
-          return (a.end < b || (!a['end included'] && a.end === b));
-      }
-      if (b instanceof Range$2) {
-          return (b.start > a || (!b['start included'] && b.start === a));
-      }
-      return a < b;
-  }
-  function sum$1(list) {
-      return list.reduce((sum, el) => sum === null ? el : sum + el, null);
-  }
-  function flatten$2([x, ...xs]) {
-      return (x !== undefined
-          ? [...Array.isArray(x) ? flatten$2(x) : [x], ...flatten$2(xs)]
-          : []);
-  }
-  function toKeyString$1(key) {
-      if (typeof key === 'string' && /\W/.test(key)) {
-          return toString$1(key, true);
-      }
-      return key;
-  }
-  function toDeepString$1(obj) {
-      return toString$1(obj, true);
-  }
-  function escapeStr$1(str) {
-      return str.replace(/("|\\)/g, '\\$1');
-  }
-  function toString$1(obj, wrap = false) {
-      var _a, _b, _c, _d;
-      const type = getType$1(obj);
-      if (type === 'nil') {
-          return 'null';
-      }
-      if (type === 'string') {
-          return wrap ? `"${escapeStr$1(obj)}"` : obj;
-      }
-      if (type === 'boolean' || type === 'number') {
-          return String(obj);
-      }
-      if (type === 'list') {
-          return '[' + obj.map(toDeepString$1).join(', ') + ']';
-      }
-      if (type === 'context') {
-          return '{' + Object.entries(obj).map(([key, value]) => {
-              return toKeyString$1(key) + ': ' + toDeepString$1(value);
-          }).join(', ') + '}';
-      }
-      if (type === 'duration') {
-          return obj.shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds').normalize().toISO();
-      }
-      if (type === 'date time') {
-          if ((_a = obj.zone) === null || _a === void 0 ? void 0 : _a.zoneName) {
-              return obj.toISO({ suppressMilliseconds: true, includeOffset: false }) + '@' + ((_b = obj.zone) === null || _b === void 0 ? void 0 : _b.zoneName);
-          }
-          return obj.toISO({ suppressMilliseconds: true });
-      }
-      if (type === 'date') {
-          return obj.toISODate();
-      }
-      if (type === 'range') {
-          return '<range>';
-      }
-      if (type === 'time') {
-          if ((_c = obj.zone) === null || _c === void 0 ? void 0 : _c.zoneName) {
-              return obj.toISOTime({ suppressMilliseconds: true, includeOffset: false }) + '@' + ((_d = obj.zone) === null || _d === void 0 ? void 0 : _d.zoneName);
-          }
-          return obj.toISOTime({ suppressMilliseconds: true });
-      }
-      if (type === 'function') {
-          return '<function>';
-      }
-      throw notImplemented$1('string(' + type + ')');
-  }
-  function countSymbols$1(str) {
-      // cf. https://mathiasbynens.be/notes/javascript-unicode
-      return str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '_').length;
-  }
-  function round$2(n) {
-      const integral = Math.trunc(n);
-      if (n - integral > .5) {
-          return integral + 1;
-      }
-      else {
-          return integral;
-      }
-  }
-  // adapted from https://stackoverflow.com/a/53577159
-  function stddev$1(array) {
-      const n = array.length;
-      const mean = array.reduce((a, b) => a + b) / n;
-      return Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / (n - 1));
-  }
-  function median$1(array) {
-      const n = array.length;
-      const sorted = array.slice().sort();
-      const mid = n / 2 - 1;
-      const index = Math.ceil(mid);
-      // even
-      if (mid === index) {
-          return (sorted[index] + sorted[index + 1]) / 2;
-      }
-      // uneven
-      return sorted[index];
-  }
-  function mode$1(array) {
-      if (array.length < 2) {
-          return array;
-      }
-      const buckets = {};
-      for (const n of array) {
-          buckets[n] = (buckets[n] || 0) + 1;
-      }
-      const sorted = Object.entries(buckets).sort((a, b) => b[1] - a[1]);
-      return sorted.filter(s => s[1] === sorted[0][1]).map(e => +e[0]);
-  }
-  function ifValid$1(o) {
-      return o.isValid ? o : null;
-  }
-
-  function parseExpressions$1(expression, context = {}) {
-      return parser$2.configure({
-          top: 'Expressions',
-          contextTracker: trackVariables$1(context)
-      }).parse(expression);
-  }
-  function parseUnaryTests$1(expression, context = {}) {
-      return parser$2.configure({
-          top: 'UnaryTests',
-          contextTracker: trackVariables$1(context)
-      }).parse(expression);
-  }
-
-  let Interpreter$1 = class Interpreter {
-      _buildExecutionTree(tree, input) {
-          const root = { args: [], nodeInput: input };
-          const stack = [root];
-          tree.iterate({
-              enter(nodeRef) {
-                  const { isError, isSkipped } = nodeRef.type;
-                  const { from, to } = nodeRef;
-                  if (isError) {
-                      throw new Error(`Statement unparseable at [${from}, ${to}]`);
-                  }
-                  if (isSkipped) {
-                      return false;
-                  }
-                  const nodeInput = input.slice(from, to);
-                  stack.push({
-                      nodeInput,
-                      args: []
-                  });
-              },
-              leave(nodeRef) {
-                  if (nodeRef.type.isSkipped) {
-                      return;
-                  }
-                  const { nodeInput, args } = stack.pop();
-                  const parent = stack[stack.length - 1];
-                  const expr = evalNode$1(nodeRef, nodeInput, args);
-                  parent.args.push(expr);
-              }
-          });
-          return root.args[root.args.length - 1];
-      }
-      evaluate(expression, context = {}) {
-          const parseTree = parseExpressions$1(expression, context);
-          const root = this._buildExecutionTree(parseTree, expression);
-          return {
-              parseTree,
-              root
-          };
-      }
-      unaryTest(expression, context = {}) {
-          const parseTree = parseUnaryTests$1(expression, context);
-          const root = this._buildExecutionTree(parseTree, expression);
-          return {
-              parseTree,
-              root
-          };
-      }
-  };
-  const interpreter$1 = new Interpreter$1();
-  function unaryTest(expression, context = {}) {
-      const value = context['?'] || null;
-      const { root } = interpreter$1.unaryTest(expression, context);
-      // root = fn(ctx) => test(val)
-      const test = root(context);
-      return test(value);
-  }
-  function evaluate$2(expression, context = {}) {
-      const { root } = interpreter$1.evaluate(expression, context);
-      // root = [ fn(ctx) ]
-      const results = root(context);
-      if (results.length === 1) {
-          return results[0];
-      }
-      else {
-          return results;
-      }
-  }
-  function evalNode$1(node, input, args) {
-      switch (node.name) {
-          case 'ArithOp': return (context) => {
-              const nullable = (op, types = ['number']) => (a, b) => {
-                  const left = a(context);
-                  const right = b(context);
-                  if (isArray$2(left)) {
-                      return null;
-                  }
-                  if (isArray$2(right)) {
-                      return null;
-                  }
-                  const leftType = getType$1(left);
-                  const rightType = getType$1(right);
-                  if (leftType !== rightType ||
-                      !types.includes(leftType)) {
-                      return null;
-                  }
-                  return op(left, right);
-              };
-              switch (input) {
-                  case '+': return nullable((a, b) => a + b, ['string', 'number']);
-                  case '-': return nullable((a, b) => a - b);
-                  case '*': return nullable((a, b) => a * b);
-                  case '/': return nullable((a, b) => !b ? null : a / b);
-                  case '**':
-                  case '^': return nullable((a, b) => Math.pow(a, b));
-              }
-          };
-          case 'CompareOp': return tag$1(() => {
-              switch (input) {
-                  case '>': return (b) => createRange$1(b, null, false, false);
-                  case '>=': return (b) => createRange$1(b, null, true, false);
-                  case '<': return (b) => createRange$1(null, b, false, false);
-                  case '<=': return (b) => createRange$1(null, b, false, true);
-                  case '=': return (b) => (a) => equals$1(a, b);
-                  case '!=': return (b) => (a) => !equals$1(a, b);
-              }
-          }, Test$1('boolean'));
-          case 'Wildcard': return (_context) => true;
-          case 'null': return (_context) => {
-              return null;
-          };
-          case 'Disjunction': return tag$1((context) => {
-              const left = args[0](context);
-              const right = args[2](context);
-              const matrix = [
-                  [true, true, true],
-                  [true, false, true],
-                  [true, null, true],
-                  [false, true, true],
-                  [false, false, false],
-                  [false, null, null],
-                  [null, true, true],
-                  [null, false, null],
-                  [null, null, null],
-              ];
-              const a = typeof left === 'boolean' ? left : null;
-              const b = typeof right === 'boolean' ? right : null;
-              return matrix.find(el => el[0] === a && el[1] === b)[2];
-          }, Test$1('boolean'));
-          case 'Conjunction': return tag$1((context) => {
-              const left = args[0](context);
-              const right = args[2](context);
-              const matrix = [
-                  [true, true, true],
-                  [true, false, false],
-                  [true, null, null],
-                  [false, true, false],
-                  [false, false, false],
-                  [false, null, false],
-                  [null, true, null],
-                  [null, false, false],
-                  [null, null, null],
-              ];
-              const a = typeof left === 'boolean' ? left : null;
-              const b = typeof right === 'boolean' ? right : null;
-              return matrix.find(el => el[0] === a && el[1] === b)[2];
-          }, Test$1('boolean'));
-          case 'Context': return (context) => {
-              return args.slice(1, -1).reduce((obj, arg) => {
-                  const [key, value] = arg(Object.assign(Object.assign({}, context), obj));
-                  return Object.assign(Object.assign({}, obj), { [key]: value });
-              }, {});
-          };
-          case 'FunctionBody': return args[0];
-          case 'FormalParameters': return args;
-          case 'FormalParameter': return args[0];
-          case 'ParameterName': return args.join(' ');
-          case 'FunctionDefinition': return (context) => {
-              const parameterNames = args[2];
-              const fnBody = args[4];
-              return wrapFunction$1((...args) => {
-                  const fnContext = parameterNames.reduce((context, name, idx) => {
-                      // support positional parameters
-                      context[name] = args[idx];
-                      return context;
-                  }, Object.assign({}, context));
-                  return fnBody(fnContext);
-              }, parameterNames);
-          };
-          case 'ContextEntry': return (context) => {
-              const key = typeof args[0] === 'function' ? args[0](context) : args[0];
-              const value = args[1](context);
-              return [key, value];
-          };
-          case 'Key': return args[0];
-          case 'Identifier': return input;
-          case 'SpecialFunctionName': return (context) => getBuiltin$1(input);
-          // preserve spaces in name, but compact multiple
-          // spaces into one (token)
-          case 'Name': return input.replace(/\s{2,}/g, ' ');
-          case 'VariableName': return (context) => {
-              const name = args.join(' ');
-              return getBuiltin$1(name) || getFromContext$1(name, context);
-          };
-          case 'QualifiedName': return (context) => {
-              return args.reduce((context, arg) => arg(context), context);
-          };
-          case '?': return (context) => getFromContext$1('?', context);
-          // expression
-          // expression ".." expression
-          case 'IterationContext': return (context) => {
-              const a = args[0](context);
-              const b = args[1] && args[1](context);
-              return b ? createRange$1(a, b) : a;
-          };
-          case 'Type': return args[0];
-          case 'InExpressions': return (context) => {
-              const iterationContexts = args.map(ctx => ctx(context));
-              if (iterationContexts.some(ctx => getType$1(ctx) !== 'list')) {
-                  return null;
-              }
-              return cartesianProduct$1(iterationContexts).map(ctx => {
-                  if (!isArray$2(ctx)) {
-                      ctx = [ctx];
-                  }
-                  return Object.assign({}, context, ...ctx);
-              });
-          };
-          // Name kw<"in"> Expr
-          case 'InExpression': return (context) => {
-              return extractValue$1(context, args[0], args[2]);
-          };
-          case 'SpecialType': throw notImplemented$1('SpecialType');
-          case 'InstanceOfExpression': return tag$1((context) => {
-              const a = args[0](context);
-              const b = args[3](context);
-              return a instanceof b;
-          }, Test$1('boolean'));
-          case 'every': return tag$1((context) => {
-              return (_contexts, _condition) => {
-                  const contexts = _contexts(context);
-                  if (getType$1(contexts) !== 'list') {
-                      return contexts;
-                  }
-                  return contexts.every(ctx => isTruthy$1(_condition(ctx)));
-              };
-          }, Test$1('boolean'));
-          case 'some': return tag$1((context) => {
-              return (_contexts, _condition) => {
-                  const contexts = _contexts(context);
-                  if (getType$1(contexts) !== 'list') {
-                      return contexts;
-                  }
-                  return contexts.some(ctx => isTruthy$1(_condition(ctx)));
-              };
-          }, Test$1('boolean'));
-          case 'NumericLiteral': return tag$1((_context) => input.includes('.') ? parseFloat(input) : parseInt(input), 'number');
-          case 'BooleanLiteral': return tag$1((_context) => input === 'true' ? true : false, 'boolean');
-          case 'StringLiteral': return tag$1((_context) => parseString$1(input), 'string');
-          case 'PositionalParameters': return (context) => args.map(arg => arg(context));
-          case 'NamedParameter': return (context) => {
-              const name = args[0];
-              const value = args[1](context);
-              return [name, value];
-          };
-          case 'NamedParameters': return (context) => args.reduce((args, arg) => {
-              const [name, value] = arg(context);
-              args[name] = value;
-              return args;
-          }, {});
-          case 'DateTimeConstructor': return (context) => {
-              return getBuiltin$1(input);
-          };
-          case 'DateTimeLiteral': return (context) => {
-              // AtLiteral
-              if (args.length === 1) {
-                  return args[0](context);
-              }
-              // FunctionInvocation
-              else {
-                  const wrappedFn = wrapFunction$1(args[0](context));
-                  if (!wrappedFn) {
-                      throw new Error(`Failed to evaluate ${input}: Target is not a function`);
-                  }
-                  const contextOrArgs = args[2](context);
-                  return wrappedFn.invoke(contextOrArgs);
-              }
-          };
-          case 'AtLiteral': return (context) => {
-              const wrappedFn = wrapFunction$1(getBuiltin$1('@'));
-              if (!wrappedFn) {
-                  throw new Error(`Failed to evaluate ${input}: Target is not a function`);
-              }
-              return wrappedFn.invoke([args[0](context)]);
-          };
-          case 'FunctionInvocation': return (context) => {
-              const wrappedFn = wrapFunction$1(args[0](context));
-              if (!wrappedFn) {
-                  throw new Error(`Failed to evaluate ${input}: Target is not a function`);
-              }
-              const contextOrArgs = args[2](context);
-              return wrappedFn.invoke(contextOrArgs);
-          };
-          case 'IfExpression': return (function () {
-              const ifCondition = args[1];
-              const thenValue = args[3];
-              const elseValue = args[5];
-              const type = coalecenseTypes$1(thenValue, elseValue);
-              return tag$1((context) => {
-                  if (isTruthy$1(ifCondition(context))) {
-                      return thenValue(context);
-                  }
-                  else {
-                      return elseValue ? elseValue(context) : null;
-                  }
-              }, type);
-          })();
-          case 'Parameters': return args.length === 3 ? args[1] : (_context) => [];
-          case 'Comparison': return (context) => {
-              const operator = args[1];
-              // expression !compare kw<"in"> PositiveUnaryTest |
-              // expression !compare kw<"in"> !unaryTest "(" PositiveUnaryTests ")"
-              if (operator === 'in') {
-                  return compareIn$1(args[0](context), (args[3] || args[2])(context));
-              }
-              // expression !compare kw<"between"> expression kw<"and"> expression
-              if (operator === 'between') {
-                  const start = args[2](context);
-                  const end = args[4](context);
-                  if (start === null || end === null) {
-                      return null;
-                  }
-                  return createRange$1(start, end).includes(args[0](context));
-              }
-              // expression !compare CompareOp<"=" | "!="> expression |
-              // expression !compare CompareOp<Gt | Gte | Lt | Lte> expression |
-              const left = args[0](context);
-              const right = args[2](context);
-              const test = operator()(right);
-              return compareValue$1(test, left);
-          };
-          case 'QuantifiedExpression': return (context) => {
-              const testFn = args[0](context);
-              const contexts = args[1];
-              const condition = args[3];
-              return testFn(contexts, condition);
-          };
-          // DMN 1.2 - 10.3.2.14
-          // kw<"for"> commaSep1<InExpression<IterationContext>> kw<"return"> expression
-          case 'ForExpression': return (context) => {
-              const extractor = args[args.length - 1];
-              const iterationContexts = args[1](context);
-              if (getType$1(iterationContexts) !== 'list') {
-                  return iterationContexts;
-              }
-              const partial = [];
-              for (const ctx of iterationContexts) {
-                  partial.push(extractor(Object.assign(Object.assign({}, ctx), { partial })));
-              }
-              return partial;
-          };
-          case 'ArithmeticExpression': return (function () {
-              // binary expression (a + b)
-              if (args.length === 3) {
-                  const [a, op, b] = args;
-                  return tag$1((context) => {
-                      return op(context)(a, b);
-                  }, coalecenseTypes$1(a, b));
-              }
-              // unary expression (-b)
-              if (args.length === 2) {
-                  const [op, value] = args;
-                  return tag$1((context) => {
-                      return op(context)(() => 0, value);
-                  }, value.type);
-              }
-          })();
-          case 'PositiveUnaryTest': return args[0];
-          case 'ParenthesizedExpression': return args[1];
-          case 'PathExpression': return (context) => {
-              const pathTarget = args[0](context);
-              const pathProp = args[1];
-              if (isArray$2(pathTarget)) {
-                  return coerceSingleton$1(pathTarget.map(pathProp));
-              }
-              else {
-                  return pathProp(pathTarget);
-              }
-          };
-          // expression !filter "[" expression "]"
-          case 'FilterExpression': return (context) => {
-              const target = args[0](context);
-              const filterFn = args[2];
-              const filterTarget = isArray$2(target) ? target : [target];
-              // null[..]
-              if (target === null) {
-                  return null;
-              }
-              // a[1]
-              if (filterFn.type === 'number') {
-                  const idx = filterFn(context);
-                  const value = filterTarget[idx < 0 ? filterTarget.length + idx : idx - 1];
-                  if (typeof value === 'undefined') {
-                      return null;
-                  }
-                  else {
-                      return value;
-                  }
-              }
-              // a[true]
-              if (filterFn.type === 'boolean') {
-                  if (filterFn(context)) {
-                      return filterTarget;
-                  }
-                  else {
-                      return [];
-                  }
-              }
-              if (filterFn.type === 'string') {
-                  const value = filterFn(context);
-                  return filterTarget.filter(el => el === value);
-              }
-              // a[test]
-              return filterTarget.map(el => {
-                  const iterationContext = Object.assign(Object.assign(Object.assign({}, context), { item: el }), el);
-                  let result = filterFn(iterationContext);
-                  // test is fn(val) => boolean SimpleUnaryTest
-                  if (typeof result === 'function') {
-                      result = result(el);
-                  }
-                  if (result instanceof Range$2) {
-                      result = result.includes(el);
-                  }
-                  if (result === true) {
-                      return el;
-                  }
-                  return result;
-              }).filter(isTruthy$1);
-          };
-          case 'SimplePositiveUnaryTest': return tag$1((context) => {
-              // <Interval>
-              if (args.length === 1) {
-                  return args[0](context);
-              }
-              // <CompareOp> <Expr>
-              return args[0](context)(args[1](context));
-          }, 'test');
-          case 'List': return (context) => {
-              return args.slice(1, -1).map(arg => arg(context));
-          };
-          case 'Interval': return tag$1((context) => {
-              const left = args[1](context);
-              const right = args[2](context);
-              const startIncluded = left !== null && args[0] === '[';
-              const endIncluded = right !== null && args[3] === ']';
-              return createRange$1(left, right, startIncluded, endIncluded);
-          }, Test$1('boolean'));
-          case 'PositiveUnaryTests':
-          case 'Expressions': return (context) => {
-              return args.map(a => a(context));
-          };
-          case 'UnaryTests': return (context) => {
-              return (value = null) => {
-                  const negate = args[0] === 'not';
-                  const tests = negate ? args.slice(2, -1) : args;
-                  const matches = tests.map(test => test(context)).flat(1).map(test => {
-                      if (isArray$2(test)) {
-                          return test.includes(value);
-                      }
-                      if (test === null) {
-                          return null;
-                      }
-                      if (typeof test === 'boolean') {
-                          return test;
-                      }
-                      return compareValue$1(test, value);
-                  }).reduce(combineResult$1, undefined);
-                  return matches === null ? null : (negate ? !matches : matches);
-              };
-          };
-          default: return node.name;
-      }
-  }
-  function getBuiltin$1(name, _context) {
-      return getFromContext$1(name, builtins$1);
-  }
-  function extractValue$1(context, prop, _target) {
-      const target = _target(context);
-      if (['list', 'range'].includes(getType$1(target))) {
-          return target.map(t => ({ [prop]: t }));
-      }
-      return null;
-  }
-  function compareIn$1(value, tests) {
-      if (!isArray$2(tests)) {
-          if (getType$1(tests) === 'nil') {
-              return null;
-          }
-          tests = [tests];
-      }
-      return tests.some(test => compareValue$1(test, value));
-  }
-  function compareValue$1(test, value) {
-      if (typeof test === 'function') {
-          return test(value);
-      }
-      if (test instanceof Range$2) {
-          return test.includes(value);
-      }
-      return equals$1(test, value);
-  }
-  const chars$2 = Array.from('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-  function isTyped$1(type, values) {
-      return (values.some(e => getType$1(e) === type) &&
-          values.every(e => e === null || getType$1(e) === type));
-  }
-  function createRange$1(start, end, startIncluded = true, endIncluded = true) {
-      if (isTyped$1('string', [start, end])) {
-          return createStringRange$1(start, end, startIncluded, endIncluded);
-      }
-      if (isTyped$1('number', [start, end])) {
-          return createNumberRange$1(start, end, startIncluded, endIncluded);
-      }
-      if (isTyped$1('duration', [start, end])) {
-          throw notImplemented$1('range<duration>');
-      }
-      if (isTyped$1('time', [start, end])) {
-          throw notImplemented$1('range<time>');
-      }
-      if (isTyped$1('date time', [start, end])) {
-          throw notImplemented$1('range<date and time>');
-      }
-      if (isTyped$1('date', [start, end])) {
-          throw notImplemented$1('range<date>');
-      }
-      throw new Error(`unsupported range: ${start}..${end}`);
-  }
-  function noopMap$1() {
-      return () => {
-          throw new Error('unsupported range operation: map');
-      };
-  }
-  function valuesMap$1(values) {
-      return (fn) => values.map(fn);
-  }
-  function valuesIncludes$1(values) {
-      return (value) => values.includes(value);
-  }
-  function numberMap$1(start, end, startIncluded, endIncluded) {
-      const direction = start > end ? -1 : 1;
-      return (fn) => {
-          const result = [];
-          for (let i = start;; i += direction) {
-              if (i === 0 && !startIncluded) {
-                  continue;
-              }
-              if (i === end && !endIncluded) {
-                  break;
-              }
-              result.push(fn(i));
-              if (i === end) {
-                  break;
-              }
-          }
-          return result;
-      };
-  }
-  function includesStart$1(n, inclusive) {
-      if (inclusive) {
-          return (value) => n <= value;
-      }
-      else {
-          return (value) => n < value;
-      }
-  }
-  function includesEnd$1(n, inclusive) {
-      if (inclusive) {
-          return (value) => n >= value;
-      }
-      else {
-          return (value) => n > value;
-      }
-  }
-  function anyIncludes$1(start, end, startIncluded, endIncluded) {
-      let tests = [];
-      if (start !== null && end !== null) {
-          if (start > end) {
-              tests = [
-                  includesStart$1(end, endIncluded),
-                  includesEnd$1(start, startIncluded)
-              ];
-          }
-          else {
-              tests = [
-                  includesStart$1(start, startIncluded),
-                  includesEnd$1(end, endIncluded)
-              ];
-          }
-      }
-      else if (end !== null) {
-          tests = [
-              includesEnd$1(end, endIncluded)
-          ];
-      }
-      else if (start !== null) {
-          tests = [
-              includesStart$1(start, startIncluded)
-          ];
-      }
-      return (value) => tests.every(t => t(value));
-  }
-  function createStringRange$1(start, end, startIncluded = true, endIncluded = true) {
-      if (start !== null && !chars$2.includes(start)) {
-          throw new Error('illegal range start: ' + start);
-      }
-      if (end !== null && !chars$2.includes(end)) {
-          throw new Error('illegal range end: ' + end);
-      }
-      let values;
-      if (start !== null && end !== null) {
-          let startIdx = chars$2.indexOf(start);
-          let endIdx = chars$2.indexOf(end);
-          const direction = startIdx > endIdx ? -1 : 1;
-          if (startIncluded === false) {
-              startIdx += direction;
-          }
-          if (endIncluded === false) {
-              endIdx -= direction;
-          }
-          values = chars$2.slice(startIdx, endIdx + 1);
-      }
-      const map = values ? valuesMap$1(values) : noopMap$1();
-      const includes = values ? valuesIncludes$1(values) : anyIncludes$1(start, end, startIncluded, endIncluded);
-      return new Range$2({
-          start,
-          end,
-          'start included': startIncluded,
-          'end included': endIncluded,
-          map,
-          includes
-      });
-  }
-  function createNumberRange$1(start, end, startIncluded, endIncluded) {
-      const map = start !== null && end !== null ? numberMap$1(start, end, startIncluded, endIncluded) : noopMap$1();
-      const includes = anyIncludes$1(start, end, startIncluded, endIncluded);
-      return new Range$2({
-          start,
-          end,
-          'start included': startIncluded,
-          'end included': endIncluded,
-          map,
-          includes
-      });
-  }
-  function cartesianProduct$1(arrays) {
-      if (arrays.some(arr => getType$1(arr) === 'nil')) {
-          return null;
-      }
-      const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
-      const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a || []);
-      return cartesian(...arrays);
-  }
-  function coalecenseTypes$1(a, b) {
-      if (!b) {
-          return a.type;
-      }
-      if (a.type === b.type) {
-          return a.type;
-      }
-      return 'any';
-  }
-  function tag$1(fn, type) {
-      return Object.assign(fn, {
-          type,
-          toString() {
-              return `TaggedFunction[${type}] ${Function.prototype.toString.call(fn)}`;
-          }
-      });
-  }
-  function combineResult$1(result, match) {
-      if (!result) {
-          return match;
-      }
-      return result;
-  }
-  function isTruthy$1(obj) {
-      return obj !== false && obj !== null;
-  }
-  function Test$1(type) {
-      return `Test<${type}>`;
-  }
-  /**
-   * @param {Function} fn
-   * @param {string[]} [parameterNames]
-   *
-   * @return {FunctionWrapper}
-   */
-  function wrapFunction$1(fn, parameterNames = null) {
-      if (!fn) {
-          return null;
-      }
-      if (fn instanceof FunctionWrapper$1) {
-          return fn;
-      }
-      if (fn instanceof Range$2) {
-          return new FunctionWrapper$1((value) => fn.includes(value), ['value']);
-      }
-      return new FunctionWrapper$1(fn, parameterNames || parseParameterNames$1(fn));
-  }
-  function coerceSingleton$1(values) {
-      if (Array.isArray(values) && values.length === 1) {
-          return values[0];
-      }
-      else {
-          return values;
-      }
-  }
-  function parseString$1(str) {
-      if (str.startsWith('"')) {
-          str = str.slice(1);
-      }
-      if (str.endsWith('"')) {
-          str = str.slice(0, -1);
-      }
-      return str.replace(/(\\")|(\\\\)|(\\u[a-fA-F0-9]{5,6})|((?:\\u[a-fA-F0-9]{1,4})+)/ig, function (substring, ...groups) {
-          const [quotes, escape, codePoint, charCodes] = groups;
-          if (quotes) {
-              return '"';
-          }
-          if (escape) {
-              return '\\';
-          }
-          const escapePattern = /\\u([a-fA-F0-9]+)/ig;
-          if (codePoint) {
-              const codePointMatch = escapePattern.exec(codePoint);
-              return String.fromCodePoint(parseInt(codePointMatch[1], 16));
-          }
-          if (charCodes) {
-              const chars = [];
-              let charCodeMatch;
-              while ((charCodeMatch = escapePattern.exec(substring)) !== null) {
-                  chars.push(parseInt(charCodeMatch[1], 16));
-              }
-              return String.fromCharCode(...chars);
-          }
-          throw new Error('illegal match');
-      });
-  }
-
-  // This file was generated by lezer-generator. You probably shouldn't edit it.
-  const propertyIdentifier = 119,
-    identifier = 120,
-    nameIdentifier = 121,
-    insertSemi = 122,
-    expression0 = 126,
+  const propertyIdentifier = 120,
+    identifier = 121,
+    nameIdentifier = 122,
+    insertSemi = 123,
+    expression0 = 127,
     ForExpression = 4,
-    forExpressionStart = 129,
+    forExpressionStart = 130,
     ForInExpression = 7,
     Name = 8,
     Identifier = 9,
     AdditionalIdentifier = 10,
-    forExpressionBodyStart = 137,
-    IfExpression = 18,
-    ifExpressionStart = 138,
-    QuantifiedExpression = 22,
-    quantifiedExpressionStart = 139,
-    QuantifiedInExpression = 26,
-    PositiveUnaryTest = 36,
-    ArithmeticExpression = 40,
-    arithmeticPlusStart = 143,
-    arithmeticTimesStart = 144,
-    arithmeticExpStart = 145,
-    arithmeticUnaryStart = 146,
+    forExpressionBodyStart = 138,
+    IfExpression = 19,
+    ifExpressionStart = 139,
+    QuantifiedExpression = 23,
+    quantifiedExpressionStart = 140,
+    QuantifiedInExpression = 27,
+    PositiveUnaryTest = 37,
+    ArithmeticExpression = 41,
+    arithmeticPlusStart = 144,
+    arithmeticTimesStart = 145,
+    arithmeticExpStart = 146,
+    arithmeticUnaryStart = 147,
     VariableName = 47,
     PathExpression = 67,
-    pathExpressionStart = 151,
+    pathExpressionStart = 152,
     FilterExpression = 69,
-    filterExpressionStart = 152,
+    filterExpressionStart = 153,
     FunctionInvocation = 71,
-    functionInvocationStart = 153,
+    functionInvocationStart = 154,
     ParameterName = 75,
-    nil = 158,
+    nil = 159,
     NumericLiteral = 78,
     StringLiteral = 79,
     BooleanLiteral = 80,
     List = 88,
-    listStart = 169,
+    listStart = 170,
     FunctionDefinition = 89,
-    functionDefinitionStart = 171,
+    functionDefinitionStart = 172,
     Context = 96,
-    contextStart = 173,
+    contextStart = 174,
     ContextEntry = 97,
     PropertyName = 99,
     PropertyIdentifier = 100;
@@ -14190,7 +12661,13 @@
 
   const newlineChars = chars$1('\n\r');
 
-  const additionalNameChars = chars$1("'./-+*");
+  const asterix = '*'.charCodeAt(0);
+
+  const additionalNameChars = chars$1("'./-+*^");
+
+  /**
+   * @typedef { VariableContext | any } ContextValue
+   */
 
   /**
    * @param { string } str
@@ -14260,13 +12737,20 @@
   /**
    * @param { import('@lezer/lr').InputStream } input
    * @param  { number } [offset]
-   * @param { boolean } [includeOperators]
    *
    * @return { { token: string, offset: number } | null }
    */
   function parseAdditionalSymbol(input, offset = 0) {
 
     const next = input.peek(offset);
+
+    if (next === asterix && input.peek(offset + 1) === asterix) {
+
+      return {
+        offset: 2,
+        token: '**'
+      };
+    }
 
     if (isAdditional(next)) {
       return {
@@ -14552,6 +13036,112 @@
 
   const dateTimeIdentifiers = Object.keys(dateTimeLiterals);
 
+
+  /**
+   * A basic key-value store to hold context values.
+   */
+  class VariableContext {
+
+    /**
+     * Creates a new context from a JavaScript object.
+     *
+     * @param {any} value
+     */
+    constructor(value = {}) {
+
+      /**
+       * @protected
+       */
+      this.value = value;
+    }
+
+    /**
+     * Return all defined keys of the context.
+     *
+     * @returns {Array<string>} the keys of the context
+     */
+    getKeys() {
+      return Object.keys(this.value);
+    }
+
+    /**
+     * Returns the value of the given key.
+     *
+     * If the value represents a context itself, it should be wrapped in a
+     * context class.
+     *
+     * @param {String} key
+     * @returns {VariableContext|ValueProducer|null}
+     */
+    get(key) {
+      const result = this.value[key];
+
+      if (this.constructor.isAtomic(result)) {
+        return result;
+      }
+
+      return this.constructor.of(result);
+    }
+
+    /**
+     * Creates a new context with the given key added.
+     *
+     * @param {String} key
+     * @param {any} value
+     * @returns {VariableContext} new context with the given key added
+     */
+    set(key, value) {
+      return this.constructor.of({
+        ...this.value,
+        [key]: value
+      });
+    }
+
+    /**
+     * Wether the given value is atomic. Non-atomic values need to be wrapped in a
+     * context Class.
+     *
+     * @param {any} value
+     * @returns {Boolean}
+     */
+    static isAtomic(value) {
+      return !value ||
+            value instanceof this ||
+            value instanceof ValueProducer ||
+            typeof value !== 'object';
+    }
+
+    /**
+     * Takes any number of Contexts and merges them into a single Context.
+     *
+     * @param  {...Context} contexts
+     * @returns {VariableContext}
+     */
+    static of(...contexts) {
+      const unwrap = (context) => {
+        if (!context || typeof context !== 'object') {
+          return {};
+        }
+
+        if (context instanceof this) {
+          return context.value;
+        }
+
+        return { ...context };
+      };
+
+      const merged = contexts.reduce((merged, context) => {
+        return {
+          ...merged,
+          ...unwrap(context)
+        };
+      }, {});
+
+      return new this(merged);
+    }
+
+  }
+
   class Variables {
 
     constructor({
@@ -14559,7 +13149,7 @@
       tokens = [],
       children = [],
       parent = null,
-      context = { },
+      context,
       value,
       raw
     } = {}) {
@@ -14635,7 +13225,7 @@
     }
 
     contextKeys() {
-      return Object.keys(this.context).map(normalizeContextKey);
+      return this.context.getKeys().map(normalizeContextKey);
     }
 
     get path() {
@@ -14652,7 +13242,7 @@
 
       const names = [ variable, variable && normalizeContextKey(variable) ];
 
-      const contextKey = Object.keys(this.context).find(
+      const contextKey = this.context.getKeys().find(
         key => names.includes(normalizeContextKey(key))
       );
 
@@ -14660,7 +13250,7 @@
         return undefined;
       }
 
-      const val = this.context[contextKey];
+      const val = this.context.get(contextKey);
 
       if (val instanceof ValueProducer) {
         return val.get(this);
@@ -14746,10 +13336,7 @@
 
       LOG_VARS && console.log('[%s] define <%s=%s>', this.path, name, value);
 
-      const context = {
-        ...this.context,
-        [name]: value
-      };
+      const context = this.context.set(name, value);
 
       return this.assign({
         context
@@ -14788,23 +13375,26 @@
     }
 
     static of(options) {
+
       const {
         name,
         tokens = [],
         children = [],
         parent = null,
-        context = {},
+        context,
         value,
         raw
       } = options;
+
+      if (!context) {
+        throw new Error('must provide <context>');
+      }
 
       return new Variables({
         name,
         tokens: [ ...tokens ],
         children: [ ...children ],
-        context: {
-          ...context
-        },
+        context,
         parent,
         value,
         raw
@@ -14819,7 +13409,7 @@
    * @return { string } normalizedName
    */
   function normalizeContextKey(name) {
-    return name.replace(/\s*([./\-'+*])\s*/g, ' $1 ').replace(/\s{2,}/g, ' ').trim();
+    return name.replace(/\s*([./\-'+]|\*\*?)\s*/g, ' $1 ').replace(/\s{2,}/g, ' ').trim();
   }
 
   /**
@@ -14852,14 +13442,15 @@
   }
 
   /**
-   * @param { any } context
+   * @param { ContextValue } [context]
+   * @param { typeof VariableContext } [Context]
    *
    * @return { ContextTracker<Variables> }
    */
-  function trackVariables(context = {}) {
+  function trackVariables(context = {}, Context = VariableContext) {
 
     const start = Variables.of({
-      context
+      context: Context.of(context)
     });
 
     return new ContextTracker({
@@ -14870,21 +13461,20 @@
           const [ thenPart, elsePart ] = variables.children.slice(-2);
 
           variables = variables.assign({
-            value: {
-              ...thenPart?.computedValue(),
-              ...elsePart?.computedValue()
-            }
+            value: Context.of(
+              thenPart?.computedValue(),
+              elsePart?.computedValue()
+            )
           });
         }
 
         if (term === List) {
           variables = variables.assign({
-            value: variables.children.reduce((value, child) => {
-              return {
-                ...value,
-                ...child?.computedValue()
-              };
-            }, {})
+            value: Context.of(
+              ...variables.children.map(
+                c => c?.computedValue()
+              )
+            )
           });
         }
 
@@ -14931,22 +13521,21 @@
           let newContext = null;
 
           if (term === pathExpressionStart) {
-            newContext = lastChild?.computedValue();
+            newContext = Context.of(lastChild?.computedValue());
           }
 
           if (term === filterExpressionStart) {
-            newContext = {
-              ...currentContext,
-              ...lastChild?.computedValue(),
-              item: lastChild?.computedValue()
-            };
+            newContext = Context.of(
+              currentContext,
+              lastChild?.computedValue()
+            ).set('item', lastChild?.computedValue());
           }
 
-          return variables.assign({
-            children
-          }).enterScope(prefixedStart).pushChild(lastChild).assign({
-            context: newContext || currentContext
-          });
+          return variables
+            .assign({ children })
+            .enterScope(prefixedStart)
+            .pushChild(lastChild)
+            .assign({ context: newContext || currentContext });
         }
 
         const code = input.read(input.pos, stack.pos);
@@ -14965,10 +13554,9 @@
 
           return wrap(variables, 'ContextEntry', code).assign(
             {
-              value: {
-                ...variables.value,
-                [name.computedValue()] : value?.computedValue()
-              }
+              value: Context
+                .of(variables.value)
+                .set(name.computedValue(), value?.computedValue())
             }
           );
         }
@@ -15123,11 +13711,7 @@
 
     return variables.assign({
       value: [ normalizeContextKey(keyValue), keyValue ].reduce((value, keyValue) => {
-        if (keyValue in contextValue) {
-          return contextValue[keyValue];
-        }
-
-        return value;
+        return contextValue.get(keyValue) || value;
       }, null)
     });
   }
@@ -15182,29 +13766,29 @@
   });
 
   // This file was generated by lezer-generator. You probably shouldn't edit it.
-  const spec_identifier = {__proto__:null,for:10, in:30, return:34, if:38, then:40, else:42, some:46, every:48, satisfies:55, or:58, and:62, between:70, instance:86, of:89, days:99, time:101, duration:103, years:105, months:107, date:109, list:115, context:121, function:128, null:154, true:324, false:324, "?":168, external:184, not:207};
+  const spec_identifier = {__proto__:null,for:10, in:32, return:36, if:40, then:42, else:44, some:48, every:50, satisfies:57, or:60, and:64, between:72, instance:86, of:89, days:99, time:101, duration:103, years:105, months:107, date:109, list:115, context:121, function:128, null:154, true:326, false:326, "?":168, external:184, not:209};
   const parser$1 = LRParser.deserialize({
     version: 14,
-    states: "IWO`QYOOO$gQYOOOOQU'#Ce'#CeO$qQYO'#C`O%zQ^O'#FOOOQQ'#Fd'#FdO'dQYO'#FdO`QYO'#DUOOQU'#Em'#EmO)QQ^O'#D]OOQO'#Fk'#FkO,PQWO'#DuOOQU'#D|'#D|OOQU'#D}'#D}OOQU'#EO'#EOO,UOWO'#ERO,PQWO'#EPOOQU'#EP'#EPOOQU'#Fq'#FqOOQU'#Fo'#FoOOQQ'#Fv'#FvO.yQYO'#FvO0wQYO'#FvOOQU'#ET'#ETO2sQYO'#EVOOQU'#FQ'#FQO4UQ^O'#FQO5hQYO'#EWO5rQWO'#EXOOQP'#GP'#GPO5wQXO'#E`OOQU'#Fz'#FzOOQU'#FP'#FPOOQQ'#Eh'#EhQ`QYOOOOQQ'#FR'#FROOQQ'#F['#F[O2sQYO'#CnOOQQ'#F]'#F]O$qQYO'#CrO6SQYO'#DvOOQU'#Fp'#FpO6XQYO'#EQOOQO'#EQ'#EQO2sQYO'#EUO`QYO'#ETOOQO'#F}'#F}O7bQYO'#DQO8UQWO'#F`OOQO'#DS'#DSO8aQYO'#FdQOQWOOO8hQWOOO9[QYO'#CdO9iQYO'#FTOOQQ'#Cc'#CcO9nQYO'#FSOOQQ'#Cb'#CbO9vQYO,58zO`QYO,59hOOQQ'#Fa'#FaOOQQ'#Fb'#FbOOQQ'#Fc'#FcO`QYO,59pO`QYO,59pO`QYO,59pOOQQ'#Fi'#FiO$qQYO,5:]OOQQ'#Fj'#FjO2sQYO,5:_OOQQ,5;j,5;jO`QYO,59dO`QYO,59fO2sQYO,59hO;fQYO,59hO;mQYO,59rOOQU,5:h,5:hO;rQ^O,59pOOQU-E8k-E8kO>qQYO'#FlOOQU,5:a,5:aOOQU,5:m,5:mOOQU,5:k,5:kO>{QYO,5:qOOQU,5;l,5;lO?SQYO'#FnO?aQWO,5:rO?fQYO,5:sOOQP'#Ed'#EdO@YQXO'#EcOOQO'#Eb'#EbO@aQWO'#EaO@fQWO'#GQO@nQWO,5:zOOQQ-E8f-E8fO@sQYO,59YO9iQYO'#F_OOQQ'#Cv'#CvO@zQYO'#F^OOQQ'#Cu'#CuOASQYO,59^OAXQYO,5:bOA^QYO,5:lOAcQYO,5:pOAjQ^O,5:oO2sQYO'#ElOCSQWO,5;zO2sQYOOOOQR'#Cf'#CfOOQQ'#Ei'#EiOCyQYO,59OO2sQYO,5;oOOQQ'#FW'#FWO$qQYO'#EjODZQYO,5;nO`QYO1G.fOOQQ'#FZ'#FZOEjQ^O1G/SOI]Q^O1G/[OIgQ^O1G/[OK_Q^O1G/[OOQU1G/w1G/wOLtQYO1G/yOMyQ^O1G/OO!!aQ^O1G/QO!$}QYO1G/SO!%UQYO1G/SOOQU1G/S1G/SO!&tQYO1G/^O!'`Q^O'#CdOOQO'#Dy'#DyO!(rQWO'#DxO!(wQWO'#FmOOQO'#Dw'#DwOOQO'#Dz'#DzO!)PQWO,5<WOOQU'#Fy'#FyOOQU1G0]1G0]O2sQYO'#ErO!)UQWO,5<YOOQU'#F|'#F|OOQU1G0^1G0^O!)aQWO'#EZO!)lQWO'#GOOOQO'#EY'#EYO!)tQWO1G0_OOQP'#Et'#EtO!)yQXO,5:}O2sQYO,5:{O!*QQXO'#EuO!*YQWO,5<lOOQU1G0f1G0fO2sQYO1G.tO2sQYO,5;yO$qQYO'#EkO!*bQYO,5;xO`QYO1G.xO!*jQYO1G/|OOQO1G0W1G0WO2sQYO1G0[OOQO,5;W,5;WOOQO-E8j-E8jO!*oQWOOOOQQ-E8g-E8gO!*tQYO'#ClOOQQ1G1Z1G1ZOOQQ,5;U,5;UOOQQ-E8h-E8hO!+RQ^O7+$QOOQU7+%e7+%eO`QYO7+$nO!,kQWO7+$nO!,pQ^O'#D[OOQU'#DZ'#DZO!/oQYO'#D^O!/tQYO'#D^O!/yQYO'#D^O!0OQ`O'#DfO!0TQ`O'#DiO!0YQ`O'#DmOOQU7+$x7+$xO2sQYO,5:dO$qQYO'#EqO!0_QWO,5<XOOQU1G1r1G1rO!0gQYO,5;^OOQO-E8p-E8pO!&tQYO,5:uO$qQYO'#EsO!0tQWO,5<jO!0|QYO7+%yOOQP-E8r-E8rO!1TQYO1G0gOOQO,5;a,5;aOOQO-E8s-E8sO!1_QYO7+$`O!1fQYO1G1eOOQQ,5;V,5;VOOQQ-E8i-E8iO!1pQ^O7+$dOOQO7+%h7+%hO!4WQYO7+%vO2sQYO,59WO!5lQ^O<<HYOOQU<<HY<<HYO$qQYO'#EnO!7OQ^O,59vO!9}QYO,59xO!:SQYO,59xO!:XQYO,59xO!:^QYO,5:QO$qQYO,5:TO!:xQbO,5:XO!;PQYO1G0OOOQO,5;],5;]OOQO-E8o-E8oOOQO1G0a1G0aOOQO,5;_,5;_OOQO-E8q-E8qO!;ZQ^O'#E]OOQU<<Ie<<IeO`QYO<<IeO`QYO<<GzO!<sQ^O'#FjOOQU'#Fw'#FwOOQU<<Ib<<IbO!?rQYO1G.rOOQU,5;Y,5;YOOQU-E8l-E8lO!?|QYO1G/dOOQU1G/d1G/dO!@RQbO'#D]O!@dQ`O'#D[O!@oQ`O1G/lO!@tQWO'#DlO!@yQ`O'#FeOOQO'#Dk'#DkO!ARQ`O1G/oOOQO'#Dp'#DpO!AWQ`O'#FgOOQO'#Do'#DoO!A`Q`O1G/sOOQUAN?PAN?PO!AeQ^OAN=fOOQU7+%O7+%OO!B}Q`O,59vOOQU7+%W7+%WO!:^QYO,5:WO$qQYO'#EoO!CYQ`O,5<POOQU7+%Z7+%ZO!:^QYO'#EpO!CbQ`O,5<RO!CjQ`O7+%_OOQO1G/r1G/rOOQO,5;Z,5;ZOOQO-E8m-E8mOOQO,5;[,5;[OOQO-E8n-E8nO!&tQYO<<HyOOQUAN>eAN>eO!CoQ^O'#FQO2sQYO'#ETO2sQYO,59hO2sQYO,59pO2sQYO,59pO2sQYO,59pO2sQYO,59dO2sQYO,59fO!EvQYO,59hO!E}QYO,5:oO2sQYO1G.fO!FqQYO1G/SO!HxQYO1G/[O!ISQYO1G/[O!JXQYO1G/OO!KyQYO1G/QO2sQYO1G.xO!LsQYO7+$QO2sQYO7+$nO!MgQYO7+%yO!MqQYO7+$dO!NeQYO<<HYO$qQYO'#EnO# RQYO'#E]O2sQYO<<IeO2sQYO<<GzO# uQYOAN=fO!:^QYO<<HyO2sQYO'#DUO#!iQ^O'#DQO9vQYO,58zO#$RQYO,59^O#$WQYO1G/SO#$_QWO1G0_O#$dQYO7+$`O#$kQ`O7+%_O$qQYO'#C`O$qQYO'#CrO2sQYO,59hO?fQYO,5:sO2sQYO1G.tO#$pQ`O1G/sO#$uQWO'#EXO#$zQYO,59YO!:xQbO,5:XO2sQYO'#CnO#%RQ`O'#Dm",
-    stateData: "#%W~O#pOS#qOSPOSQOS~OTsOZUO[TOctOgvOhvOr}OueO!S{O!T{O!UxO!WzO!b!OO!fdO!hfO!oyO!viO#RmO#lQO#mQO$f[O$g]O$h^O$i_O~OTsO[TOctOgvOhvOr&pOueO!S{O!T{O!UxO!WzO!b!OO!fdO!hfO!oyO!viO#RmO#lQO#mQO$f[O$g]O$h^O$i_O~OZ!SO#Z!UO~P!|O#lQO#mQO~OZ!^O[!^O]!_O^!_O_!lOm!iOo!jOq!]Or!]Os!kOy!`O{!mO!h!fO#x!dOu$_X~O#n!hO$u!hOT#rXc#rXg#rXh#rX!S#rX!T#rX!U#rX!W#rX!b#rX!f#rX!o#rX!v#rX#R#rX#j#rX#l#rX#m#rX$f#rX$g#rX$h#rX$i#rX~P$yO$f!nOT$WXZ$WX[$WXc$WXg$WXh$WXr$WXu$WX!S$WX!T$WX!U$WX!W$WX!b$WX!f$WX!h$WX!o$WX!v$WX#R$WX#l$WX#m$WX$g$WX$h$WX$i$WX~O#lQO#mQOT!PXZ!PX[!PX]!PX^!PX_!PXc!PXg!PXh!PXm!PXo!PXq!PXr!PXs!PXu!PXy!PX{!PX!S!PX!T!PX!U!PX!W!PX!b!PX!f!PX!h!PX!o!PX!v!PX#R!PX#j!PX#n!PX#x!PX$f!PX$g!PX$h!PX$i!PX$u!PX#|!PXw!PXd!PX#{!PXa!PX#Q!PXe!PXk!PX~Ou!qO~O$g]O~OT$jXT$lXc$jXc$lXg$jXg$lXh$jXh$lXr$jXr$lXu$jXu$lX!S$jX!S$lX!T$jX!T$lX!U$jX!U$lX!W$jX!W$lX!b$jX!b$lX!f$jX!f$lX!h$jX!h$lX!o$jX!o$lX!v$jX!v$lX#R$jX#R$lX$f$jX$f$lX$g$jX$g$lX$h$jX$h$lX$i$jX$i$lX~OZ$jXZ$lX[$jX[$lX#l$jX#l$lX#m$jX#m$lX~P,ZOT$jXc$jXg$jXh$jXr$jXu$jX!S$jX!T$jX!U$jX!W$jX!b$jX!f$jX!h$jX!o$jX!v$jX#R$jX$f$jX$g$jX$h$jX$i$jX~OT$oXZ$jXZ$oX[$jX[$oXc$oXg$oXh$oXr$oXu$oX!S$oX!T$oX!U$oX!W$oX!b$oX!f$oX!h$oX!o$oX!v$oX#R$oX#l$jX#l$oX#m$jX#m$oX$f$oX$g$oX$h$oX$i$oX~P/gOZUO~P!|O#n!vOZ#tX[#tX]#tX^#tX_#tXm#tXo#tXq#tXr#tXs#tXu#tXy#tX{#tX!f#tX!h#tX#j#tX#x#tX~OT#tXc#tXg#tXh#tX!S#tX!T#tX!U#tX!W#tX!b#tX!o#tX!v#tX#R#tX#l#tX#m#tX#n#tX$f#tX$g#tX$h#tX$i#tX$u#tX~P2zOZUO!f$bP~P!|Ou!yO~O#k!zO$g]O#Q$tP~Oo#XO~Oo#YOu!tX~OZ!^O[!^O]!_O^!_O_&wOm&uOo&vOq&qOr&qOs'gOy!`O{!mO!h!fO#x!dOu$_X~O#jtX#|tXwtX!ftXdtX#{tXatX#QtXetXktX~P6aO#|#]O#j$SXw$SX~O#j#YX~P'dOu#_O~OZ#`O[#`O]#`O^#`O#lQO#mQO#x#`O#y#`O$YWX~O_WXwWX#|WX~P8mO_#dO~O#|#eOa#vX~Oa#hO~OTsOZUO[TOctOgvOhvOr}O!S{O!T{O!UxO!WzO!b!OO!fdO!hfO!oyO!viO#RmO#lQO#mQO$f[O$g]O$h^O$i_O~Ou#rO~P9{O|#tO~O{!mO!h!fO#x!dOTxaZxa[xa]xa^xa_xacxagxahxamxaoxaqxarxasxau$_Xyxa!Sxa!Txa!Uxa!Wxa!bxa!fxa!oxa!vxa#Rxa#jxa#lxa#mxa#nxa$fxa$gxa$hxa$ixa$uxa#|xawxadxa#{xaaxa#Qxaexakxa~OZUOw$bP~P!|Ow#|O~P6aO#|$OO!f$bXw$bX~P6aO!f$QO~O#lQO#mQOw$rP~OZ#`O[#`O]#`O^#`O#k!zO#x#`O#y#`O~O$Y#VX~P?qO$Y$YO~O#|$ZO#Q$tX~O#Q$]O~Od$^O~P6aO#|$`Ok$QX~Ok$bO~O!V$cO~O!S$dO~O#{$eO~P6aOT!wac!wag!wah!wa!S!wa!T!wa!U!wa!W!wa!b!wa!f!wa!o!wa!v!wa#R!wa#j!wa#l!wa#m!wa#n!wa$f!wa$g!wa$h!wa$i!wa$u!wa~P$yO#|#]O#j$Saw$Sa~OZ#`O[#`O]#`O^#`O#lQO#mQO#x#`O#y#`O~O_Wa$YWawWa#|Wa~PC_O#|#eOa#va~OZ!^O[!^O]!_O^!_Oy!`O{!mO!h!fO#x!dO_pimpiopiqpirpispiu$_X!fpi#jpi~OTpicpigpihpi!Spi!Tpi!Upi!Wpi!bpi!opi!vpi#Rpi#lpi#mpi#npi$fpi$gpi$hpi$ipi$upi~PDcOy!`O{!mO!h!fO#x!dOTxiZxi[xi_xicxigxihximxioxiqxirxisxiu$_X!Sxi!Txi!Uxi!Wxi!bxi!fxi!oxi!vxi#Rxi#jxi#lxi#mxi#nxi$fxi$gxi$hxi$ixi$uxi~O]!_O^!_O~PF|O]xi^xi~PF|O{!mO!h!fO#x!dOZxi[xi]xi^xi_ximxioxiqxirxisxiu$_X!fxi#jxi#|xiwxidxi#{xiaxi#Qxiexikxi~OTxicxigxihxiyxi!Sxi!Txi!Uxi!Wxi!bxi!oxi!vxi#Rxi#lxi#mxi#nxi$fxi$gxi$hxi$ixi$uxi~PIqO!f$oO~P6aOZ!^O[!^O]!_O^!_O_!lOo!jOq!]Or!]Os!kOy!`O{!mO!h!fO#x!dOu$_X~OTlicliglihlimli!Sli!Tli!Uli!Wli!bli!fli!oli!vli#Rli#jli#lli#mli#nli$fli$gli$hli$ili$uli~PL{OZ!^O[!^O]!_O^!_O_!lOq!]Or!]Os!kOy!`O{!mO!h!fO#x!dOu$_X~OTnicnignihnimnioni!Sni!Tni!Uni!Wni!bni!fni!oni!vni#Rni#jni#lni#mni#nni$fni$gni$hni$ini$uni~P! fOZ!^O[!^O]!_O^!_O_&wOm&uOq&qOr&qOs'gOy!`O{!mO!h!fO#x!dOu$_X~Oo$pO~P!$POTsOZUO[TOctOgvOhvOr&pOueO!S{O!T{O!UxO!WzO!b!OO!fdO!hfO!oyO!viO#RmO#lQO#mQO$f[O$g]O$h^O$i_O~P,ZO!R$tO!U$uO!W$vO!Z$wO!^$xO!b$yO#lQO#mQO~OZ#aX[#aX]#aX^#aX_#aXm#aXo#aXq#aXr#aXs#aXu#aXw#aXy#aX{#aX!h#aX#l#aX#m#aX#n#aX#x#aX#|#aX~P8mO$Y${O~O#|$|Ow$aX~Ow%OO~O#|$OO!f$baw$ba~O$Y%ROw!}X#|!}X~O#|%SOw$rX~Ow%UO~O$Y#Va~P?qO#k!zO$g]O~O#|$ZO#Q$ta~O#|$`Ok$Qa~O!T%`O~Ow!TO~O#{%bOa`X#|`X~P6aOTSqcSqgSqhSq!SSq!TSq!USq!WSq!bSq!fSq!oSq!vSq#RSq#jSq#lSq#mSq#nSq$fSq$gSq$hSq$iSq$uSq~P$yOw%dO~O#x%eOT!OXZ!OX[!OX]!OX^!OX_!OXc!OXg!OXh!OXm!OXo!OXq!OXr!OXs!OXu!OXy!OX{!OX!S!OX!T!OX!U!OX!W!OX!b!OX!f!OX!h!OX!o!OX!v!OX#R!OX#j!OX#l!OX#m!OX#n!OX$f!OX$g!OX$h!OX$i!OX$u!OX#|!OXw!OXd!OX#{!OXa!OX#Q!OXe!OXk!OX~Oo%gO~Oo%hO~Oo%iO~O![%jO~O![%kO~O![%lO~O#|$|Ow$aa~O!f#fa#|#faw#fa~P6aO#|%SOw$ra~O#O%uO~P`O#Q#Ti#|#Ti~P6aOe%vO~P6aOk$Ri#|$Ri~P6aOTfqcfqgfqhfq!Sfq!Tfq!Ufq!Wfq!bfq!ffq!ofq!vfq#Rfq#jfq#lfq#mfq#nfq$ffq$gfq$hfq$ifq$ufq~P$yOZ!^O[!^O]!_O^!_O_&wOm&uOo&vOq&qOr&qOs'gOy!`O{!mO#x!dOu$_X~Ow%xO!f%xO!h%wO~P!3YOZ!^O[!^O]!_O^!_Oy!`O{!mO!h!fO#x!dO_pympyopyqpyrpyspyu$_X!fpy#jpy~OTpycpygpyhpy!Spy!Tpy!Upy!Wpy!bpy!opy!vpy#Rpy#lpy#mpy#npy$fpy$gpy$hpy$ipy$upy~P!4eO#x%eOT!OaZ!Oa[!Oa]!Oa^!Oa_!Oac!Oag!Oah!Oam!Oao!Oaq!Oar!Oas!Oau!Oay!Oa{!Oa!S!Oa!T!Oa!U!Oa!W!Oa!b!Oa!f!Oa!h!Oa!o!Oa!v!Oa#R!Oa#j!Oa#l!Oa#m!Oa#n!Oa$f!Oa$g!Oa$h!Oa$i!Oa$u!Oa#|!Oaw!Oad!Oa#{!Oaa!Oa#Q!Oae!Oak!Oa~O!S%}O~O!V%}O~O!S&OO~O!R$tO!U$uO!W$vO!Z$wO!^$xO!b'oO#lQO#mQO~O!X$ZP~P!:^Ow!li#|!li~P6aOT#PXc#PXg#PXh#PX!S#PX!T#PX!U#PX!W#PX!b#PX!f#PX!o#PX!v#PX#R#PX#j#PX#l#PX#m#PX#n#PX$f#PX$g#PX$h#PX$i#PX$u#PX~P$yOT$^XZ$^X[$^X]$kX^$kX_$kXc$^Xg$^Xh$^Xm$kXo$kXq$kXr$^Xs$kXu$^Xy$kX{$kX!S$^X!T$^X!U$^X!W$^X!b$^X!f$^X!h$^X!o$^X!v$^X#R$^X#j$kX#l$^X#m$^X#n$kX#x$kX$f$^X$g$^X$h$^X$i$^X$u$kX#|$kXw$kXd$kX#{$kXa$kX#Q$kXe$kXk$kX~Oa`i#|`i~P6aO!T&^O~O#lQO#mQO!X!PX#x!PX#|!PX~O#x'VO!X!OX#|!OX~O!X&`O~O$Y&aO~O#|&bO!X$XX~O!X&dO~O#|&eO!X$ZX~O!X&gO~OTb!Rcb!Rgb!Rhb!R!Sb!R!Tb!R!Ub!R!Wb!R!bb!R!fb!R!ob!R!vb!R#Rb!R#jb!R#lb!R#mb!R#nb!R$fb!R$gb!R$hb!R$ib!R$ub!R~P$yO#x'VO!X!Oa#|!Oa~O#|&bO!X$Xa~O#|&eO!X$Za~O$[&mO~O#|#tXw#tXd#tX#{#tXa#tX#Q#tXe#tXk#tX~P2zOTsOZUO[TOctOgvOhvOr&pO!S{O!T{O!UxO!WzO!b!OO!fdO!hfO!oyO!viO#RmO#lQO#mQO$f[O$g]O$h^O$i_O~Ou#rO~P!D]O#j!wa#|!waw!wa!f!wad!wa#{!waa!wa#Q!wae!wak!wa~P6aO#|piwpidpi#{piapi#Qpiepikpi~PDcOy!`O{!mO!h!fO#x!dOZxi[xi_ximxioxiqxirxisxiu$_X#jxi#|xiwxi!fxidxi#{xiaxi#Qxiexikxi~O]!_O^!_O~P!G_Oy!`O~PIqOZ!^O[!^O]!_O^!_O_&wOo&vOq&qOr&qOs'gOy!`O{!mO!h!fO#x!dOu$_X~Omli#jli#|liwli!flidli#{liali#Qlielikli~P!IZOZ!^O[!^O]!_O^!_O_&wOq&qOr&qOs'gOy!`O{!mO!h!fO#x!dOu$_X~Omnioni#jni#|niwni!fnidni#{niani#Qnienikni~P!KOO#jSq#|SqwSq!fSqdSq#{SqaSq#QSqeSqkSq~P6aOZUO#O'XO~P!|O#jfq#|fqwfq!ffqdfq#{fqafq#Qfqefqkfq~P6aO#|pywpydpy#{pyapy#Qpyepykpy~P!4eO#j#PX#|#PXw#PX!f#PXd#PX#{#PXa#PX#Q#PXe#PXk#PX~P6aO#jb!R#|b!Rwb!R!fb!Rdb!R#{b!Rab!R#Qb!Reb!Rkb!R~P6aOTtXctXgtXhtX!StX!TtX!UtX!WtX!btX!ftX!otX!vtX#RtX#jtX#ltX#mtX#ntX$ftX$gtX$htX$itX$utX~P$yOk'PO~Oo'RO~P!$POw'SO~Oe'YO~P6aO$['[O~O!X'dO~Ou'hO~Od'iO~P6aO!['mO~O",
-    goto: "!$f$uPPPP$vP&Q&W&_&t(sPPPPP(|P$vPPP$vPP)P)VP$vP$vP$vPPP)^P)jP$vP$vPP)s*Y*e*YPPPPPPP*YPP*YP,V,Y*YP,`,f$vP$vP$v,m-w-z.Q-wP.Z/e.Z.Z0v2QP$v3[$v4f4f5p5vP5}PP4f6V6]0r6aP6iP6l6r6y7P7V7]8y9T9Z9a9g9m9s9yPPPPPPPP:P:T=X>c?o?sPP?xPP@O@UAbBnBrBwB|CxDvEvGSPGVPGZHZIZJeJkJn$vJtJtPPPPLOMYM]Ng=XNj! t! w!#T!#X!$c#aiOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nQ![RR'_'eS!YR'eR$l#eU!WR#e'eU#Sw$`'fY#v!q!y$|%S'hT&S%k&b#zWOPVXhkru|}!]!a!b!c!e!g!i!j!k!l#]#_#c#g#r#t$O$Y$^$_$b$e$p${%R%U%b%e%j%l%u%v&P&a&e&m&p&q&r&s&t&u&v&w&y'P'R'S'V'X'Y'[']'g'i'm'nh!VRw!y#e$`$|%S%k&b'e'f'hU#a!V#b#uR#u!qU#a!V#b#uT$W!{$XR$k#cQ#WwR'`'fS#Uw'fR%]$`U!QP#_#rS#s!l&wR$f#]Q!TPQ$h#_R$q#rQ$z#tQ%p%RQ&R%jU&W%l&e'mQ&h&aT&n&m'[c$s#t%R%j%l&a&e&m'['mrjOVr}!]!a!b!c!i!j!l#g$b$p%U%u%vQ#m!eU$r#t%R&mS%{%e'V[&Q%j%l&a&e'['m!m&oPhku|!g!k!q#]#_#c#r$O$Y$^$_$e${%b&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nR&V%kQ&T%kR&i&bQ&Z%lR'j'mS&X%l'mR&k&e#aYOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nR#{!qQ#x!qR%n$|S#w!q$|V$S!y%S'h#abOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'n#`bOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nQ!s_T!|n$Z#a`OPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'n#aaOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'n#agOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'n#aoOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nQ$V!yR'b'hS$T!y'hR%q%SS%t%U'ST&[%u'XQ#OnR%X$ZT!}n$ZS!{n$ZT$W!{$XR!TPQrOR#QrS#b!V#uR$i#bQ#f!YR$m#fQ$a#UR%^$aQ#^!QR$g#^#jXOPVhkru|}!]!a!b!c!e!g!i!j!k!l!q#]#_#c#g#r#t$O$Y$^$_$b$e$p${%R%U%b%e%u%v&m&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nS!pX&P_&P%j%l&a&e'V'['mQ%f$rS%|%f&_R&_&QQ&c&TR&j&cQ&f&XR&l&fQ$}#xR%o$}Q$P!wR%Q$PQ%T$TR%r%TQ$X!{R%V$XQ$[#OR%Y$[TqOrSSOrY!PP#]#_#r&wS!oV']Q!uhS!wk!qQ#RuQ#Z|Q#[}Q#i!]Q#j!aQ#k!bS#l!c&tQ#n!gQ#o!iQ#p!jQ#q!kQ$j#cQ$n#gQ%P$OQ%W$YQ%Z$^Q%[$_Q%_$bQ%a$eQ%c$pQ%m${S%s%U%uQ%z%bQ&]%vQ&x&pQ&z&qQ&{&rQ&|&sQ&}&uQ'O&vQ'Q&yQ'T'PQ'U'RS'W'S'XQ'Z'YQ'^!lQ'a'gQ'c'iR'l'n#apOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nrROVr}!]!a!b!c!i!j!l#g$b$p%U%u%v!m'ePhku|!g!k!q#]#_#c#r$O$Y$^$_$e${%b&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nT!ZR'eV!XR#e'eQ#c!WR$_#SQ#g![R&y'_ruOVr}!]!a!b!c!i!j!l#g$b$p%U%u%v!m'nPhku|!g!k!q#]#_#c#r$O$Y$^$_$e${%b&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nrwOVr}!]!a!b!c!i!j!l#g$b$p%U%u%v!m'fPhku|!g!k!q#]#_#c#r$O$Y$^$_$e${%b&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nT#Vw'fV#Tw$`'fV!RP#_#rf!aS#[#i#o#p$n%_%c%s&]'^!X&r!P!u!w#R#Z#n#q$j%P%W%Z%[%a%m%z&x&z&}'O'Q'T'U'W'Z'a'c'lh!bS#[#i#j#o#p$n%_%c%s&]'^!Z&s!P!u!w#R#Z#n#q$j%P%W%Z%[%a%m%z&x&z&{&}'O'Q'T'U'W'Z'a'c'lj!cS#[#i#j#k#o#p$n%_%c%s&]'^!]&t!P!u!w#R#Z#n#q$j%P%W%Z%[%a%m%z&x&z&{&|&}'O'Q'T'U'W'Z'a'c'lrVOVr}!]!a!b!c!i!j!l#g$b$p%U%u%v!m']Phku|!g!k!q#]#_#c#r$O$Y$^$_$e${%b&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nR&U%kT&Y%l'm!{!eS!P!o!u!w#R#Z#[#i#j#k#l#n#o#p#q$j$n%P%W%Z%[%_%a%c%m%s%z&]&x&z&{&|&}'O'Q'T'U'W'Z'^'a'c'l!{!gS!P!o!u!w#R#Z#[#i#j#k#l#n#o#p#q$j$n%P%W%Z%[%_%a%c%m%s%z&]&x&z&{&|&}'O'Q'T'U'W'Z'^'a'c'l#aZOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nQ!rZR!t`R#y!qQ!xkR#z!q#acOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'n#a|OPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nR%y%a#ahOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nR#}!u#akOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nR$R!xrlOVr}!]!a!b!c!i!j!l#g$b$p%U%u%v!m'kPhku|!g!k!q#]#_#c#r$O$Y$^$_$e${%b&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nT$U!y'h#anOPVhkru|}!]!a!b!c!g!i!j!k!l!q#]#_#c#g#r$O$Y$^$_$b$e$p${%U%b%u%v&p&q&r&s&t&u&v&w&y'P'R'S'X'Y']'g'i'nR#Pn",
-    nodeNames: "⚠ LineComment BlockComment Expressions ForExpression for InExpressions InExpression Name Identifier Identifier ArithOp ArithOp ArithOp ArithOp in IterationContext return IfExpression if then else QuantifiedExpression some every InExpressions InExpression satisfies Disjunction or Conjunction and Comparison CompareOp CompareOp between PositiveUnaryTest ( PositiveUnaryTests ) ArithmeticExpression ArithOp InstanceOfExpression instance of Type QualifiedName VariableName SpecialType days time duration years months date > ListType list < ContextType context ContextEntryTypes ContextEntryType FunctionType function ArgumentTypes ArgumentType PathExpression ] FilterExpression [ FunctionInvocation SpecialFunctionName NamedParameters NamedParameter ParameterName PositionalParameters null NumericLiteral StringLiteral BooleanLiteral DateTimeLiteral DateTimeConstructor AtLiteral ? SimplePositiveUnaryTest Interval ParenthesizedExpression List FunctionDefinition FormalParameters FormalParameter external FunctionBody } { Context ContextEntry Key Name Identifier UnaryTests Wildcard not",
-    maxTerm: 175,
+    states: "DSO`QYOOO`QYOOO$gQYOOOOQU'#Ce'#CeO$qQYO'#C`O%zQYO'#FPOOQQ'#Fe'#FeO&UQYO'#FeO`QYO'#DVOOQU'#Em'#EmO'rQ^O'#D]OOQO'#Fl'#FlO)oQWO'#DuOOQQ'#D|'#D|OOQQ'#D}'#D}OOQQ'#EO'#EOO)tOWO'#ERO)oQWO'#EPOOQQ'#EP'#EPOOQQ'#Fr'#FrOOQQ'#Fp'#FpOOQQ'#Fw'#FwO,iQYO'#FwO.gQYO'#FwOOQQ'#ET'#ETO`QYO'#EVOOQQ'#FR'#FRO0cQ^O'#FRO2YQYO'#EWO2aQWO'#EXOOQP'#GQ'#GQO2fQXO'#E`OOQQ'#F{'#F{OOQQ'#FQ'#FQQOQWOOOOQQ'#FS'#FSOOQQ'#F]'#F]O`QYO'#CoOOQQ'#F^'#F^O$qQYO'#CsO2qQYO'#DvOOQQ'#Fq'#FqO2vQYO'#EQOOQO'#EQ'#EQO`QYO'#EUO`QYO'#ETOOQO'#GO'#GOQ3OQWOOO3TQYO'#DRO3zQWO'#FaOOQO'#DT'#DTO4VQYO'#FeO4^QWOOO5TQYO'#CdO5bQYO'#FUOOQQ'#Cc'#CcO5gQYO'#FTOOQQ'#Cb'#CbO5oQYO,58zO`QYO,59iOOQQ'#Fb'#FbOOQQ'#Fc'#FcOOQQ'#Fd'#FdO`QYO,59qO`QYO,59qO`QYO,59qOOQQ'#Fj'#FjO$qQYO,5:]OOQQ'#Fk'#FkO`QYO,5:_O`QYO,59eO`QYO,59gO`QYO,59iO7_QYO,59iO7fQYO,59rOOQQ,5:h,5:hO7kQYO,59qOOQU-E8k-E8kO9_QYO'#FmOOQQ,5:a,5:aOOQQ,5:m,5:mOOQQ,5:k,5:kO9fQYO,5:qOOQQ,5;m,5;mO9mQYO'#FoO9zQWO,5:rO:PQYO,5:sOOQP'#Ed'#EdO:vQXO'#EcOOQO'#Eb'#EbO:}QWO'#EaO;SQWO'#GRO;[QWO,5:zO;aQYO,59ZO5bQYO'#F`OOQQ'#Cw'#CwO;hQYO'#F_OOQQ'#Cv'#CvO;pQYO,59_O;uQYO,5:bO;zQYO,5:lO<PQYO,5:pO<WQYO,5:oO`QYO'#EvQ3OQWOOO`QYO'#ElO<}QWO,5;{O`QYOOOOQR'#Cf'#CfOOQQ'#Ei'#EiO=wQYO,59OO`QYO,5;pOOQQ'#FX'#FXO$qQYO'#EjO>XQYO,5;oO`QYO1G.fOOQQ'#F['#F[O?OQYO1G/TOAuQYO1G/]OBPQYO1G/]OBZQYO1G/]OOQQ1G/w1G/wOC}QYO1G/yODUQYO1G/POE_QYO1G/ROFhQYO1G/TOGOQYO1G/TOOQQ1G/T1G/TOHnQYO1G/^OIYQ^O'#CdOOQO'#Dy'#DyOJlQWO'#DxOJqQWO'#FnOOQO'#Dw'#DwOOQO'#Dz'#DzOJyQWO,5<XOOQQ'#Fz'#FzOOQQ1G0]1G0]O`QYO'#ErOKOQWO,5<ZOOQQ'#F}'#F}OOQQ1G0^1G0^OKZQWO'#EZOKfQWO'#GPOOQO'#EY'#EYOKnQWO1G0_OOQP'#Et'#EtOKsQXO,5:}O`QYO,5:{OKzQXO'#EuOLSQWO,5<mOOQQ1G0f1G0fO`QYO1G.uO`QYO,5;zO$qQYO'#EkOL[QYO,5;yO`QYO1G.yOLdQYO1G/|OOQO1G0W1G0WO`QYO1G0[OOQO,5;b,5;bOOQO-E8t-E8tOOQO,5;W,5;WOOQO-E8j-E8jOLiQWOOOOQQ-E8g-E8gOLnQYO'#CmOOQQ1G1[1G1[OOQQ,5;U,5;UOOQQ-E8h-E8hOL{QYO7+$QOOQQ7+%e7+%eO`QYO7+$oOMrQWO7+$oOMwQYO'#D[OOQQ'#DZ'#DZO! kQYO'#D^O! pQYO'#D^O! uQYO'#D^O! zQ`O'#DfO!!PQ`O'#DiO!!UQ`O'#DmOOQQ7+$x7+$xO`QYO,5:dO$qQYO'#EqO!!ZQWO,5<YOOQQ1G1s1G1sO!!cQYO,5;^OOQO-E8p-E8pOHnQYO,5:uO$qQYO'#EsO!!pQWO,5<kO!!xQYO7+%yOOQP-E8r-E8rO!#PQYO1G0gOOQO,5;a,5;aOOQO-E8s-E8sO!#ZQYO7+$aO!#bQYO1G1fOOQQ,5;V,5;VOOQQ-E8i-E8iO!#lQYO7+$eOOQO7+%h7+%hO!%aQYO7+%vO`QYO,59XO!%nQYO<<HZOOQQ<<HZ<<HZO$qQYO'#EnO!&wQYO,59vO!(kQYO,59xO!(pQYO,59xO!(uQYO,59xO!(zQYO,5:QO$qQYO,5:TO!)fQbO,5:XO!)mQYO1G0OOOQO,5;],5;]OOQO-E8o-E8oOOQO1G0a1G0aOOQO,5;_,5;_OOQO-E8q-E8qO!)wQYO'#E]OOQQ<<Ie<<IeO`QYO<<IeO`QYO<<G{O!*nQYO'#FkOOQQ'#Fx'#FxOOQQ<<Ib<<IbO!-jQYO1G.sOOQQ,5;Y,5;YOOQQ-E8l-E8lO!-tQYO1G/dOOQQ1G/d1G/dO!-yQbO'#D]O!.[Q`O'#D[O!.gQ`O1G/lO!.lQWO'#DlO!.qQ`O'#FfOOQO'#Dk'#DkO!.yQ`O1G/oOOQO'#Dp'#DpO!/OQ`O'#FhOOQO'#Do'#DoO!/WQ`O1G/sOOQQAN?PAN?PO!/]QYOAN=gOOQQ7+%O7+%OO!0SQ`O,59vOOQQ7+%W7+%WO!(zQYO,5:WO$qQYO'#EoO!0_Q`O,5<QOOQQ7+%Z7+%ZO!(zQYO'#EpO!0gQ`O,5<SO!0oQ`O7+%_OOQO1G/r1G/rOOQO,5;Z,5;ZOOQO-E8m-E8mOOQO,5;[,5;[OOQO-E8n-E8nOHnQYO<<HyOOQQAN>eAN>eO$qQYO'#EnO!(zQYO<<HyO!0tQ`O7+%_O!0yQ`O1G/sO!)fQbO,5:XO!1OQ`O'#Dm",
+    stateData: "!1]~O#qOS#rOSPOSQOS~OTsOZVO[UOdtOhvOivOs}OvfO!S{O!T{O!UxO!WzO!b!OO!feO!hgO!oyO!vjO#RnO#mRO#nRO$g]O$h^O$i_O$j`O~OTsO[UOdtOhvOivOs}OvfO!S{O!T{O!UxO!WzO!b!OO!feO!hgO!oyO!vjO#RnO#mRO#nRO$g]O$h^O$i_O$j`O~OZ!TO#[!UO~P!|O#mRO#nRO~OZ!^O[!^O]!_O^!_O_!`O`!kOn!hOp!iOr!]Os!]Ot!jO{!lO!h!fO#y!dOv$`X~O#k#sX$v#sX~P$yO$g!mOT$XXZ$XX[$XXd$XXh$XXi$XXs$XXv$XX!S$XX!T$XX!U$XX!W$XX!b$XX!f$XX!h$XX!o$XX!v$XX#R$XX#m$XX#n$XX$h$XX$i$XX$j$XX~O#mRO#nROZ!PX[!PX]!PX^!PX_!PX`!PXn!PXp!PXr!PXs!PXt!PXv!PX{!PX!h!PX#k!PX#o!PX#y!PX$v!PX#}!PXx!PX!f!PXe!PX#|!PXb!PX#Q!PXf!PXl!PX~Ov!pO~O$h^O~OT$kXT$mXd$kXd$mXh$kXh$mXi$kXi$mXs$kXs$mXv$kXv$mX!S$kX!S$mX!T$kX!T$mX!U$kX!U$mX!W$kX!W$mX!b$kX!b$mX!f$kX!f$mX!h$kX!h$mX!o$kX!o$mX!v$kX!v$mX#R$kX#R$mX$g$kX$g$mX$h$kX$h$mX$i$kX$i$mX$j$kX$j$mX~OZ$kXZ$mX[$kX[$mX#m$kX#m$mX#n$kX#n$mX~P)yOT$kXd$kXh$kXi$kXs$kXv$kX!S$kX!T$kX!U$kX!W$kX!b$kX!f$kX!h$kX!o$kX!v$kX#R$kX$g$kX$h$kX$i$kX$j$kX~OT$pXZ$kXZ$pX[$kX[$pXd$pXh$pXi$pXs$pXv$pX!S$pX!T$pX!U$pX!W$pX!b$pX!f$pX!h$pX!o$pX!v$pX#R$pX#m$kX#m$pX#n$kX#n$pX$g$pX$h$pX$i$pX$j$pX~P-VO#o!uOZ#uX[#uX]#uX^#uX_#uX`#uXn#uXp#uXr#uXs#uXt#uXv#uX{#uX!h#uX#k#uX#y#uX$v#uX#}#uXx#uX!f#uXe#uX#|#uXb#uX#Q#uXf#uXl#uX~O!f$cP~P`Ov!xO~O#l!yO$h^O#Q$uP~Op#VO~Op#WOv!tX~O$v#ZO~O#kuX#}uX$vuXxuX!fuXeuX#|uXbuX#QuXfuXluX~P$yO#}#]O#k$TXx$TX~O#k#ZX~P&UOv#_O~OZ#`O[#`O]#`O^#`O_#`O#mRO#nRO#y#`O#z#`O$ZWX~O`WXxWX#}WX~P4cO`#dO~O#}#eOb#wX~Ob#hO~OTsOZVO[UOdtOhvOivOs}O!S{O!T{O!UxO!WzO!b!OO!feO!hgO!oyO!vjO#RnO#mRO#nRO$g]O$h^O$i_O$j`O~Ov#rO~P5tO|#tO~O{!lO!h!fO#y!dOZya[ya]ya^ya_ya`yanyapyaryasyatyav$`X#kya$vya#}yaxya!fyaeya#|yabya#Qyafyalya~Ox$cP~P`Ox#|O~P$yO#}$OO!f$cXx$cX~P$yO!f$QO~O#mRO#nROx$sP~OZ#`O[#`O]#`O^#`O_#`O#l!yO#y#`O#z#`O~O$Z#VX~P:[O$Z$YO~O#}$ZO#Q$uX~O#Q$]O~Oe$^O~P$yO#}$`Ol$RX~Ol$bO~O!V$cO~O!S$dO~O#|$eO~P$yO#k!wa$v!wa#}!wax!wa!f!wae!wa#|!wab!wa#Q!waf!wal!wa~P$yO#}#]O#k$Tax$Ta~OZ#`O[#`O]#`O^#`O_#`O#mRO#nRO#y#`O#z#`O~O`Wa$ZWaxWa#}Wa~P=YO#}#eOb#wa~OZ!^O[!^O]!_O^!_O_!`O{!lO!h!fO#y!dOv$`X~O`qinqipqirqisqitqi#kqi$vqi#}qixqi!fqieqi#|qibqi#Qqifqilqi~P>aO_!`O{!lO!h!fO#y!dOZyi[yi`yinyipyiryisyityiv$`X#kyi$vyi#}yixyi!fyieyi#|yibyi#Qyifyilyi~O]!_O^!_O~P@XO]yi^yi~P@XO{!lO!h!fO#y!dOZyi[yi]yi^yi_yi`yinyipyiryisyityiv$`X#kyi$vyi#}yixyi!fyieyi#|yibyi#Qyifyilyi~O!f$qO~P$yO`!kOp!iOr!]Os!]Ot!jOnmi#kmi$vmi#}mixmi!fmiemi#|mibmi#Qmifmilmi~P>aO`!kOr!]Os!]Ot!jOnoipoi#koi$voi#}oixoi!foieoi#|oiboi#Qoifoiloi~P>aO`!kOn!hOp$rOr!]Os!]Ot!jO~P>aOTsOZVO[UOdtOhvOivOs}OvfO!S{O!T{O!UxO!WzO!b!OO!feO!hgO!oyO!vjO#RnO#mRO#nRO$g]O$h^O$i_O$j`O~P)yO!R$vO!U$wO!W$xO!Z$yO!^$zO!b${O#mRO#nRO~OZ#aX[#aX]#aX^#aX_#aX`#aXn#aXp#aXr#aXs#aXt#aXv#aXx#aX{#aX!h#aX#m#aX#n#aX#o#aX#y#aX#}#aX~P4cO$Z$}O~O#}%OOx$bX~Ox%QO~O#}$OO!f$cax$ca~O$Z%TOx!}X#}!}X~O#}%UOx$sX~Ox%WO~O$Z#Va~P:[O#l!yO$h^O~O#}$ZO#Q$ua~O#}$`Ol$Ra~O!T%bO~OxrO~O#|%dObaX#}aX~P$yO#kSq$vSq#}SqxSq!fSqeSq#|SqbSq#QSqfSqlSq~P$yOx%fO~O#y%gOZ!OX[!OX]!OX^!OX_!OX`!OXn!OXp!OXr!OXs!OXt!OXv!OX{!OX!h!OX#k!OX$v!OX#}!OXx!OX!f!OXe!OX#|!OXb!OX#Q!OXf!OXl!OX~Op%iO~Op%jO~Op%kO~O![%lO~O![%mO~O![%nO~O#}%OOx$ba~O!f#fa#}#fax#fa~P$yO#}%UOx$sa~O#O%wO~P`O#Q#Ti#}#Ti~P$yOf%xO~P$yOl$Si#}$Si~P$yO#kgq$vgq#}gqxgq!fgqegq#|gqbgq#Qgqfgqlgq~P$yOZ!^O[!^O]!_O^!_O_!`O`!kOn!hOp!iOr!]Os!]Ot!jO{!lO#y!dOv$`X~Ox%zO!f%zO!h%yO~P!$cO`qynqypqyrqysqytqy#kqy$vqy#}qyxqy!fqyeqy#|qybqy#Qqyfqylqy~P>aO#y%gOZ!Oa[!Oa]!Oa^!Oa_!Oa`!Oan!Oap!Oar!Oas!Oat!Oav!Oa{!Oa!h!Oa#k!Oa$v!Oa#}!Oax!Oa!f!Oae!Oa#|!Oab!Oa#Q!Oaf!Oal!Oa~O!S&PO~O!V&PO~O!S&QO~O!R$vO!U$wO!W$xO!Z$yO!^$zO!b&vO#mRO#nRO~O!X$[P~P!(zOx!li#}!li~P$yO#k#PX$v#PX#}#PXx#PX!f#PXe#PX#|#PXb#PX#Q#PXf#PXl#PX~P$yOT$_XZ$_X[$_X]$lX^$lX_$lX`$lXd$_Xh$_Xi$_Xn$lXp$lXr$lXs$_Xt$lXv$_X{$lX!S$_X!T$_X!U$_X!W$_X!b$_X!f$_X!h$_X!o$_X!v$_X#R$_X#k$lX#m$_X#n$_X#y$lX$g$_X$h$_X$i$_X$j$_X$v$lX#}$lXx$lXe$lX#|$lXb$lX#Q$lXf$lXl$lX~Obai#}ai~P$yO!T&`O~O#mRO#nRO!X!PX#y!PX#}!PX~O#y&qO!X!OX#}!OX~O!X&bO~O$Z&cO~O#}&dO!X$YX~O!X&fO~O#}&gO!X$[X~O!X&iO~O#kc!R$vc!R#}c!Rxc!R!fc!Rec!R#|c!Rbc!R#Qc!Rfc!Rlc!R~P$yO#y&qO!X!Oa#}!Oa~O#}&dO!X$Ya~O#}&gO!X$[a~O$]&oO~O$]&rO~O!X&sO~O![&uO~OQP_^$g]#y~",
+    goto: "Ff$vPPPP$wP%p%s%y&]'vPPPPPP(PP$wPPP$wPP(S(VP$wP$wP$wPPP(]P(hP$w$wPP(q)W)c)WPPPPPPP)WPP)WP*p*s)WP*y+P$wP$wP$w+W,P,S,Y,PP,b-Z,b,b.Z/SP$w/{$w0t0t1m1pP1vPP0t1|2S.V2WPP2`P2c2j2p2v2|4X4c4i4o4u4{5R5X5_PPPPPPPP5e5n7q8j9c9fPP9jPP9p9s:l;e;h;l;q<^<z=i>bP>eP>i?Y?y@r@x@{$wARARPPPPAzBsBvCo7qCrDkDnEgEjFc!mjOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR![SQ!YSR$n#eS!WS#eS#Qw$`W#v!p!x%O%UT&U%m&d#WXOPQWYilu|}!]!a!b!c!e!g!h!i!j!k#Z#]#_#c#g#r#t$O$Y$^$_$b$e$r$}%T%W%d%g%l%n%w%x&R&c&g&o&q&r&ub!VSw!x#e$`%O%U%m&dU#a!V#b#uR#u!pU#a!V#b#uT$W!z$XR$m#cR#UwQ#SwR%_$`U!RQ#_#rQ#s!kR$h#]QrQQ$j#_R$s#rQ$|#tQ%r%TQ&T%lU&Y%n&g&uQ&j&cT&p&o&rc$u#t%T%l%n&c&g&o&r&u!lkOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xQ#m!eU$t#t%T&oS%}%g&q]&S%l%n&c&g&r&uR&X%mQ&V%mR&k&dQ&]%nR&t&uS&Z%n&uR&m&g!mZOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR#{!pQ#x!pR%p%OS#w!p%OT$S!x%U!mcOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%x!lcOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xQ!r`T!{o$Z!maOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%x!mbOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%x!mhOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%x!mpOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR$V!xQ$T!xR%s%UQ%v%WR&^%wQ!}oR%Z$ZT!|o$ZS!zo$ZT$W!z$XRrQS#b!V#uR$k#bQ#f!YR$o#fQ$a#SR%`$aQ#^!RR$i#^!vYOPQWilu|}!]!a!b!c!e!g!h!i!j!k!p#Z#]#_#c#g#r#t$O$Y$^$_$b$e$r$}%T%W%d%g%w%x&oS!oY&R_&R%l%n&c&g&q&r&uQ%h$tS&O%h&aR&a&SQ&e&VR&l&eQ&h&ZR&n&hQ%P#xR%q%PQ$P!vR%S$PQ%V$TR%t%VQ$X!zR%X$XQ$[!}R%[$[Q#[!PR$g#[QrOQ!PPR$f#ZUTOP#ZY!QQ!k#]#_#rQ!nWQ!tiS!vl!pQ#PuQ#X|Q#Y}Q#i!]Q#j!aQ#k!bQ#l!cQ#n!gQ#o!hQ#p!iQ#q!jQ$l#cQ$p#gQ%R$OQ%Y$YQ%]$^Q%^$_Q%a$bQ%c$eQ%e$rQ%o$}S%u%W%wQ%|%dR&_%x!mqOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%x!mSOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR!ZST!XS#eQ#c!WR$_#QR#g![!muOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%x!mwOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR#TwT#Rw$`V!SQ#_#r!T!aT!Q!t!v#P#X#Y#i#n#o#p#q$l$p%R%Y%]%^%a%c%e%o%u%|&_!V!bT!Q!t!v#P#X#Y#i#j#n#o#p#q$l$p%R%Y%]%^%a%c%e%o%u%|&_!X!cT!Q!t!v#P#X#Y#i#j#k#n#o#p#q$l$p%R%Y%]%^%a%c%e%o%u%|&_!mWOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR&W%mT&[%n&u!]!eT!Q!n!t!v#P#X#Y#i#j#k#l#n#o#p#q$l$p%R%Y%]%^%a%c%e%o%u%|&_!]!gT!Q!n!t!v#P#X#Y#i#j#k#l#n#o#p#q$l$p%R%Y%]%^%a%c%e%o%u%|&_!m[OPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xQ!q[R!saR#y!pQ!wlR#z!p!mdOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%x!m|OPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR%{%c!miOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR#}!t!mlOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR$R!w!mmOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR$U!x!moOPQWilu|}!]!a!b!c!g!h!i!j!k!p#Z#]#_#c#g#r$O$Y$^$_$b$e$r$}%W%d%w%xR#Oo",
+    nodeNames: "⚠ LineComment BlockComment Expression ForExpression for InExpressions InExpression Name Identifier Identifier ArithOp ArithOp ArithOp ArithOp ArithOp in IterationContext return IfExpression if then else QuantifiedExpression some every InExpressions InExpression satisfies Disjunction or Conjunction and Comparison CompareOp CompareOp between PositiveUnaryTest ( PositiveUnaryTests ) ArithmeticExpression InstanceOfExpression instance of Type QualifiedName VariableName SpecialType days time duration years months date > ListType list < ContextType context ContextEntryTypes ContextEntryType FunctionType function ArgumentTypes ArgumentType PathExpression ] FilterExpression [ FunctionInvocation SpecialFunctionName NamedParameters NamedParameter ParameterName PositionalParameters null NumericLiteral StringLiteral BooleanLiteral DateTimeLiteral DateTimeConstructor AtLiteral ? SimplePositiveUnaryTest Interval ParenthesizedExpression List FunctionDefinition FormalParameters FormalParameter external FunctionBody } { Context ContextEntry Key Name Identifier Expressions UnaryTests Wildcard not",
+    maxTerm: 176,
     context: variableTracker,
     nodeProps: [
-      ["group", -17,4,18,22,28,30,32,40,42,67,69,71,84,85,87,88,89,96,"Expression",47,"Expression Expression",-5,77,78,79,80,81,"Expression Literal"],
-      ["closedBy", 37,")",70,"]",95,"}"],
-      ["openedBy", 39,"(",68,"[",94,"{"]
+      ["closedBy", 38,")",70,"]",95,"}"],
+      ["openedBy", 40,"(",68,"[",94,"{"],
+      ["group", -5,77,78,79,80,81,"Literal"]
     ],
     propSources: [feelHighlighting],
     skippedNodes: [0,1,2],
     repeatNodeCount: 14,
-    tokenData: "+l~RuXY#fYZ$ZZ[#f]^$Zpq#fqr$`rs$kwx&cxy&hyz&mz{&r{|'P|}'U}!O'Z!O!P'h!P!Q(Q!Q![){![!]*^!]!^*c!^!_*h!_!`$f!`!a*w!b!c+R!}#O+W#P#Q+]#Q#R&z#o#p+b#q#r+g$f$g#f#BY#BZ#f$IS$I_#f$I|$I}$Z$I}$JO$Z$JT$JU#f$KV$KW#f&FU&FV#f?HT?HU#f~#kY#p~XY#fZ[#fpq#f$f$g#f#BY#BZ#f$IS$I_#f$JT$JU#f$KV$KW#f&FU&FV#f?HT?HU#f~$`O#q~~$cP!_!`$f~$kOq~~$pW$g~OY$kZr$krs%Ys#O$k#O#P%_#P;'S$k;'S;=`&]<%lO$k~%_O$g~~%bRO;'S$k;'S;=`%k;=`O$k~%pX$g~OY$kZr$krs%Ys#O$k#O#P%_#P;'S$k;'S;=`&];=`<%l$k<%lO$k~&`P;=`<%l$k~&hO#y~~&mOu~~&rOw~~&wP^~z{&z~'POy~~'UO[~~'ZO#|~R'`PZP!`!a'cQ'hO$[Q~'mQ#x~!O!P's!Q!['x~'xO#{~~'}P$f~!Q!['x~(VQ]~z{(]!P!Q)d~(`TOz(]z{(o{;'S(];'S;=`)^<%lO(]~(rVOz(]z{(o{!P(]!P!Q)X!Q;'S(];'S;=`)^<%lO(]~)^OQ~~)aP;=`<%l(]~)iSP~OY)dZ;'S)d;'S;=`)u<%lO)d~)xP;=`<%l)d~*QQ$f~!O!P*W!Q![){~*ZP!Q!['x~*cO$Y~~*hO$u~R*oP![QrP!_!`*rP*wOrPR+OP!XQrP!_!`*r~+WO$i~~+]O!h~~+bO!f~~+gO#R~~+lO#Q~",
+    tokenData: "+l~RuXY#fYZ$ZZ[#f]^$Zpq#fqr$`rs$kwx&cxy&hyz&mz{&r{|'P|}'U}!O'Z!O!P'h!P!Q(Q!Q![){![!]*^!]!^*c!^!_*h!_!`$f!`!a*w!b!c+R!}#O+W#P#Q+]#Q#R&z#o#p+b#q#r+g$f$g#f#BY#BZ#f$IS$I_#f$I|$I}$Z$I}$JO$Z$JT$JU#f$KV$KW#f&FU&FV#f?HT?HU#f~#kY#q~XY#fZ[#fpq#f$f$g#f#BY#BZ#f$IS$I_#f$JT$JU#f$KV$KW#f&FU&FV#f?HT?HU#f~$`O#r~~$cP!_!`$f~$kOr~~$pW$h~OY$kZr$krs%Ys#O$k#O#P%_#P;'S$k;'S;=`&]<%lO$k~%_O$h~~%bRO;'S$k;'S;=`%k;=`O$k~%pX$h~OY$kZr$krs%Ys#O$k#O#P%_#P;'S$k;'S;=`&];=`<%l$k<%lO$k~&`P;=`<%l$k~&hO#z~~&mOv~~&rOx~~&wP^~z{&z~'PO_~~'UO[~~'ZO#}~R'`PZP!`!a'cQ'hO$]Q~'mQ#y~!O!P's!Q!['x~'xO#|~~'}P$g~!Q!['x~(VQ]~z{(]!P!Q)d~(`TOz(]z{(o{;'S(];'S;=`)^<%lO(]~(rVOz(]z{(o{!P(]!P!Q)X!Q;'S(];'S;=`)^<%lO(]~)^OQ~~)aP;=`<%l(]~)iSP~OY)dZ;'S)d;'S;=`)u<%lO)d~)xP;=`<%l)d~*QQ$g~!O!P*W!Q![){~*ZP!Q!['x~*cO$Z~~*hO$v~R*oP![QsP!_!`*rP*wOsPR+OP!XQsP!_!`*r~+WO$j~~+]O!h~~+bO!f~~+gO#R~~+lO#Q~",
     tokenizers: [propertyIdentifiers, identifiers, insertSemicolon, 0, 1],
-    topRules: {"Expressions":[0,3],"UnaryTests":[1,101]},
-    dynamicPrecedences: {"30":-1,"71":-1,"73":-1,"126":-1},
-    specialized: [{term: 120, get: value => spec_identifier[value] || -1}],
-    tokenPrec: 0
+    topRules: {"Expression":[0,3],"Expressions":[1,101],"UnaryTests":[2,102]},
+    dynamicPrecedences: {"31":-1,"71":-1,"73":-1},
+    specialized: [{term: 121, get: value => spec_identifier[value] || -1}],
+    tokenPrec: 2857
   });
 
   function isContext(e) {
@@ -15731,10 +14315,10 @@
       // 10.3.4.5 Numeric functions
       'decimal': fn(function (n, scale) {
           if (!scale) {
-              return round$1(n);
+              return round(n);
           }
           const offset = Math.pow(10, scale);
-          return round$1(n * offset) / (offset);
+          return round(n * offset) / (offset);
       }, ['number', 'number']),
       'floor': fn(function (n) {
           return Math.floor(n);
@@ -16059,7 +14643,7 @@
       // cf. https://mathiasbynens.be/notes/javascript-unicode
       return str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '_').length;
   }
-  function round$1(n) {
+  function round(n) {
       const integral = Math.trunc(n);
       if (n - integral > .5) {
           return integral + 1;
@@ -16101,9 +14685,9 @@
       return o.isValid ? o : null;
   }
 
-  function parseExpressions(expression, context = {}) {
+  function parseExpression(expression, context = {}) {
       return parser$1.configure({
-          top: 'Expressions',
+          top: 'Expression',
           contextTracker: trackVariables(context)
       }).parse(expression);
   }
@@ -16147,7 +14731,7 @@
           return root.args[root.args.length - 1];
       }
       evaluate(expression, context = {}) {
-          const parseTree = parseExpressions(expression, context);
+          const parseTree = parseExpression(expression, context);
           const root = this._buildExecutionTree(parseTree, expression);
           return {
               parseTree,
@@ -16164,16 +14748,17 @@
       }
   }
   const interpreter = new Interpreter();
+  function unaryTest(expression, context = {}) {
+      const value = context['?'] || null;
+      const { root } = interpreter.unaryTest(expression, context);
+      // root = fn(ctx) => test(val)
+      const test = root(context);
+      return test(value);
+  }
   function evaluate$1(expression, context = {}) {
       const { root } = interpreter.evaluate(expression, context);
-      // root = [ fn(ctx) ]
-      const results = root(context);
-      if (results.length === 1) {
-          return results[0];
-      }
-      else {
-          return results;
-      }
+      // root = Expression :: fn(ctx)
+      return root(context);
   }
   function evalNode(node, input, args) {
       switch (node.name) {
@@ -16368,8 +14953,10 @@
               // FunctionInvocation
               else {
                   const wrappedFn = wrapFunction(args[0](context));
+                  // TODO(nikku): indicate as error
+                  // throw new Error(`Failed to evaluate ${input}: Target is not a function`);
                   if (!wrappedFn) {
-                      throw new Error(`Failed to evaluate ${input}: Target is not a function`);
+                      return null;
                   }
                   const contextOrArgs = args[2](context);
                   return wrappedFn.invoke(contextOrArgs);
@@ -16377,15 +14964,19 @@
           };
           case 'AtLiteral': return (context) => {
               const wrappedFn = wrapFunction(getBuiltin('@'));
+              // TODO(nikku): indicate as error
+              // throw new Error(`Failed to evaluate ${input}: Target is not a function`);
               if (!wrappedFn) {
-                  throw new Error(`Failed to evaluate ${input}: Target is not a function`);
+                  return null;
               }
               return wrappedFn.invoke([args[0](context)]);
           };
           case 'FunctionInvocation': return (context) => {
               const wrappedFn = wrapFunction(args[0](context));
+              // TODO(nikku): indicate error at node
+              // throw new Error(`Failed to evaluate ${input}: Target is not a function`);
               if (!wrappedFn) {
-                  throw new Error(`Failed to evaluate ${input}: Target is not a function`);
+                  return null;
               }
               const contextOrArgs = args[2](context);
               return wrappedFn.invoke(contextOrArgs);
@@ -16470,7 +15061,7 @@
               const pathTarget = coerceSingleton(args[0](context));
               const pathProp = args[1];
               if (isArray$1(pathTarget)) {
-                  return pathTarget.map(pathProp).filter(e => e !== null);
+                  return pathTarget.map(pathProp);
               }
               else {
                   return pathProp(pathTarget);
@@ -16547,6 +15138,9 @@
           case 'PositiveUnaryTests':
           case 'Expressions': return (context) => {
               return args.map(a => a(context));
+          };
+          case 'Expression': return (context) => {
+              return args[0](context);
           };
           case 'UnaryTests': return (context) => {
               return (value = null) => {
@@ -16812,6 +15406,9 @@
       if (fn instanceof Range$1) {
           return new FunctionWrapper((value) => fn.includes(value), ['value']);
       }
+      if (typeof fn !== 'function') {
+          return null;
+      }
       return new FunctionWrapper(fn, parameterNames || parseParameterNames(fn));
   }
   function coerceSingleton(values) {
@@ -16858,10 +15455,6 @@
   The data structure for documents. @nonabstract
   */
   let Text$1 = class Text {
-      /**
-      @internal
-      */
-      constructor() { }
       /**
       Get the line description around the given position.
       */
@@ -16956,7 +15549,8 @@
           return new LineCursor(inner);
       }
       /**
-      @internal
+      Return the document as a string, using newline characters to
+      separate lines.
       */
       toString() { return this.sliceString(0); }
       /**
@@ -16968,6 +15562,10 @@
           this.flatten(lines);
           return lines;
       }
+      /**
+      @internal
+      */
+      constructor() { }
       /**
       Create a `Text` instance for the given array of lines.
       */
@@ -18356,10 +16954,11 @@
       /**
       Create a selection range.
       */
-      static range(anchor, head, goalColumn) {
-          let goal = (goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* RangeFlag.NoGoalColumn */) << 5 /* RangeFlag.GoalColumnOffset */;
-          return head < anchor ? SelectionRange.create(head, anchor, 16 /* RangeFlag.Inverted */ | goal | 8 /* RangeFlag.AssocAfter */)
-              : SelectionRange.create(anchor, head, goal | (head > anchor ? 4 /* RangeFlag.AssocBefore */ : 0));
+      static range(anchor, head, goalColumn, bidiLevel) {
+          let flags = ((goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* RangeFlag.NoGoalColumn */) << 5 /* RangeFlag.GoalColumnOffset */) |
+              (bidiLevel == null ? 3 : Math.min(2, bidiLevel));
+          return head < anchor ? SelectionRange.create(head, anchor, 16 /* RangeFlag.Inverted */ | 8 /* RangeFlag.AssocAfter */ | flags)
+              : SelectionRange.create(anchor, head, (head > anchor ? 4 /* RangeFlag.AssocBefore */ : 0) | flags);
       }
       /**
       @internal
@@ -19000,7 +17599,10 @@
       is(type) { return this.type == type; }
       /**
       Define a new effect type. The type parameter indicates the type
-      of values that his effect holds.
+      of values that his effect holds. It should be a type that
+      doesn't include `undefined`, since that is used in
+      [mapping](https://codemirror.net/6/docs/ref/#state.StateEffect.map) to indicate that an effect is
+      removed.
       */
       static define(spec = {}) {
           return new StateEffectType(spec.map || (v => v));
@@ -20143,8 +18745,7 @@
       static compare(oldSets, newSets, 
       /**
       This indicates how the underlying data changed between these
-      ranges, and is needed to synchronize the iteration. `from` and
-      `to` are coordinates in the _new_ space, after these changes.
+      ranges, and is needed to synchronize the iteration.
       */
       textDiff, comparator, 
       /**
@@ -20255,6 +18856,18 @@
   an array of [`Range`](https://codemirror.net/6/docs/ref/#state.Range) objects.
   */
   class RangeSetBuilder {
+      finishChunk(newArrays) {
+          this.chunks.push(new Chunk(this.from, this.to, this.value, this.maxPoint));
+          this.chunkPos.push(this.chunkStart);
+          this.chunkStart = -1;
+          this.setMaxPoint = Math.max(this.setMaxPoint, this.maxPoint);
+          this.maxPoint = -1;
+          if (newArrays) {
+              this.from = [];
+              this.to = [];
+              this.value = [];
+          }
+      }
       /**
       Create an empty builder.
       */
@@ -20271,18 +18884,6 @@
           this.maxPoint = -1;
           this.setMaxPoint = -1;
           this.nextLayer = null;
-      }
-      finishChunk(newArrays) {
-          this.chunks.push(new Chunk(this.from, this.to, this.value, this.maxPoint));
-          this.chunkPos.push(this.chunkStart);
-          this.chunkStart = -1;
-          this.setMaxPoint = Math.max(this.setMaxPoint, this.maxPoint);
-          this.maxPoint = -1;
-          if (newArrays) {
-              this.from = [];
-              this.to = [];
-              this.value = [];
-          }
       }
       /**
       Add a range. Ranges should be added in sorted (by `from` and
@@ -20643,7 +19244,7 @@
           let end = diff < 0 ? a.to + dPos : b.to, clipEnd = Math.min(end, endB);
           if (a.point || b.point) {
               if (!(a.point && b.point && (a.point == b.point || a.point.eq(b.point)) &&
-                  sameValues(a.activeForPoint(a.to + dPos), b.activeForPoint(b.to))))
+                  sameValues(a.activeForPoint(a.to), b.activeForPoint(b.to))))
                   comparator.comparePoint(pos, clipEnd, a.point, b.point);
           }
           else {
@@ -21049,7 +19650,6 @@
   function maxOffset(node) {
       return node.nodeType == 3 ? node.nodeValue.length : node.childNodes.length;
   }
-  const Rect0 = { left: 0, right: 0, top: 0, bottom: 0 };
   function flattenRect(rect, left) {
       let x = left ? rect.left : rect.right;
       return { left: x, right: x, top: rect.top, bottom: rect.bottom };
@@ -21150,6 +19750,26 @@
           }
       }
   }
+  function scrollableParent(dom) {
+      let doc = dom.ownerDocument;
+      for (let cur = dom.parentNode; cur;) {
+          if (cur == doc.body) {
+              break;
+          }
+          else if (cur.nodeType == 1) {
+              if (cur.scrollHeight > cur.clientHeight || cur.scrollWidth > cur.clientWidth)
+                  return cur;
+              cur = cur.assignedSlot || cur.parentNode;
+          }
+          else if (cur.nodeType == 11) {
+              cur = cur.host;
+          }
+          else {
+              break;
+          }
+      }
+      return null;
+  }
   class DOMSelectionState {
       constructor() {
           this.anchorNode = null;
@@ -21162,7 +19782,9 @@
               this.focusNode == domSel.focusNode && this.focusOffset == domSel.focusOffset;
       }
       setRange(range) {
-          this.set(range.anchorNode, range.anchorOffset, range.focusNode, range.focusOffset);
+          let { anchorNode, focusNode } = range;
+          // Clip offsets to node size to avoid crashes when Safari reports bogus offsets (#1152)
+          this.set(anchorNode, Math.min(range.anchorOffset, anchorNode ? maxOffset(anchorNode) : 0), focusNode, Math.min(range.focusOffset, focusNode ? maxOffset(focusNode) : 0));
       }
       set(anchorNode, anchorOffset, focusNode, focusOffset) {
           this.anchorNode = anchorNode;
@@ -21235,6 +19857,8 @@
       let node = selection.focusNode, offset = selection.focusOffset;
       if (!node || selection.anchorNode != node || selection.anchorOffset != offset)
           return false;
+      // Safari can report bogus offsets (#1152)
+      offset = Math.min(offset, maxOffset(node));
       for (;;) {
           if (offset) {
               if (node.nodeType != 1)
@@ -21271,12 +19895,7 @@
       constructor() {
           this.parent = null;
           this.dom = null;
-          this.dirty = 2 /* Dirty.Node */;
-      }
-      get editorView() {
-          if (!this.parent)
-              throw new Error("Accessing view in orphan content view");
-          return this.parent.editorView;
+          this.dirty = 2 /* Node */;
       }
       get overrideDOMText() { return null; }
       get posAtStart() {
@@ -21297,12 +19916,8 @@
       posAfter(view) {
           return this.posBefore(view) + view.length;
       }
-      // Will return a rectangle directly before (when side < 0), after
-      // (side > 0) or directly on (when the browser supports it) the
-      // given position.
-      coordsAt(_pos, _side) { return null; }
-      sync(track) {
-          if (this.dirty & 2 /* Dirty.Node */) {
+      sync(view, track) {
+          if (this.dirty & 2 /* Node */) {
               let parent = this.dom;
               let prev = null, next;
               for (let child of this.children) {
@@ -21312,8 +19927,8 @@
                           if (!contentView || !contentView.parent && contentView.canReuseDOM(child))
                               child.reuseDOM(next);
                       }
-                      child.sync(track);
-                      child.dirty = 0 /* Dirty.Not */;
+                      child.sync(view, track);
+                      child.dirty = 0 /* Not */;
                   }
                   next = prev ? prev.nextSibling : parent.firstChild;
                   if (track && !track.written && track.node == parent && next != child.dom)
@@ -21333,11 +19948,11 @@
               while (next)
                   next = rm$1(next);
           }
-          else if (this.dirty & 1 /* Dirty.Child */) {
+          else if (this.dirty & 1 /* Child */) {
               for (let child of this.children)
                   if (child.dirty) {
-                      child.sync(track);
-                      child.dirty = 0 /* Dirty.Not */;
+                      child.sync(view, track);
+                      child.dirty = 0 /* Not */;
                   }
           }
       }
@@ -21402,16 +20017,16 @@
               endDOM: toI < this.children.length && toI >= 0 ? this.children[toI].dom : null };
       }
       markDirty(andParent = false) {
-          this.dirty |= 2 /* Dirty.Node */;
+          this.dirty |= 2 /* Node */;
           this.markParentsDirty(andParent);
       }
       markParentsDirty(childList) {
           for (let parent = this.parent; parent; parent = parent.parent) {
               if (childList)
-                  parent.dirty |= 2 /* Dirty.Node */;
-              if (parent.dirty & 1 /* Dirty.Child */)
+                  parent.dirty |= 2 /* Node */;
+              if (parent.dirty & 1 /* Child */)
                   return;
-              parent.dirty |= 1 /* Dirty.Child */;
+              parent.dirty |= 1 /* Child */;
               childList = false;
           }
       }
@@ -21463,6 +20078,8 @@
       }
       static get(node) { return node.cmView; }
       get isEditable() { return true; }
+      get isWidget() { return false; }
+      get isHidden() { return false; }
       merge(from, to, source, hasStart, openStart, openEnd) {
           return false;
       }
@@ -21630,7 +20247,7 @@
       createDOM(textDOM) {
           this.setDOM(textDOM || document.createTextNode(this.text));
       }
-      sync(track) {
+      sync(view, track) {
           if (!this.dom)
               this.createDOM();
           if (this.dom.nodeValue != this.text) {
@@ -21688,15 +20305,15 @@
       reuseDOM(node) {
           if (node.nodeName == this.mark.tagName.toUpperCase()) {
               this.setDOM(node);
-              this.dirty |= 4 /* Dirty.Attrs */ | 2 /* Dirty.Node */;
+              this.dirty |= 4 /* Attrs */ | 2 /* Node */;
           }
       }
-      sync(track) {
+      sync(view, track) {
           if (!this.dom)
               this.setDOM(this.setAttrs(document.createElement(this.mark.tagName)));
-          else if (this.dirty & 4 /* Dirty.Attrs */)
+          else if (this.dirty & 4 /* Attrs */)
               this.setAttrs(this.dom);
-          super.sync(track);
+          super.sync(view, track);
       }
       merge(from, to, source, _hasStart, openStart, openEnd) {
           if (source && (!(source instanceof MarkView && source.mark.eq(this.mark)) ||
@@ -21757,7 +20374,7 @@
       }
       let rects = textRange(text, from, to).getClientRects();
       if (!rects.length)
-          return Rect0;
+          return null;
       let rect = rects[(flatten ? flatten < 0 : side >= 0) ? 0 : rects.length - 1];
       if (browser.safari && !flatten && rect.width == 0)
           rect = Array.prototype.find.call(rects, r => r.width) || rect;
@@ -21780,12 +20397,12 @@
           this.length -= from;
           return result;
       }
-      sync() {
-          if (!this.dom || !this.widget.updateDOM(this.dom)) {
+      sync(view) {
+          if (!this.dom || !this.widget.updateDOM(this.dom, view)) {
               if (this.dom && this.prevWidget)
                   this.prevWidget.destroy(this.dom);
               this.prevWidget = null;
-              this.setDOM(this.widget.toDOM(this.editorView));
+              this.setDOM(this.widget.toDOM(view));
               this.dom.contentEditable = "false";
           }
       }
@@ -21798,15 +20415,15 @@
           return true;
       }
       become(other) {
-          if (other.length == this.length && other instanceof WidgetView && other.side == this.side) {
-              if (this.widget.constructor == other.widget.constructor) {
-                  if (!this.widget.eq(other.widget))
-                      this.markDirty(true);
-                  if (this.dom && !this.prevWidget)
-                      this.prevWidget = this.widget;
-                  this.widget = other.widget;
-                  return true;
-              }
+          if (other instanceof WidgetView && other.side == this.side &&
+              this.widget.constructor == other.widget.constructor) {
+              if (!this.widget.compare(other.widget))
+                  this.markDirty(true);
+              if (this.dom && !this.prevWidget)
+                  this.prevWidget = this.widget;
+              this.widget = other.widget;
+              this.length = other.length;
+              return true;
           }
           return false;
       }
@@ -21818,25 +20435,33 @@
           let top = this;
           while (top.parent)
               top = top.parent;
-          let view = top.editorView, text = view && view.state.doc, start = this.posAtStart;
+          let { view } = top, text = view && view.state.doc, start = this.posAtStart;
           return text ? text.slice(start, start + this.length) : Text$1.empty;
       }
       domAtPos(pos) {
-          return pos == 0 ? DOMPos.before(this.dom) : DOMPos.after(this.dom, pos == this.length);
+          return (this.length ? pos == 0 : this.side > 0)
+              ? DOMPos.before(this.dom)
+              : DOMPos.after(this.dom, pos == this.length);
       }
       domBoundsAround() { return null; }
       coordsAt(pos, side) {
+          let custom = this.widget.coordsAt(this.dom, pos, side);
+          if (custom)
+              return custom;
           let rects = this.dom.getClientRects(), rect = null;
           if (!rects.length)
-              return Rect0;
-          for (let i = pos > 0 ? rects.length - 1 : 0;; i += (pos > 0 ? -1 : 1)) {
+              return null;
+          let fromBack = this.side ? this.side < 0 : pos > 0;
+          for (let i = fromBack ? rects.length - 1 : 0;; i += (fromBack ? -1 : 1)) {
               rect = rects[i];
               if (pos > 0 ? i == 0 : i == rects.length - 1 || rect.top < rect.bottom)
                   break;
           }
-          return this.length ? rect : flattenRect(rect, this.side > 0);
+          return flattenRect(rect, !fromBack);
       }
       get isEditable() { return false; }
+      get isWidget() { return true; }
+      get isHidden() { return this.widget.isHidden; }
       destroy() {
           super.destroy();
           if (this.dom)
@@ -21848,14 +20473,14 @@
           let { topView, text } = this.widget;
           if (!topView)
               return new DOMPos(text, Math.min(pos, text.nodeValue.length));
-          return scanCompositionTree(pos, 0, topView, text, (v, p) => v.domAtPos(p), p => new DOMPos(text, Math.min(p, text.nodeValue.length)));
+          return scanCompositionTree(pos, 0, topView, text, this.length - topView.length, (v, p) => v.domAtPos(p), (text, p) => new DOMPos(text, Math.min(p, text.nodeValue.length)));
       }
       sync() { this.setDOM(this.widget.toDOM()); }
       localPosFromDOM(node, offset) {
           let { topView, text } = this.widget;
           if (!topView)
               return Math.min(offset, this.length);
-          return posFromDOMInCompositionTree(node, offset, topView, text);
+          return posFromDOMInCompositionTree(node, offset, topView, text, this.length - topView.length);
       }
       ignoreMutation() { return false; }
       get overrideDOMText() { return null; }
@@ -21863,7 +20488,7 @@
           let { topView, text } = this.widget;
           if (!topView)
               return textCoords(text, pos, side);
-          return scanCompositionTree(pos, side, topView, text, (v, pos, side) => v.coordsAt(pos, side), (pos, side) => textCoords(text, pos, side));
+          return scanCompositionTree(pos, side, topView, text, this.length - topView.length, (v, pos, side) => v.coordsAt(pos, side), (text, pos, side) => textCoords(text, pos, side));
       }
       destroy() {
           var _a;
@@ -21876,40 +20501,95 @@
   // Uses the old structure of a chunk of content view frozen for
   // composition to try and find a reasonable DOM location for the given
   // offset.
-  function scanCompositionTree(pos, side, view, text, enterView, fromText) {
+  function scanCompositionTree(pos, side, view, text, dLen, enterView, fromText) {
       if (view instanceof MarkView) {
           for (let child = view.dom.firstChild; child; child = child.nextSibling) {
               let desc = ContentView.get(child);
-              if (!desc)
-                  return fromText(pos, side);
-              let hasComp = contains(child, text);
-              let len = desc.length + (hasComp ? text.nodeValue.length : 0);
-              if (pos < len || pos == len && desc.getSide() <= 0)
-                  return hasComp ? scanCompositionTree(pos, side, desc, text, enterView, fromText) : enterView(desc, pos, side);
-              pos -= len;
+              if (!desc) {
+                  let inner = scanCompositionNode(pos, side, child, fromText);
+                  if (typeof inner != "number")
+                      return inner;
+                  pos = inner;
+              }
+              else {
+                  let hasComp = contains(child, text);
+                  let len = desc.length + (hasComp ? dLen : 0);
+                  if (pos < len || pos == len && desc.getSide() <= 0)
+                      return hasComp ? scanCompositionTree(pos, side, desc, text, dLen, enterView, fromText) : enterView(desc, pos, side);
+                  pos -= len;
+              }
           }
           return enterView(view, view.length, -1);
       }
       else if (view.dom == text) {
-          return fromText(pos, side);
+          return fromText(text, pos, side);
       }
       else {
           return enterView(view, pos, side);
       }
   }
-  function posFromDOMInCompositionTree(node, offset, view, text) {
+  function scanCompositionNode(pos, side, node, fromText) {
+      if (node.nodeType == 3) {
+          let len = node.nodeValue.length;
+          if (pos <= len)
+              return fromText(node, pos, side);
+          pos -= len;
+      }
+      else if (node.nodeType == 1 && node.contentEditable != "false") {
+          for (let child = node.firstChild; child; child = child.nextSibling) {
+              let inner = scanCompositionNode(pos, side, child, fromText);
+              if (typeof inner != "number")
+                  return inner;
+              pos = inner;
+          }
+      }
+      return pos;
+  }
+  function posFromDOMInCompositionTree(node, offset, view, text, dLen) {
       if (view instanceof MarkView) {
-          for (let child of view.children) {
-              let pos = 0, hasComp = contains(child.dom, text);
-              if (contains(child.dom, node))
-                  return pos + (hasComp ? posFromDOMInCompositionTree(node, offset, child, text) : child.localPosFromDOM(node, offset));
-              pos += hasComp ? text.nodeValue.length : child.length;
+          let pos = 0;
+          for (let child = view.dom.firstChild; child; child = child.nextSibling) {
+              let childView = ContentView.get(child);
+              if (childView) {
+                  let hasComp = contains(child, text);
+                  if (contains(child, node))
+                      return pos + (hasComp ? posFromDOMInCompositionTree(node, offset, childView, text, dLen)
+                          : childView.localPosFromDOM(node, offset));
+                  pos += childView.length + (hasComp ? dLen : 0);
+              }
+              else {
+                  let inner = posFromDOMInOpaqueNode(node, offset, child);
+                  if (inner.result != null)
+                      return pos + inner.result;
+                  pos += inner.size;
+              }
           }
       }
       else if (view.dom == text) {
           return Math.min(offset, text.nodeValue.length);
       }
       return view.localPosFromDOM(node, offset);
+  }
+  function posFromDOMInOpaqueNode(node, offset, target) {
+      if (target.nodeType == 3) {
+          return node == target ? { result: offset } : { size: target.nodeValue.length };
+      }
+      else if (target.nodeType == 1 && target.contentEditable != "false") {
+          let pos = 0;
+          for (let child = target.firstChild, i = 0;; child = child.nextSibling, i++) {
+              if (node == target && i == offset)
+                  return { result: pos };
+              if (!child)
+                  return { size: pos };
+              let inner = posFromDOMInOpaqueNode(node, offset, child);
+              if (inner.result != null)
+                  return { result: offset + inner.result };
+              pos += inner.size;
+          }
+      }
+      else {
+          return target.contains(node) ? { result: 0 } : { size: 0 };
+      }
   }
   // These are drawn around uneditable widgets to avoid a number of
   // browser bugs that show up when the cursor is directly next to
@@ -21934,47 +20614,18 @@
           }
       }
       getSide() { return this.side; }
-      domAtPos(pos) { return DOMPos.before(this.dom); }
+      domAtPos(pos) { return this.side > 0 ? DOMPos.before(this.dom) : DOMPos.after(this.dom); }
       localPosFromDOM() { return 0; }
       domBoundsAround() { return null; }
       coordsAt(pos) {
-          let imgRect = this.dom.getBoundingClientRect();
-          // Since the <img> height doesn't correspond to text height, try
-          // to borrow the height from some sibling node.
-          let siblingRect = inlineSiblingRect(this, this.side > 0 ? -1 : 1);
-          return siblingRect && siblingRect.top < imgRect.bottom && siblingRect.bottom > imgRect.top
-              ? { left: imgRect.left, right: imgRect.right, top: siblingRect.top, bottom: siblingRect.bottom } : imgRect;
+          return this.dom.getBoundingClientRect();
       }
       get overrideDOMText() {
           return Text$1.empty;
       }
+      get isHidden() { return true; }
   }
   TextView.prototype.children = WidgetView.prototype.children = WidgetBufferView.prototype.children = noChildren;
-  function inlineSiblingRect(view, side) {
-      let parent = view.parent, index = parent ? parent.children.indexOf(view) : -1;
-      while (parent && index >= 0) {
-          if (side < 0 ? index > 0 : index < parent.children.length) {
-              let next = parent.children[index + side];
-              if (next instanceof TextView) {
-                  let nextRect = next.coordsAt(side < 0 ? next.length : 0, side);
-                  if (nextRect)
-                      return nextRect;
-              }
-              index += side;
-          }
-          else if (parent instanceof MarkView && parent.parent) {
-              index = parent.parent.children.indexOf(parent) + (side < 0 ? 0 : 1);
-              parent = parent.parent;
-          }
-          else {
-              let last = parent.dom.lastChild;
-              if (last && last.nodeName == "BR")
-                  return last.getClientRects()[0];
-              break;
-          }
-      }
-      return undefined;
-  }
   function inlineDOMAtPos(parent, pos) {
       let dom = parent.dom, { children } = parent, i = 0;
       for (let off = 0; i < children.length; i++) {
@@ -22021,11 +20672,12 @@
                   if (child.children.length) {
                       scan(child, pos - off);
                   }
-                  else if (!after && (end > pos || off == end && child.getSide() > 0)) {
+                  else if ((!after || after.isHidden && side > 0) &&
+                      (end > pos || off == end && child.getSide() > 0)) {
                       after = child;
                       afterPos = pos - off;
                   }
-                  else if (off < pos || (off == end && child.getSide() < 0)) {
+                  else if (off < pos || (off == end && child.getSide() < 0) && !child.isHidden) {
                       before = child;
                       beforePos = pos - off;
                   }
@@ -22110,7 +20762,7 @@
       couldn't (in which case the widget will be redrawn). The default
       implementation just returns false.
       */
-      updateDOM(dom) { return false; }
+      updateDOM(dom, view) { return false; }
       /**
       @internal
       */
@@ -22125,15 +20777,34 @@
       */
       get estimatedHeight() { return -1; }
       /**
+      For inline widgets that are displayed inline (as opposed to
+      `inline-block`) and introduce line breaks (through `<br>` tags
+      or textual newlines), this must indicate the amount of line
+      breaks they introduce. Defaults to 0.
+      */
+      get lineBreaks() { return 0; }
+      /**
       Can be used to configure which kinds of events inside the widget
       should be ignored by the editor. The default is to ignore all
       events.
       */
       ignoreEvent(event) { return true; }
       /**
+      Override the way screen coordinates for positions at/in the
+      widget are found. `pos` will be the offset into the widget, and
+      `side` the side of the position that is being queried—less than
+      zero for before, greater than zero for after, and zero for
+      directly at that position.
+      */
+      coordsAt(dom, pos, side) { return null; }
+      /**
       @internal
       */
       get customView() { return null; }
+      /**
+      @internal
+      */
+      get isHidden() { return false; }
       /**
       This is called when the an instance of the widget is removed
       from the editor view.
@@ -22214,8 +20885,10 @@
       given position.
       */
       static widget(spec) {
-          let side = spec.side || 0, block = !!spec.block;
-          side += block ? (side > 0 ? 300000000 /* Side.BlockAfter */ : -400000000 /* Side.BlockBefore */) : (side > 0 ? 100000000 /* Side.InlineAfter */ : -100000000 /* Side.InlineBefore */);
+          let side = Math.max(-10000, Math.min(10000, spec.side || 0)), block = !!spec.block;
+          side += (block && !spec.inlineOrder)
+              ? (side > 0 ? 300000000 /* BlockAfter */ : -400000000 /* BlockBefore */)
+              : (side > 0 ? 100000000 /* InlineAfter */ : -100000000 /* InlineBefore */);
           return new PointDecoration(spec, side, side, block, spec.widget || null, false);
       }
       /**
@@ -22225,13 +20898,13 @@
       static replace(spec) {
           let block = !!spec.block, startSide, endSide;
           if (spec.isBlockGap) {
-              startSide = -500000000 /* Side.GapStart */;
-              endSide = 400000000 /* Side.GapEnd */;
+              startSide = -500000000 /* GapStart */;
+              endSide = 400000000 /* GapEnd */;
           }
           else {
               let { start, end } = getInclusive(spec, block);
-              startSide = (start ? (block ? -300000000 /* Side.BlockIncStart */ : -1 /* Side.InlineIncStart */) : 500000000 /* Side.NonIncStart */) - 1;
-              endSide = (end ? (block ? 200000000 /* Side.BlockIncEnd */ : 1 /* Side.InlineIncEnd */) : -600000000 /* Side.NonIncEnd */) + 1;
+              startSide = (start ? (block ? -300000000 /* BlockIncStart */ : -1 /* InlineIncStart */) : 500000000 /* NonIncStart */) - 1;
+              endSide = (end ? (block ? 200000000 /* BlockIncEnd */ : 1 /* InlineIncEnd */) : -600000000 /* NonIncEnd */) + 1;
           }
           return new PointDecoration(spec, startSide, endSide, block, spec.widget || null, true);
       }
@@ -22262,7 +20935,7 @@
   class MarkDecoration extends Decoration {
       constructor(spec) {
           let { start, end } = getInclusive(spec);
-          super(start ? -1 /* Side.InlineIncStart */ : 500000000 /* Side.NonIncStart */, end ? 1 /* Side.InlineIncEnd */ : -600000000 /* Side.NonIncEnd */, null, spec);
+          super(start ? -1 /* InlineIncStart */ : 500000000 /* NonIncStart */, end ? 1 /* InlineIncEnd */ : -600000000 /* NonIncEnd */, null, spec);
           this.tagName = spec.tagName || "span";
           this.class = spec.class || "";
           this.attrs = spec.attributes || null;
@@ -22283,10 +20956,12 @@
   MarkDecoration.prototype.point = false;
   class LineDecoration extends Decoration {
       constructor(spec) {
-          super(-200000000 /* Side.Line */, -200000000 /* Side.Line */, null, spec);
+          super(-200000000 /* Line */, -200000000 /* Line */, null, spec);
       }
       eq(other) {
-          return other instanceof LineDecoration && attrsEq(this.spec.attributes, other.spec.attributes);
+          return other instanceof LineDecoration &&
+              this.spec.class == other.spec.class &&
+              attrsEq(this.spec.attributes, other.spec.attributes);
       }
       range(from, to = from) {
           if (to != from)
@@ -22308,7 +20983,9 @@
           return this.startSide < this.endSide ? BlockType.WidgetRange
               : this.startSide <= 0 ? BlockType.WidgetBefore : BlockType.WidgetAfter;
       }
-      get heightRelevant() { return this.block || !!this.widget && this.widget.estimatedHeight >= 5; }
+      get heightRelevant() {
+          return this.block || !!this.widget && (this.widget.estimatedHeight >= 5 || this.widget.lineBreaks > 0);
+      }
       eq(other) {
           return other instanceof PointDecoration &&
               widgetsEq(this.widget, other.widget) &&
@@ -22420,17 +21097,17 @@
       reuseDOM(node) {
           if (node.nodeName == "DIV") {
               this.setDOM(node);
-              this.dirty |= 4 /* Dirty.Attrs */ | 2 /* Dirty.Node */;
+              this.dirty |= 4 /* Attrs */ | 2 /* Node */;
           }
       }
-      sync(track) {
+      sync(view, track) {
           var _a;
           if (!this.dom) {
               this.setDOM(document.createElement("div"));
               this.dom.className = "cm-line";
               this.prevAttrs = this.attrs ? null : undefined;
           }
-          else if (this.dirty & 4 /* Dirty.Attrs */) {
+          else if (this.dirty & 4 /* Attrs */) {
               clearAttributes(this.dom);
               this.dom.className = "cm-line";
               this.prevAttrs = this.attrs ? null : undefined;
@@ -22440,7 +21117,7 @@
               this.dom.classList.add("cm-line");
               this.prevAttrs = undefined;
           }
-          super.sync(track);
+          super.sync(view, track);
           let last = this.dom.lastChild;
           while (last && ContentView.get(last) instanceof MarkView)
               last = last.lastChild;
@@ -22455,7 +21132,7 @@
       measureTextSize() {
           if (this.children.length == 0 || this.length > 20)
               return null;
-          let totalWidth = 0;
+          let totalWidth = 0, textHeight;
           for (let child of this.children) {
               if (!(child instanceof TextView) || /[^ -~]/.test(child.text))
                   return null;
@@ -22463,14 +21140,26 @@
               if (rects.length != 1)
                   return null;
               totalWidth += rects[0].width;
+              textHeight = rects[0].height;
           }
           return !totalWidth ? null : {
               lineHeight: this.dom.getBoundingClientRect().height,
-              charWidth: totalWidth / this.length
+              charWidth: totalWidth / this.length,
+              textHeight
           };
       }
       coordsAt(pos, side) {
-          return coordsInChildren(this, pos, side);
+          let rect = coordsInChildren(this, pos, side);
+          // Correct rectangle height for empty lines when the returned
+          // height is larger than the text height.
+          if (!this.children.length && rect && this.parent) {
+              let { heightOracle } = this.parent.view.viewState, height = rect.bottom - rect.top;
+              if (Math.abs(height - heightOracle.lineHeight) < 2 && heightOracle.textHeight < height) {
+                  let dist = (height - heightOracle.textHeight) / 2;
+                  return { top: rect.top + dist, bottom: rect.bottom - dist, left: rect.left, right: rect.left };
+              }
+          }
+          return rect;
       }
       become(_other) { return false; }
       get type() { return BlockType.Text; }
@@ -22515,12 +21204,12 @@
           return end;
       }
       get children() { return noChildren; }
-      sync() {
-          if (!this.dom || !this.widget.updateDOM(this.dom)) {
+      sync(view) {
+          if (!this.dom || !this.widget.updateDOM(this.dom, view)) {
               if (this.dom && this.prevWidget)
                   this.prevWidget.destroy(this.dom);
               this.prevWidget = null;
-              this.setDOM(this.widget.toDOM(this.editorView));
+              this.setDOM(this.widget.toDOM(view));
               this.dom.contentEditable = "false";
           }
       }
@@ -22529,14 +21218,15 @@
       }
       domBoundsAround() { return null; }
       become(other) {
-          if (other instanceof BlockWidgetView && other.type == this.type &&
+          if (other instanceof BlockWidgetView &&
               other.widget.constructor == this.widget.constructor) {
-              if (!other.widget.eq(this.widget))
+              if (!other.widget.compare(this.widget))
                   this.markDirty(true);
               if (this.dom && !this.prevWidget)
                   this.prevWidget = this.widget;
               this.widget = other.widget;
               this.length = other.length;
+              this.type = other.type;
               this.breakAfter = other.breakAfter;
               return true;
           }
@@ -22544,6 +21234,11 @@
       }
       ignoreMutation() { return true; }
       ignoreEvent(event) { return this.widget.ignoreEvent(event); }
+      get isEditable() { return false; }
+      get isWidget() { return true; }
+      coordsAt(pos, side) {
+          return this.widget.coordsAt(this.dom, pos, side);
+      }
       destroy() {
           super.destroy();
           if (this.dom)
@@ -22560,7 +21255,7 @@
           this.content = [];
           this.curLine = null;
           this.breakAtStart = 0;
-          this.pendingBuffer = 0 /* Buf.No */;
+          this.pendingBuffer = 0 /* No */;
           this.bufferMarks = [];
           // Set to false directly after a widget that covers the position after it
           this.atCursorPos = true;
@@ -22587,7 +21282,7 @@
       flushBuffer(active = this.bufferMarks) {
           if (this.pendingBuffer) {
               this.curLine.append(wrapMarks(new WidgetBufferView(-1), active), active.length);
-              this.pendingBuffer = 0 /* Buf.No */;
+              this.pendingBuffer = 0 /* No */;
           }
       }
       addBlockWidget(view) {
@@ -22599,7 +21294,7 @@
           if (this.pendingBuffer && openEnd <= this.bufferMarks.length)
               this.flushBuffer();
           else
-              this.pendingBuffer = 0 /* Buf.No */;
+              this.pendingBuffer = 0 /* No */;
           if (!this.posCovered())
               this.getLine();
       }
@@ -22628,7 +21323,7 @@
                       this.textOff = 0;
                   }
               }
-              let take = Math.min(this.text.length - this.textOff, length, 512 /* T.Chunk */);
+              let take = Math.min(this.text.length - this.textOff, length, 512 /* Chunk */);
               this.flushBuffer(active.slice(active.length - openStart));
               this.getLine().append(wrapMarks(new TextView(this.text.slice(this.textOff, this.textOff + take)), active), openStart);
               this.atCursorPos = true;
@@ -22660,11 +21355,12 @@
               }
               else {
                   let view = WidgetView.create(deco.widget || new NullWidget("span"), len, len ? 0 : deco.startSide);
-                  let cursorBefore = this.atCursorPos && !view.isEditable && openStart <= active.length && (from < to || deco.startSide > 0);
+                  let cursorBefore = this.atCursorPos && !view.isEditable && openStart <= active.length &&
+                      (from < to || deco.startSide > 0);
                   let cursorAfter = !view.isEditable && (from < to || openStart > active.length || deco.startSide <= 0);
                   let line = this.getLine();
-                  if (this.pendingBuffer == 2 /* Buf.IfCursor */ && !cursorBefore)
-                      this.pendingBuffer = 0 /* Buf.No */;
+                  if (this.pendingBuffer == 2 /* IfCursor */ && !cursorBefore && !view.isEditable)
+                      this.pendingBuffer = 0 /* No */;
                   this.flushBuffer(active);
                   if (cursorBefore) {
                       line.append(wrapMarks(new WidgetBufferView(1), active), openStart);
@@ -22672,7 +21368,7 @@
                   }
                   line.append(wrapMarks(view, active), openStart);
                   this.atCursorPos = cursorAfter;
-                  this.pendingBuffer = !cursorAfter ? 0 /* Buf.No */ : from < to || openStart > active.length ? 1 /* Buf.Yes */ : 2 /* Buf.IfCursor */;
+                  this.pendingBuffer = !cursorAfter ? 0 /* No */ : from < to || openStart > active.length ? 1 /* Yes */ : 2 /* IfCursor */;
                   if (this.pendingBuffer)
                       this.bufferMarks = active.slice();
               }
@@ -22717,6 +21413,7 @@
       eq(other) { return other.tag == this.tag; }
       toDOM() { return document.createElement(this.tag); }
       updateDOM(elt) { return elt.nodeName.toLowerCase() == this.tag; }
+      get isHidden() { return true; }
   }
 
   const clickAddsSelectionRange = /*@__PURE__*/Facet.define();
@@ -22725,6 +21422,7 @@
   const exceptionSink = /*@__PURE__*/Facet.define();
   const updateListener = /*@__PURE__*/Facet.define();
   const inputHandler = /*@__PURE__*/Facet.define();
+  const focusChangeEffect = /*@__PURE__*/Facet.define();
   const perLineTextDirection = /*@__PURE__*/Facet.define({
       combine: values => values.some(x => x)
   });
@@ -22885,6 +21583,23 @@
   const decorations = /*@__PURE__*/Facet.define();
   const atomicRanges = /*@__PURE__*/Facet.define();
   const scrollMargins = /*@__PURE__*/Facet.define();
+  function getScrollMargins(view) {
+      let left = 0, right = 0, top = 0, bottom = 0;
+      for (let source of view.state.facet(scrollMargins)) {
+          let m = source(view);
+          if (m) {
+              if (m.left != null)
+                  left = Math.max(left, m.left);
+              if (m.right != null)
+                  right = Math.max(right, m.right);
+              if (m.top != null)
+                  top = Math.max(top, m.top);
+              if (m.bottom != null)
+                  bottom = Math.max(bottom, m.bottom);
+          }
+      }
+      return { left, right, top, bottom };
+  }
   const styleModule = /*@__PURE__*/Facet.define();
   class ChangedRange {
       constructor(fromA, toA, fromB, toB) {
@@ -22967,11 +21682,6 @@
           let changedRanges = [];
           this.changes.iterChangedRanges((fromA, toA, fromB, toB) => changedRanges.push(new ChangedRange(fromA, toA, fromB, toB)));
           this.changedRanges = changedRanges;
-          let focus = view.hasFocus;
-          if (focus != view.inputState.notifiedFocused) {
-              view.inputState.notifiedFocused = focus;
-              this.flags |= 1 /* UpdateFlag.Focus */;
-          }
       }
       /**
       @internal
@@ -22985,27 +21695,27 @@
       update.
       */
       get viewportChanged() {
-          return (this.flags & 4 /* UpdateFlag.Viewport */) > 0;
+          return (this.flags & 4 /* Viewport */) > 0;
       }
       /**
       Indicates whether the height of a block element in the editor
       changed in this update.
       */
       get heightChanged() {
-          return (this.flags & 2 /* UpdateFlag.Height */) > 0;
+          return (this.flags & 2 /* Height */) > 0;
       }
       /**
       Returns true when the document was modified or the size of the
       editor, or elements within the editor, changed.
       */
       get geometryChanged() {
-          return this.docChanged || (this.flags & (8 /* UpdateFlag.Geometry */ | 2 /* UpdateFlag.Height */)) > 0;
+          return this.docChanged || (this.flags & (8 /* Geometry */ | 2 /* Height */)) > 0;
       }
       /**
       True when this update indicates a focus change.
       */
       get focusChanged() {
-          return (this.flags & 1 /* UpdateFlag.Focus */) > 0;
+          return (this.flags & 1 /* Focus */) > 0;
       }
       /**
       Whether the document changed in this update.
@@ -23063,12 +21773,12 @@
   }
   function charType(ch) {
       return ch <= 0xf7 ? LowTypes[ch] :
-          0x590 <= ch && ch <= 0x5f4 ? 2 /* T.R */ :
+          0x590 <= ch && ch <= 0x5f4 ? 2 /* R */ :
               0x600 <= ch && ch <= 0x6f9 ? ArabicTypes[ch - 0x600] :
-                  0x6ee <= ch && ch <= 0x8ac ? 4 /* T.AL */ :
-                      0x2000 <= ch && ch <= 0x200b ? 256 /* T.NI */ :
-                          0xfb50 <= ch && ch <= 0xfdff ? 4 /* T.AL */ :
-                              ch == 0x200c ? 256 /* T.NI */ : 1 /* T.L */;
+                  0x6ee <= ch && ch <= 0x8ac ? 4 /* AL */ :
+                      0x2000 <= ch && ch <= 0x200b ? 256 /* NI */ :
+                          0xfb50 <= ch && ch <= 0xfdff ? 4 /* AL */ :
+                              ch == 0x200c ? 256 /* NI */ : 1 /* L */;
   }
   const BidiRE = /[\u0590-\u05f4\u0600-\u06ff\u0700-\u08ac\ufb50-\ufdff]/;
   /**
@@ -23133,8 +21843,8 @@
   // Reused array of character types
   const types = [];
   function computeOrder(line, direction) {
-      let len = line.length, outerType = direction == LTR ? 1 /* T.L */ : 2 /* T.R */, oppositeType = direction == LTR ? 2 /* T.R */ : 1 /* T.L */;
-      if (!line || outerType == 1 /* T.L */ && !BidiRE.test(line))
+      let len = line.length, outerType = direction == LTR ? 1 /* L */ : 2 /* R */, oppositeType = direction == LTR ? 2 /* R */ : 1 /* L */;
+      if (!line || outerType == 1 /* L */ && !BidiRE.test(line))
           return trivialOrder(len);
       // W1. Examine each non-spacing mark (NSM) in the level run, and
       // change the type of the NSM to the type of the previous
@@ -23148,12 +21858,12 @@
       // (Left after this: L, R, EN, AN, ET, CS, NI)
       for (let i = 0, prev = outerType, prevStrong = outerType; i < len; i++) {
           let type = charType(line.charCodeAt(i));
-          if (type == 512 /* T.NSM */)
+          if (type == 512 /* NSM */)
               type = prev;
-          else if (type == 8 /* T.EN */ && prevStrong == 4 /* T.AL */)
-              type = 16 /* T.AN */;
-          types[i] = type == 4 /* T.AL */ ? 2 /* T.R */ : type;
-          if (type & 7 /* T.Strong */)
+          else if (type == 8 /* EN */ && prevStrong == 4 /* AL */)
+              type = 16 /* AN */;
+          types[i] = type == 4 /* AL */ ? 2 /* R */ : type;
+          if (type & 7 /* Strong */)
               prevStrong = type;
           prev = type;
       }
@@ -23167,26 +21877,26 @@
       // (Left after this: L, R, EN+AN, NI)
       for (let i = 0, prev = outerType, prevStrong = outerType; i < len; i++) {
           let type = types[i];
-          if (type == 128 /* T.CS */) {
-              if (i < len - 1 && prev == types[i + 1] && (prev & 24 /* T.Num */))
+          if (type == 128 /* CS */) {
+              if (i < len - 1 && prev == types[i + 1] && (prev & 24 /* Num */))
                   type = types[i] = prev;
               else
-                  types[i] = 256 /* T.NI */;
+                  types[i] = 256 /* NI */;
           }
-          else if (type == 64 /* T.ET */) {
+          else if (type == 64 /* ET */) {
               let end = i + 1;
-              while (end < len && types[end] == 64 /* T.ET */)
+              while (end < len && types[end] == 64 /* ET */)
                   end++;
-              let replace = (i && prev == 8 /* T.EN */) || (end < len && types[end] == 8 /* T.EN */) ? (prevStrong == 1 /* T.L */ ? 1 /* T.L */ : 8 /* T.EN */) : 256 /* T.NI */;
+              let replace = (i && prev == 8 /* EN */) || (end < len && types[end] == 8 /* EN */) ? (prevStrong == 1 /* L */ ? 1 /* L */ : 8 /* EN */) : 256 /* NI */;
               for (let j = i; j < end; j++)
                   types[j] = replace;
               i = end - 1;
           }
-          else if (type == 8 /* T.EN */ && prevStrong == 1 /* T.L */) {
-              types[i] = 1 /* T.L */;
+          else if (type == 8 /* EN */ && prevStrong == 1 /* L */) {
+              types[i] = 1 /* L */;
           }
           prev = type;
-          if (type & 7 /* T.Strong */)
+          if (type & 7 /* Strong */)
               prevStrong = type;
       }
       // N0. Process bracket pairs in an isolating run sequence
@@ -23201,9 +21911,9 @@
                   for (let sJ = sI - 3; sJ >= 0; sJ -= 3) {
                       if (BracketStack[sJ + 1] == -br) {
                           let flags = BracketStack[sJ + 2];
-                          let type = (flags & 2 /* Bracketed.EmbedInside */) ? outerType :
-                              !(flags & 4 /* Bracketed.OppositeInside */) ? 0 :
-                                  (flags & 1 /* Bracketed.OppositeBefore */) ? oppositeType : outerType;
+                          let type = (flags & 2 /* EmbedInside */) ? outerType :
+                              !(flags & 4 /* OppositeInside */) ? 0 :
+                                  (flags & 1 /* OppositeBefore */) ? oppositeType : outerType;
                           if (type)
                               types[i] = types[BracketStack[sJ]] = type;
                           sI = sJ;
@@ -23211,7 +21921,7 @@
                       }
                   }
               }
-              else if (BracketStack.length == 189 /* Bracketed.MaxDepth */) {
+              else if (BracketStack.length == 189 /* MaxDepth */) {
                   break;
               }
               else {
@@ -23220,20 +21930,20 @@
                   BracketStack[sI++] = context;
               }
           }
-          else if ((type = types[i]) == 2 /* T.R */ || type == 1 /* T.L */) {
+          else if ((type = types[i]) == 2 /* R */ || type == 1 /* L */) {
               let embed = type == outerType;
-              context = embed ? 0 : 1 /* Bracketed.OppositeBefore */;
+              context = embed ? 0 : 1 /* OppositeBefore */;
               for (let sJ = sI - 3; sJ >= 0; sJ -= 3) {
                   let cur = BracketStack[sJ + 2];
-                  if (cur & 2 /* Bracketed.EmbedInside */)
+                  if (cur & 2 /* EmbedInside */)
                       break;
                   if (embed) {
-                      BracketStack[sJ + 2] |= 2 /* Bracketed.EmbedInside */;
+                      BracketStack[sJ + 2] |= 2 /* EmbedInside */;
                   }
                   else {
-                      if (cur & 4 /* Bracketed.OppositeInside */)
+                      if (cur & 4 /* OppositeInside */)
                           break;
-                      BracketStack[sJ + 2] |= 4 /* Bracketed.OppositeInside */;
+                      BracketStack[sJ + 2] |= 4 /* OppositeInside */;
                   }
               }
           }
@@ -23246,13 +21956,13 @@
       // N2. Any remaining neutrals take the embedding direction.
       // (Left after this: L, R, EN+AN)
       for (let i = 0; i < len; i++) {
-          if (types[i] == 256 /* T.NI */) {
+          if (types[i] == 256 /* NI */) {
               let end = i + 1;
-              while (end < len && types[end] == 256 /* T.NI */)
+              while (end < len && types[end] == 256 /* NI */)
                   end++;
-              let beforeL = (i ? types[i - 1] : outerType) == 1 /* T.L */;
-              let afterL = (end < len ? types[end] : outerType) == 1 /* T.L */;
-              let replace = beforeL == afterL ? (beforeL ? 1 /* T.L */ : 2 /* T.R */) : outerType;
+              let beforeL = (i ? types[i - 1] : outerType) == 1 /* L */;
+              let afterL = (end < len ? types[end] : outerType) == 1 /* L */;
+              let replace = beforeL == afterL ? (beforeL ? 1 /* L */ : 2 /* R */) : outerType;
               for (let j = i; j < end; j++)
                   types[j] = replace;
               i = end - 1;
@@ -23264,15 +21974,15 @@
       // explicit embedding into account, we can build up the order on
       // the fly, without following the level-based algorithm.
       let order = [];
-      if (outerType == 1 /* T.L */) {
+      if (outerType == 1 /* L */) {
           for (let i = 0; i < len;) {
-              let start = i, rtl = types[i++] != 1 /* T.L */;
-              while (i < len && rtl == (types[i] != 1 /* T.L */))
+              let start = i, rtl = types[i++] != 1 /* L */;
+              while (i < len && rtl == (types[i] != 1 /* L */))
                   i++;
               if (rtl) {
                   for (let j = i; j > start;) {
-                      let end = j, l = types[--j] != 2 /* T.R */;
-                      while (j > start && l == (types[j - 1] != 2 /* T.R */))
+                      let end = j, l = types[--j] != 2 /* R */;
+                      while (j > start && l == (types[j - 1] != 2 /* R */))
                           j--;
                       order.push(new BidiSpan(j, end, l ? 2 : 1));
                   }
@@ -23284,8 +21994,8 @@
       }
       else {
           for (let i = 0; i < len;) {
-              let start = i, rtl = types[i++] == 2 /* T.R */;
-              while (i < len && rtl == (types[i] == 2 /* T.R */))
+              let start = i, rtl = types[i++] == 2 /* R */;
+              while (i < len && rtl == (types[i] == 2 /* R */))
                   i++;
               order.push(new BidiSpan(start, i, rtl ? 1 : 2));
           }
@@ -23356,6 +22066,7 @@
           let parent = start.parentNode;
           for (let cur = start;;) {
               this.findPointBefore(parent, cur);
+              let oldLen = this.text.length;
               this.readNode(cur);
               let next = cur.nextSibling;
               if (next == end)
@@ -23363,7 +22074,7 @@
               let view = ContentView.get(cur), nextView = ContentView.get(next);
               if (view && nextView ? view.breakAfter :
                   (view ? view.breakAfter : isBlockElement(cur)) ||
-                      (isBlockElement(next) && (cur.nodeName != "BR" || cur.cmIgnore)))
+                      (isBlockElement(next) && (cur.nodeName != "BR" || cur.cmIgnore) && this.text.length > oldLen))
                   this.lineBreak();
               cur = next;
           }
@@ -23474,12 +22185,8 @@
           this.updateDeco();
           this.updateInner([new ChangedRange(0, 0, 0, view.state.doc.length)], 0);
       }
-      get editorView() { return this.view; }
       get length() { return this.view.state.doc.length; }
-      // Update the document view to a given state. scrollIntoView can be
-      // used as a hint to compute a new viewport that includes that
-      // position, if we know the editor is going to scroll that position
-      // into view.
+      // Update the document view to a given state.
       update(update) {
           let changedRanges = update.changedRanges;
           if (this.minWidth > 0 && changedRanges.length) {
@@ -23506,7 +22213,7 @@
           let prevDeco = this.decorations, deco = this.updateDeco();
           let decoDiff = findChangedDeco(prevDeco, deco, update.changes);
           changedRanges = ChangedRange.extendWithRanges(changedRanges, decoDiff);
-          if (this.dirty == 0 /* Dirty.Not */ && changedRanges.length == 0) {
+          if (this.dirty == 0 /* Not */ && changedRanges.length == 0) {
               return false;
           }
           else {
@@ -23534,8 +22241,8 @@
               // selection from the one it displays (issue #218). This tries
               // to detect that situation.
               let track = browser.chrome || browser.ios ? { node: observer.selectionRange.focusNode, written: false } : undefined;
-              this.sync(track);
-              this.dirty = 0 /* Dirty.Not */;
+              this.sync(this.view, track);
+              this.dirty = 0 /* Not */;
               if (track && (track.written || observer.selectionRange.focusNode != track.node))
                   this.forceSelection = true;
               this.dom.style.height = "";
@@ -23564,7 +22271,10 @@
       updateSelection(mustRead = false, fromPointer = false) {
           if (mustRead || !this.view.observer.selectionRange.focusNode)
               this.view.observer.readSelectionRange();
-          if (!(fromPointer || this.mayControlSelection()))
+          let activeElt = this.view.root.activeElement, focused = activeElt == this.dom;
+          let selectionNotFocus = !focused &&
+              hasSelection(this.dom, this.view.observer.selectionRange) && !(activeElt && this.dom.contains(activeElt));
+          if (!(focused || fromPointer || selectionNotFocus))
               return;
           let force = this.forceSelection;
           this.forceSelection = false;
@@ -23574,7 +22284,7 @@
           let head = main.empty ? anchor : this.domAtPos(main.head);
           // Always reset on Firefox when next to an uneditable node to
           // avoid invisible cursor bugs (#111)
-          if (browser.gecko && main.empty && betweenUneditable(anchor)) {
+          if (browser.gecko && main.empty && !this.compositionDeco.size && betweenUneditable(anchor)) {
               let dummy = document.createTextNode("");
               this.view.observer.ignore(() => anchor.node.insertBefore(dummy, anchor.node.childNodes[anchor.offset] || null));
               anchor = head = new DOMPos(dummy, 0);
@@ -23601,10 +22311,10 @@
                       // Work around https://bugzilla.mozilla.org/show_bug.cgi?id=1612076
                       if (browser.gecko) {
                           let nextTo = nextToUneditable(anchor.node, anchor.offset);
-                          if (nextTo && nextTo != (1 /* NextTo.Before */ | 2 /* NextTo.After */)) {
-                              let text = nearbyTextNode(anchor.node, anchor.offset, nextTo == 1 /* NextTo.Before */ ? 1 : -1);
+                          if (nextTo && nextTo != (1 /* Before */ | 2 /* After */)) {
+                              let text = nearbyTextNode(anchor.node, anchor.offset, nextTo == 1 /* Before */ ? 1 : -1);
                               if (text)
-                                  anchor = new DOMPos(text, nextTo == 1 /* NextTo.Before */ ? 0 : text.nodeValue.length);
+                                  anchor = new DOMPos(text, nextTo == 1 /* Before */ ? 0 : text.nodeValue.length);
                           }
                       }
                       rawSel.collapse(anchor.node, anchor.offset);
@@ -23633,6 +22343,11 @@
                       range.setStart(anchor.node, anchor.offset);
                       rawSel.removeAllRanges();
                       rawSel.addRange(range);
+                  }
+                  if (selectionNotFocus && this.view.root.activeElement == this.dom) {
+                      this.dom.blur();
+                      if (activeElt)
+                          activeElt.focus();
                   }
               });
               this.view.observer.setSelectionRange(anchor, head);
@@ -23666,11 +22381,6 @@
           let newRange = view.observer.selectionRange;
           if (view.docView.posFromDOM(newRange.anchorNode, newRange.anchorOffset) != cursor.from)
               sel.collapse(anchorNode, anchorOffset);
-      }
-      mayControlSelection() {
-          let active = this.view.root.activeElement;
-          return active == this.dom ||
-              hasSelection(this.dom, this.view.observer.selectionRange) && !(active && this.dom.contains(active));
       }
       nearest(dom) {
           for (let cur = dom; cur;) {
@@ -23753,7 +22463,7 @@
               }
           }
           // If no workable line exists, force a layout of a measurable element
-          let dummy = document.createElement("div"), lineHeight, charWidth;
+          let dummy = document.createElement("div"), lineHeight, charWidth, textHeight;
           dummy.className = "cm-line";
           dummy.style.width = "99999px";
           dummy.textContent = "abc def ghi jkl mno pqr stu";
@@ -23762,9 +22472,10 @@
               let rect = clientRectsFor(dummy.firstChild)[0];
               lineHeight = dummy.getBoundingClientRect().height;
               charWidth = rect ? rect.width / 27 : 7;
+              textHeight = rect ? rect.height : lineHeight;
               dummy.remove();
           });
-          return { lineHeight, charWidth };
+          return { lineHeight, charWidth, textHeight };
       }
       childCursor(pos = this.length) {
           // Move back to start of last element when possible, so that
@@ -23817,22 +22528,10 @@
           if (!range.empty && (other = this.coordsAt(range.anchor, range.anchor > range.head ? -1 : 1)))
               rect = { left: Math.min(rect.left, other.left), top: Math.min(rect.top, other.top),
                   right: Math.max(rect.right, other.right), bottom: Math.max(rect.bottom, other.bottom) };
-          let mLeft = 0, mRight = 0, mTop = 0, mBottom = 0;
-          for (let margins of this.view.state.facet(scrollMargins).map(f => f(this.view)))
-              if (margins) {
-                  let { left, right, top, bottom } = margins;
-                  if (left != null)
-                      mLeft = Math.max(mLeft, left);
-                  if (right != null)
-                      mRight = Math.max(mRight, right);
-                  if (top != null)
-                      mTop = Math.max(mTop, top);
-                  if (bottom != null)
-                      mBottom = Math.max(mBottom, bottom);
-              }
+          let margins = getScrollMargins(this.view);
           let targetRect = {
-              left: rect.left - mLeft, top: rect.top - mTop,
-              right: rect.right + mRight, bottom: rect.bottom + mBottom
+              left: rect.left - margins.left, top: rect.top - margins.top,
+              right: rect.right + margins.right, bottom: rect.bottom + margins.bottom
           };
           scrollRectIntoView(this.view.scrollDOM, targetRect, range.head < range.anchor ? -1 : 1, target.x, target.y, target.xMargin, target.yMargin, this.view.textDirection == Direction.LTR);
       }
@@ -23896,17 +22595,23 @@
           return Decoration.none;
       let { from, to, node, text: textNode } = surrounding;
       let newFrom = changes.mapPos(from, 1), newTo = Math.max(newFrom, changes.mapPos(to, -1));
-      let { state } = view, text = node.nodeType == 3 ? node.nodeValue :
-          new DOMReader([], state).readRange(node.firstChild, null).text;
+      let { state } = view, reader = new DOMReader([], state);
+      if (node.nodeType == 3)
+          reader.readTextNode(node);
+      else
+          reader.readRange(node.firstChild, null);
+      let { text } = reader;
+      if (text.indexOf(LineBreakPlaceholder) > -1)
+          return Decoration.none; // Don't try to preserve multi-line compositions
       if (newTo - newFrom < text.length) {
-          if (state.doc.sliceString(newFrom, Math.min(state.doc.length, newFrom + text.length), LineBreakPlaceholder) == text)
+          if (state.doc.sliceString(newFrom, Math.min(state.doc.length, newFrom + text.length)) == text)
               newTo = newFrom + text.length;
-          else if (state.doc.sliceString(Math.max(0, newTo - text.length), newTo, LineBreakPlaceholder) == text)
+          else if (state.doc.sliceString(Math.max(0, newTo - text.length), newTo) == text)
               newFrom = newTo - text.length;
           else
               return Decoration.none;
       }
-      else if (state.doc.sliceString(newFrom, newTo, LineBreakPlaceholder) != text) {
+      else if (state.doc.sliceString(newFrom, newTo) != text) {
           return Decoration.none;
       }
       let topView = ContentView.get(node);
@@ -23929,28 +22634,38 @@
       ignoreEvent() { return false; }
       get customView() { return CompositionView; }
   }
-  function nearbyTextNode(node, offset, side) {
-      for (;;) {
-          if (node.nodeType == 3)
-              return node;
-          if (node.nodeType == 1 && offset > 0 && side <= 0) {
-              node = node.childNodes[offset - 1];
-              offset = maxOffset(node);
+  function nearbyTextNode(startNode, startOffset, side) {
+      if (side <= 0)
+          for (let node = startNode, offset = startOffset;;) {
+              if (node.nodeType == 3)
+                  return node;
+              if (node.nodeType == 1 && offset > 0) {
+                  node = node.childNodes[offset - 1];
+                  offset = maxOffset(node);
+              }
+              else {
+                  break;
+              }
           }
-          else if (node.nodeType == 1 && offset < node.childNodes.length && side >= 0) {
-              node = node.childNodes[offset];
-              offset = 0;
+      if (side >= 0)
+          for (let node = startNode, offset = startOffset;;) {
+              if (node.nodeType == 3)
+                  return node;
+              if (node.nodeType == 1 && offset < node.childNodes.length && side >= 0) {
+                  node = node.childNodes[offset];
+                  offset = 0;
+              }
+              else {
+                  break;
+              }
           }
-          else {
-              return null;
-          }
-      }
+      return null;
   }
   function nextToUneditable(node, offset) {
       if (node.nodeType != 1)
           return 0;
-      return (offset && node.childNodes[offset - 1].contentEditable == "false" ? 1 /* NextTo.Before */ : 0) |
-          (offset < node.childNodes.length && node.childNodes[offset].contentEditable == "false" ? 2 /* NextTo.After */ : 0);
+      return (offset && node.childNodes[offset - 1].contentEditable == "false" ? 1 /* Before */ : 0) |
+          (offset < node.childNodes.length && node.childNodes[offset].contentEditable == "false" ? 2 /* After */ : 0);
   }
   class DecorationComparator$1 {
       constructor() {
@@ -24037,7 +22752,8 @@
                   closestRect = rect;
                   closestX = dx;
                   closestY = dy;
-                  closestOverlap = !dx || (dx > 0 ? i < rects.length - 1 : i > 0);
+                  let side = dy ? (y < rect.top ? -1 : 1) : dx ? (x < rect.left ? -1 : 1) : 0;
+                  closestOverlap = !side || (side > 0 ? i < rects.length - 1 : i > 0);
               }
               if (dx == 0) {
                   if (y > rect.bottom && (!aboveRect || aboveRect.bottom < rect.bottom)) {
@@ -24106,17 +22822,17 @@
       }
       return { node, offset: closestOffset > -1 ? closestOffset : generalSide > 0 ? node.nodeValue.length : 0 };
   }
-  function posAtCoords(view, { x, y }, precise, bias = -1) {
-      var _a;
+  function posAtCoords(view, coords, precise, bias = -1) {
+      var _a, _b;
       let content = view.contentDOM.getBoundingClientRect(), docTop = content.top + view.viewState.paddingTop;
       let block, { docHeight } = view.viewState;
-      let yOffset = y - docTop;
+      let { x, y } = coords, yOffset = y - docTop;
       if (yOffset < 0)
           return 0;
       if (yOffset > docHeight)
           return view.state.doc.length;
       // Scan for a text block near the queried y position
-      for (let halfLine = view.defaultLineHeight / 2, bounced = false;;) {
+      for (let halfLine = view.viewState.heightOracle.textHeight / 2, bounced = false;;) {
           block = view.elementAtHeight(yOffset);
           if (block.type == BlockType.Text)
               break;
@@ -24181,12 +22897,23 @@
               return yOffset > block.top + block.height / 2 ? block.to : block.from;
           ({ node, offset } = domPosAtCoords(line.dom, x, y));
       }
-      return view.docView.posFromDOM(node, offset);
+      let nearest = view.docView.nearest(node);
+      if (!nearest)
+          return null;
+      if (nearest.isWidget && ((_b = nearest.dom) === null || _b === void 0 ? void 0 : _b.nodeType) == 1) {
+          let rect = nearest.dom.getBoundingClientRect();
+          return coords.y < rect.top || coords.y <= rect.bottom && coords.x <= (rect.left + rect.right) / 2
+              ? nearest.posAtStart : nearest.posAtEnd;
+      }
+      else {
+          return nearest.localPosFromDOM(node, offset) + nearest.posAtStart;
+      }
   }
   function posAtCoordsImprecise(view, contentRect, block, x, y) {
       let into = Math.round((x - contentRect.left) * view.defaultCharacterWidth);
       if (view.lineWrapping && block.height > view.defaultLineHeight * 1.5) {
-          let line = Math.floor((y - block.top) / view.defaultLineHeight);
+          let textHeight = view.viewState.heightOracle.textHeight;
+          let line = Math.floor((y - block.top - (view.defaultLineHeight - textHeight) * 0.5) / textHeight);
           into += line * view.viewState.heightOracle.lineLength;
       }
       let content = view.state.sliceDoc(block.from, block.to);
@@ -24221,9 +22948,18 @@
           : textRange(node, 0, Math.max(node.nodeValue.length, 1)).getBoundingClientRect();
       return x - rect.left > 5;
   }
+  function blockAt(view, pos) {
+      let line = view.lineBlockAt(pos);
+      if (Array.isArray(line.type))
+          for (let l of line.type) {
+              if (l.to > pos || l.to == pos && (l.to == line.to || l.type == BlockType.Text))
+                  return l;
+          }
+      return line;
+  }
   function moveToLineBoundary(view, start, forward, includeWrap) {
-      let line = view.state.doc.lineAt(start.head);
-      let coords = !includeWrap || !view.lineWrapping ? null
+      let line = blockAt(view, start.head);
+      let coords = !includeWrap || line.type != BlockType.Text || !(view.lineWrapping || line.widgetLineBreaks) ? null
           : view.coordsAtPos(start.assoc < 0 && start.head > line.from ? start.head - 1 : start.head);
       if (coords) {
           let editorRect = view.dom.getBoundingClientRect();
@@ -24233,9 +22969,7 @@
           if (pos != null)
               return EditorSelection.cursor(pos, forward ? -1 : 1);
       }
-      let lineView = LineView.find(view.docView, start.head);
-      let end = lineView ? (forward ? lineView.posAtEnd : lineView.posAtStart) : (forward ? line.to : line.from);
-      return EditorSelection.cursor(end, forward ? -1 : 1);
+      return EditorSelection.cursor(forward ? line.to : line.from, forward ? -1 : 1);
   }
   function moveByChar(view, start, forward, by) {
       let line = view.state.doc.lineAt(start.head), spans = view.bidiSpans(line);
@@ -24290,7 +23024,7 @@
           startY = (dir < 0 ? line.top : line.bottom) + docTop;
       }
       let resolvedGoal = rect.left + goal;
-      let dist = distance !== null && distance !== void 0 ? distance : (view.defaultLineHeight >> 1);
+      let dist = distance !== null && distance !== void 0 ? distance : (view.viewState.heightOracle.textHeight >> 1);
       for (let extra = 0;; extra += 10) {
           let curY = startY + (dist + extra) * dir;
           let pos = posAtCoords(view, { x: resolvedGoal, y: curY }, false, dir);
@@ -24298,21 +23032,25 @@
               return EditorSelection.cursor(pos, start.assoc, undefined, goal);
       }
   }
-  function skipAtoms(view, oldPos, pos) {
-      let atoms = view.state.facet(atomicRanges).map(f => f(view));
+  function skipAtomicRanges(atoms, pos, bias) {
       for (;;) {
-          let moved = false;
+          let moved = 0;
           for (let set of atoms) {
-              set.between(pos.from - 1, pos.from + 1, (from, to, value) => {
-                  if (pos.from > from && pos.from < to) {
-                      pos = oldPos.head > pos.from ? EditorSelection.cursor(from, 1) : EditorSelection.cursor(to, -1);
-                      moved = true;
+              set.between(pos - 1, pos + 1, (from, to, value) => {
+                  if (pos > from && pos < to) {
+                      let side = moved || bias || (pos - from < to - pos ? -1 : 1);
+                      pos = side < 0 ? from : to;
+                      moved = side;
                   }
               });
           }
           if (!moved)
               return pos;
       }
+  }
+  function skipAtoms(view, oldPos, pos) {
+      let newPos = skipAtomicRanges(view.state.facet(atomicRanges).map(f => f(view)), pos.from, oldPos.head > pos.from ? -1 : 1);
+      return newPos == pos.from ? pos : EditorSelection.cursor(newPos, newPos < pos.from ? 1 : -1);
   }
 
   // This will also be where dragging info and such goes
@@ -24346,24 +23084,52 @@
           // first, false means first has already been marked for this
           // composition)
           this.compositionFirstChange = null;
+          // End time of the previous composition
           this.compositionEndedAt = 0;
+          // Used in a kludge to detect when an Enter keypress should be
+          // considered part of the composition on Safari, which fires events
+          // in the wrong order
+          this.compositionPendingKey = false;
+          // Used to categorize changes as part of a composition, even when
+          // the mutation events fire shortly after the compositionend event
+          this.compositionPendingChange = false;
           this.mouseSelection = null;
+          let handleEvent = (handler, event) => {
+              if (this.ignoreDuringComposition(event))
+                  return;
+              if (event.type == "keydown" && this.keydown(view, event))
+                  return;
+              if (this.mustFlushObserver(event))
+                  view.observer.forceFlush();
+              if (this.runCustomHandlers(event.type, view, event))
+                  event.preventDefault();
+              else
+                  handler(view, event);
+          };
           for (let type in handlers) {
               let handler = handlers[type];
-              view.contentDOM.addEventListener(type, (event) => {
-                  if (!eventBelongsToEditor(view, event) || this.ignoreDuringComposition(event))
-                      return;
-                  if (type == "keydown" && this.keydown(view, event))
-                      return;
-                  if (this.mustFlushObserver(event))
-                      view.observer.forceFlush();
-                  if (this.runCustomHandlers(type, view, event))
-                      event.preventDefault();
-                  else
-                      handler(view, event);
+              view.contentDOM.addEventListener(type, event => {
+                  if (eventBelongsToEditor(view, event))
+                      handleEvent(handler, event);
               }, handlerOptions[type]);
               this.registeredEvents.push(type);
           }
+          view.scrollDOM.addEventListener("mousedown", (event) => {
+              if (event.target == view.scrollDOM && event.clientY > view.contentDOM.getBoundingClientRect().bottom) {
+                  handleEvent(handlers.mousedown, event);
+                  if (!event.defaultPrevented && event.button == 2) {
+                      // Make sure the content covers the entire scroller height, in order
+                      // to catch a native context menu click below it
+                      let start = view.contentDOM.style.minHeight;
+                      view.contentDOM.style.minHeight = "100%";
+                      setTimeout(() => view.contentDOM.style.minHeight = start, 200);
+                  }
+              }
+          });
+          view.scrollDOM.addEventListener("drop", (event) => {
+              if (event.target == view.scrollDOM && event.clientY > view.contentDOM.getBoundingClientRect().bottom)
+                  handleEvent(handlers.drop, event);
+          });
           if (browser.chrome && browser.chrome_version == 102) { // FIXME remove at some point
               // On Chrome 102, viewport updates somehow stop wheel-based
               // scrolling. Turning off pointer events during the scroll seems
@@ -24444,6 +23210,8 @@
           this.lastKeyTime = Date.now();
           if (event.keyCode == 9 && Date.now() < this.lastEscPress + 2000)
               return true;
+          if (event.keyCode != 27 && modifierCodes.indexOf(event.keyCode) < 0)
+              view.inputState.lastEscPress = 0;
           // Chrome for Android usually doesn't fire proper key events, but
           // occasionally does, usually surrounded by a bunch of complicated
           // composition changes. When an enter or backspace key event is
@@ -24487,8 +23255,8 @@
           // compositionend and keydown events are sometimes emitted in the
           // wrong order. The key event should still be ignored, even when
           // it happens after the compositionend event.
-          if (browser.safari && !browser.ios && Date.now() - this.compositionEndedAt < 100) {
-              this.compositionEndedAt = 0;
+          if (browser.safari && !browser.ios && this.compositionPendingKey && Date.now() - this.compositionEndedAt < 100) {
+              this.compositionPendingKey = false;
               return true;
           }
           return false;
@@ -24520,32 +23288,55 @@
   const EmacsyPendingKeys = "dthko";
   // Key codes for modifier keys
   const modifierCodes = [16, 17, 18, 20, 91, 92, 224, 225];
+  const dragScrollMargin = 6;
+  function dragScrollSpeed(dist) {
+      return Math.max(0, dist) * 0.7 + 8;
+  }
   class MouseSelection {
       constructor(view, startEvent, style, mustSelect) {
           this.view = view;
           this.style = style;
           this.mustSelect = mustSelect;
+          this.scrollSpeed = { x: 0, y: 0 };
+          this.scrolling = -1;
           this.lastEvent = startEvent;
+          this.scrollParent = scrollableParent(view.contentDOM);
+          this.atoms = view.state.facet(atomicRanges).map(f => f(view));
           let doc = view.contentDOM.ownerDocument;
           doc.addEventListener("mousemove", this.move = this.move.bind(this));
           doc.addEventListener("mouseup", this.up = this.up.bind(this));
           this.extend = startEvent.shiftKey;
           this.multiple = view.state.facet(EditorState.allowMultipleSelections) && addsSelectionRange(view, startEvent);
-          this.dragMove = dragMovesSelection(view, startEvent);
           this.dragging = isInPrimarySelection(view, startEvent) && getClickType(startEvent) == 1 ? null : false;
+      }
+      start(event) {
           // When clicking outside of the selection, immediately apply the
           // effect of starting the selection
           if (this.dragging === false) {
-              startEvent.preventDefault();
-              this.select(startEvent);
+              event.preventDefault();
+              this.select(event);
           }
       }
       move(event) {
+          var _a;
           if (event.buttons == 0)
               return this.destroy();
           if (this.dragging !== false)
               return;
           this.select(this.lastEvent = event);
+          let sx = 0, sy = 0;
+          let rect = ((_a = this.scrollParent) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect())
+              || { left: 0, top: 0, right: this.view.win.innerWidth, bottom: this.view.win.innerHeight };
+          let margins = getScrollMargins(this.view);
+          if (event.clientX - margins.left <= rect.left + dragScrollMargin)
+              sx = -dragScrollSpeed(rect.left - event.clientX);
+          else if (event.clientX + margins.right >= rect.right - dragScrollMargin)
+              sx = dragScrollSpeed(event.clientX - rect.right);
+          if (event.clientY - margins.top <= rect.top + dragScrollMargin)
+              sy = -dragScrollSpeed(rect.top - event.clientY);
+          else if (event.clientY + margins.bottom >= rect.bottom - dragScrollMargin)
+              sy = dragScrollSpeed(event.clientY - rect.bottom);
+          this.setScrollSpeed(sx, sy);
       }
       up(event) {
           if (this.dragging == null)
@@ -24555,19 +23346,64 @@
           this.destroy();
       }
       destroy() {
+          this.setScrollSpeed(0, 0);
           let doc = this.view.contentDOM.ownerDocument;
           doc.removeEventListener("mousemove", this.move);
           doc.removeEventListener("mouseup", this.up);
           this.view.inputState.mouseSelection = null;
       }
+      setScrollSpeed(sx, sy) {
+          this.scrollSpeed = { x: sx, y: sy };
+          if (sx || sy) {
+              if (this.scrolling < 0)
+                  this.scrolling = setInterval(() => this.scroll(), 50);
+          }
+          else if (this.scrolling > -1) {
+              clearInterval(this.scrolling);
+              this.scrolling = -1;
+          }
+      }
+      scroll() {
+          if (this.scrollParent) {
+              this.scrollParent.scrollLeft += this.scrollSpeed.x;
+              this.scrollParent.scrollTop += this.scrollSpeed.y;
+          }
+          else {
+              this.view.win.scrollBy(this.scrollSpeed.x, this.scrollSpeed.y);
+          }
+          if (this.dragging === false)
+              this.select(this.lastEvent);
+      }
+      skipAtoms(sel) {
+          let ranges = null;
+          for (let i = 0; i < sel.ranges.length; i++) {
+              let range = sel.ranges[i], updated = null;
+              if (range.empty) {
+                  let pos = skipAtomicRanges(this.atoms, range.from, 0);
+                  if (pos != range.from)
+                      updated = EditorSelection.cursor(pos, -1);
+              }
+              else {
+                  let from = skipAtomicRanges(this.atoms, range.from, -1);
+                  let to = skipAtomicRanges(this.atoms, range.to, 1);
+                  if (from != range.from || to != range.to)
+                      updated = EditorSelection.range(range.from == range.anchor ? from : to, range.from == range.head ? from : to);
+              }
+              if (updated) {
+                  if (!ranges)
+                      ranges = sel.ranges.slice();
+                  ranges[i] = updated;
+              }
+          }
+          return ranges ? EditorSelection.create(ranges, sel.mainIndex) : sel;
+      }
       select(event) {
-          let selection = this.style.get(event, this.extend, this.multiple);
-          if (this.mustSelect || !selection.eq(this.view.state.selection) ||
-              selection.main.assoc != this.view.state.selection.main.assoc)
+          let { view } = this, selection = this.skipAtoms(this.style.get(event, this.extend, this.multiple));
+          if (this.mustSelect || !selection.eq(view.state.selection) ||
+              selection.main.assoc != view.state.selection.main.assoc)
               this.view.dispatch({
                   selection,
-                  userEvent: "select.pointer",
-                  scrollIntoView: true
+                  userEvent: "select.pointer"
               });
           this.mustSelect = false;
       }
@@ -24669,8 +23505,6 @@
       view.inputState.setSelectionOrigin("select");
       if (event.keyCode == 27)
           view.inputState.lastEscPress = Date.now();
-      else if (modifierCodes.indexOf(event.keyCode) < 0)
-          view.inputState.lastEscPress = 0;
   };
   handlers.touchstart = (view, e) => {
       view.inputState.lastTouchTime = Date.now();
@@ -24694,9 +23528,11 @@
           style = basicMouseSelection(view, event);
       if (style) {
           let mustFocus = view.root.activeElement != view.contentDOM;
+          view.inputState.startMouseSelection(new MouseSelection(view, event, style, mustFocus));
           if (mustFocus)
               view.observer.ignore(() => focusPreventScroll(view.contentDOM));
-          view.inputState.startMouseSelection(new MouseSelection(view, event, style, mustFocus));
+          if (view.inputState.mouseSelection)
+              view.inputState.mouseSelection.start(event);
       }
   };
   function rangeForClick(view, pos, bias, type) {
@@ -24758,23 +23594,15 @@
   function basicMouseSelection(view, event) {
       let start = queryPos(view, event), type = getClickType(event);
       let startSel = view.state.selection;
-      let last = start, lastEvent = event;
       return {
           update(update) {
               if (update.docChanged) {
                   start.pos = update.changes.mapPos(start.pos);
                   startSel = startSel.map(update.changes);
-                  lastEvent = null;
               }
           },
           get(event, extend, multiple) {
-              let cur;
-              if (lastEvent && event.clientX == lastEvent.clientX && event.clientY == lastEvent.clientY)
-                  cur = last;
-              else {
-                  cur = last = queryPos(view, event);
-                  lastEvent = event;
-              }
+              let cur = queryPos(view, event), removed;
               let range = rangeForClick(view, cur.pos, cur.bias, type);
               if (start.pos != cur.pos && !extend) {
                   let startRange = rangeForClick(view, start.pos, start.bias, type);
@@ -24783,8 +23611,8 @@
               }
               if (extend)
                   return startSel.replaceRange(startSel.main.extend(range.from, range.to));
-              else if (multiple && startSel.ranges.length > 1 && startSel.ranges.some(r => r.eq(range)))
-                  return removeRange(startSel, range);
+              else if (multiple && type == 1 && startSel.ranges.length > 1 && (removed = removeRangeAround(startSel, cur.pos)))
+                  return removed;
               else if (multiple)
                   return startSel.addRange(range);
               else
@@ -24792,11 +23620,13 @@
           }
       };
   }
-  function removeRange(sel, range) {
-      for (let i = 0;; i++) {
-          if (sel.ranges[i].eq(range))
+  function removeRangeAround(sel, pos) {
+      for (let i = 0; i < sel.ranges.length; i++) {
+          let { from, to } = sel.ranges[i];
+          if (from <= pos && to >= pos)
               return EditorSelection.create(sel.ranges.slice(0, i).concat(sel.ranges.slice(i + 1)), sel.mainIndex == i ? 0 : sel.mainIndex - (sel.mainIndex > i ? 1 : 0));
       }
+      return null;
   }
   handlers.dragstart = (view, event) => {
       let { selection: { main } } = view.state;
@@ -24814,7 +23644,7 @@
       let dropPos = view.posAtCoords({ x: event.clientX, y: event.clientY }, false);
       event.preventDefault();
       let { mouseSelection } = view.inputState;
-      let del = direct && mouseSelection && mouseSelection.dragging && mouseSelection.dragMove ?
+      let del = direct && mouseSelection && mouseSelection.dragging && dragMovesSelection(view, event) ?
           { from: mouseSelection.dragging.from, to: mouseSelection.dragging.to } : null;
       let ins = { from: dropPos, insert: text };
       let changes = view.state.changes(del ? [del, ins] : ins);
@@ -24859,7 +23689,7 @@
       view.observer.flush();
       let data = brokenClipboardAPI ? null : event.clipboardData;
       if (data) {
-          doPaste(view, data.getData("text/plain"));
+          doPaste(view, data.getData("text/plain") || data.getData("text/uri-text"));
           event.preventDefault();
       }
       else {
@@ -24927,10 +23757,26 @@
               userEvent: "delete.cut"
           });
   };
+  const isFocusChange = /*@__PURE__*/Annotation.define();
+  function focusChangeTransaction(state, focus) {
+      let effects = [];
+      for (let getEffect of state.facet(focusChangeEffect)) {
+          let effect = getEffect(state, focus);
+          if (effect)
+              effects.push(effect);
+      }
+      return effects ? state.update({ effects, annotations: isFocusChange.of(true) }) : null;
+  }
   function updateForFocusChange(view) {
       setTimeout(() => {
-          if (view.hasFocus != view.inputState.notifiedFocused)
-              view.update([]);
+          let focus = view.hasFocus;
+          if (focus != view.inputState.notifiedFocused) {
+              let tr = focusChangeTransaction(view.state, focus);
+              if (tr)
+                  view.dispatch(tr);
+              else
+                  view.update([]);
+          }
       }, 10);
   }
   handlers.focus = view => {
@@ -24957,14 +23803,26 @@
   handlers.compositionend = view => {
       view.inputState.composing = -1;
       view.inputState.compositionEndedAt = Date.now();
+      view.inputState.compositionPendingKey = true;
+      view.inputState.compositionPendingChange = view.observer.pendingRecords().length > 0;
       view.inputState.compositionFirstChange = null;
-      if (browser.chrome && browser.android)
+      if (browser.chrome && browser.android) {
+          // Delay flushing for a bit on Android because it'll often fire a
+          // bunch of contradictory changes in a row at end of compositon
           view.observer.flushSoon();
-      setTimeout(() => {
-          // Force the composition state to be cleared if it hasn't already been
-          if (view.inputState.composing < 0 && view.docView.compositionDeco.size)
-              view.update([]);
-      }, 50);
+      }
+      else if (view.inputState.compositionPendingChange) {
+          // If we found pending records, schedule a flush.
+          Promise.resolve().then(() => view.observer.flush());
+      }
+      else {
+          // Otherwise, make sure that, if no changes come in soon, the
+          // composition view is cleared.
+          setTimeout(() => {
+              if (view.inputState.composing < 0 && view.docView.compositionDeco.size)
+                  view.update([]);
+          }, 50);
+      }
   };
   handlers.contextmenu = view => {
       view.inputState.lastContextMenu = Date.now();
@@ -25003,8 +23861,9 @@
           this.lineWrapping = lineWrapping;
           this.doc = Text$1.empty;
           this.heightSamples = {};
-          this.lineHeight = 14;
+          this.lineHeight = 14; // The height of an entire line (line-height)
           this.charWidth = 7;
+          this.textHeight = 14; // The height of the actual font (font-size)
           this.lineLength = 30;
           // Used to track, during updateHeight, if any actual heights changed
           this.heightChanged = false;
@@ -25012,7 +23871,7 @@
       heightForGap(from, to) {
           let lines = this.doc.lineAt(to).number - this.doc.lineAt(from).number + 1;
           if (this.lineWrapping)
-              lines += Math.ceil(((to - from) - (lines * this.lineLength * 0.5)) / this.lineLength);
+              lines += Math.max(0, Math.ceil(((to - from) - (lines * this.lineLength * 0.5)) / this.lineLength));
           return this.lineHeight * lines;
       }
       heightForLine(length) {
@@ -25039,12 +23898,13 @@
           }
           return newHeight;
       }
-      refresh(whiteSpace, lineHeight, charWidth, lineLength, knownHeights) {
+      refresh(whiteSpace, lineHeight, charWidth, textHeight, lineLength, knownHeights) {
           let lineWrapping = wrappingWhiteSpace.indexOf(whiteSpace) > -1;
           let changed = Math.round(lineHeight) != Math.round(this.lineHeight) || this.lineWrapping != lineWrapping;
           this.lineWrapping = lineWrapping;
           this.lineHeight = lineHeight;
           this.charWidth = charWidth;
+          this.textHeight = textHeight;
           this.lineLength = lineLength;
           if (changed) {
               this.heightSamples = {};
@@ -25097,15 +23957,25 @@
       */
       height, 
       /**
-      The type of element this is. When querying lines, this may be
-      an array of all the blocks that make up the line.
+      @internal Weird packed field that holds an array of children
+      for composite blocks, a decoration for block widgets, and a
+      number indicating the amount of widget-create line breaks for
+      text blocks.
       */
-      type) {
+      _content) {
           this.from = from;
           this.length = length;
           this.top = top;
           this.height = height;
-          this.type = type;
+          this._content = _content;
+      }
+      /**
+      The type of element this is. When querying lines, this may be
+      an array of all the blocks that make up the line.
+      */
+      get type() {
+          return typeof this._content == "number" ? BlockType.Text :
+              Array.isArray(this._content) ? this._content : this._content.type;
       }
       /**
       The end of the element as a document position.
@@ -25116,12 +23986,26 @@
       */
       get bottom() { return this.top + this.height; }
       /**
+      If this is a widget block, this will return the widget
+      associated with it.
+      */
+      get widget() {
+          return this._content instanceof PointDecoration ? this._content.widget : null;
+      }
+      /**
+      If this is a textblock, this holds the number of line breaks
+      that appear in widgets inside the block.
+      */
+      get widgetLineBreaks() {
+          return typeof this._content == "number" ? this._content : 0;
+      }
+      /**
       @internal
       */
       join(other) {
-          let detail = (Array.isArray(this.type) ? this.type : [this])
-              .concat(Array.isArray(other.type) ? other.type : [other]);
-          return new BlockInfo(this.from, this.length + other.length, this.top, this.height + other.height, detail);
+          let content = (Array.isArray(this._content) ? this._content : [this])
+              .concat(Array.isArray(other._content) ? other._content : [other]);
+          return new BlockInfo(this.from, this.length + other.length, this.top, this.height + other.height, content);
       }
   }
   var QueryType = /*@__PURE__*/(function (QueryType) {
@@ -25133,13 +24017,13 @@
   class HeightMap {
       constructor(length, // The number of characters covered
       height, // Height of this part of the document
-      flags = 2 /* Flag.Outdated */) {
+      flags = 2 /* Outdated */) {
           this.length = length;
           this.height = height;
           this.flags = flags;
       }
-      get outdated() { return (this.flags & 2 /* Flag.Outdated */) > 0; }
-      set outdated(value) { this.flags = (value ? 2 /* Flag.Outdated */ : 0) | (this.flags & ~2 /* Flag.Outdated */); }
+      get outdated() { return (this.flags & 2 /* Outdated */) > 0; }
+      set outdated(value) { this.flags = (value ? 2 /* Outdated */ : 0) | (this.flags & ~2 /* Outdated */); }
       setHeight(oracle, height) {
           if (this.height != height) {
               if (Math.abs(this.height - height) > Epsilon)
@@ -25157,11 +24041,11 @@
       decomposeLeft(_to, result) { result.push(this); }
       decomposeRight(_from, result) { result.push(this); }
       applyChanges(decorations, oldDoc, oracle, changes) {
-          let me = this;
+          let me = this, doc = oracle.doc;
           for (let i = changes.length - 1; i >= 0; i--) {
               let { fromA, toA, fromB, toB } = changes[i];
-              let start = me.lineAt(fromA, QueryType.ByPosNoHeight, oldDoc, 0, 0);
-              let end = start.to >= toA ? start : me.lineAt(toA, QueryType.ByPosNoHeight, oldDoc, 0, 0);
+              let start = me.lineAt(fromA, QueryType.ByPosNoHeight, oracle.setDoc(oldDoc), 0, 0);
+              let end = start.to >= toA ? start : me.lineAt(toA, QueryType.ByPosNoHeight, oracle, 0, 0);
               toB += end.to - toA;
               toA = end.to;
               while (i > 0 && start.from <= changes[i - 1].toA) {
@@ -25169,11 +24053,11 @@
                   fromB = changes[i - 1].fromB;
                   i--;
                   if (fromA < start.from)
-                      start = me.lineAt(fromA, QueryType.ByPosNoHeight, oldDoc, 0, 0);
+                      start = me.lineAt(fromA, QueryType.ByPosNoHeight, oracle, 0, 0);
               }
               fromB += start.from - fromA;
               fromA = start.from;
-              let nodes = NodeBuilder.build(oracle, decorations, fromB, toB);
+              let nodes = NodeBuilder.build(oracle.setDoc(doc), decorations, fromB, toB);
               me = me.replace(fromA, toA, nodes);
           }
           return me.updateHeight(oracle, 0);
@@ -25236,19 +24120,19 @@
   }
   HeightMap.prototype.size = 1;
   class HeightMapBlock extends HeightMap {
-      constructor(length, height, type) {
+      constructor(length, height, deco) {
           super(length, height);
-          this.type = type;
+          this.deco = deco;
       }
-      blockAt(_height, _doc, top, offset) {
-          return new BlockInfo(offset, this.length, top, this.height, this.type);
+      blockAt(_height, _oracle, top, offset) {
+          return new BlockInfo(offset, this.length, top, this.height, this.deco || 0);
       }
-      lineAt(_value, _type, doc, top, offset) {
-          return this.blockAt(0, doc, top, offset);
+      lineAt(_value, _type, oracle, top, offset) {
+          return this.blockAt(0, oracle, top, offset);
       }
-      forEachLine(from, to, doc, top, offset, f) {
+      forEachLine(from, to, oracle, top, offset, f) {
           if (from <= offset + this.length && to >= offset)
-              f(this.blockAt(0, doc, top, offset));
+              f(this.blockAt(0, oracle, top, offset));
       }
       updateHeight(oracle, offset = 0, _force = false, measured) {
           if (measured && measured.from <= offset && measured.more)
@@ -25260,13 +24144,17 @@
   }
   class HeightMapText extends HeightMapBlock {
       constructor(length, height) {
-          super(length, height, BlockType.Text);
+          super(length, height, null);
           this.collapsed = 0; // Amount of collapsed content in the line
           this.widgetHeight = 0; // Maximum inline widget height
+          this.breaks = 0; // Number of widget-introduced line breaks on the line
+      }
+      blockAt(_height, _oracle, top, offset) {
+          return new BlockInfo(offset, this.length, top, this.height, this.breaks);
       }
       replace(_from, _to, nodes) {
           let node = nodes[0];
-          if (nodes.length == 1 && (node instanceof HeightMapText || node instanceof HeightMapGap && (node.flags & 4 /* Flag.SingleLine */)) &&
+          if (nodes.length == 1 && (node instanceof HeightMapText || node instanceof HeightMapGap && (node.flags & 4 /* SingleLine */)) &&
               Math.abs(this.length - node.length) < 10) {
               if (node instanceof HeightMapGap)
                   node = new HeightMapText(node.length, this.height);
@@ -25284,7 +24172,8 @@
           if (measured && measured.from <= offset && measured.more)
               this.setHeight(oracle, measured.heights[measured.index++]);
           else if (force || this.outdated)
-              this.setHeight(oracle, Math.max(this.widgetHeight, oracle.heightForLine(this.length - this.collapsed)));
+              this.setHeight(oracle, Math.max(this.widgetHeight, oracle.heightForLine(this.length - this.collapsed)) +
+                  this.breaks * oracle.lineHeight);
           this.outdated = false;
           return this;
       }
@@ -25294,35 +24183,61 @@
   }
   class HeightMapGap extends HeightMap {
       constructor(length) { super(length, 0); }
-      lines(doc, offset) {
-          let firstLine = doc.lineAt(offset).number, lastLine = doc.lineAt(offset + this.length).number;
-          return { firstLine, lastLine, lineHeight: this.height / (lastLine - firstLine + 1) };
-      }
-      blockAt(height, doc, top, offset) {
-          let { firstLine, lastLine, lineHeight } = this.lines(doc, offset);
-          let line = Math.max(0, Math.min(lastLine - firstLine, Math.floor((height - top) / lineHeight)));
-          let { from, length } = doc.line(firstLine + line);
-          return new BlockInfo(from, length, top + lineHeight * line, lineHeight, BlockType.Text);
-      }
-      lineAt(value, type, doc, top, offset) {
-          if (type == QueryType.ByHeight)
-              return this.blockAt(value, doc, top, offset);
-          if (type == QueryType.ByPosNoHeight) {
-              let { from, to } = doc.lineAt(value);
-              return new BlockInfo(from, to - from, 0, 0, BlockType.Text);
+      heightMetrics(oracle, offset) {
+          let firstLine = oracle.doc.lineAt(offset).number, lastLine = oracle.doc.lineAt(offset + this.length).number;
+          let lines = lastLine - firstLine + 1;
+          let perLine, perChar = 0;
+          if (oracle.lineWrapping) {
+              let totalPerLine = Math.min(this.height, oracle.lineHeight * lines);
+              perLine = totalPerLine / lines;
+              if (this.length > lines + 1)
+                  perChar = (this.height - totalPerLine) / (this.length - lines - 1);
           }
-          let { firstLine, lineHeight } = this.lines(doc, offset);
-          let { from, length, number } = doc.lineAt(value);
-          return new BlockInfo(from, length, top + lineHeight * (number - firstLine), lineHeight, BlockType.Text);
+          else {
+              perLine = this.height / lines;
+          }
+          return { firstLine, lastLine, perLine, perChar };
       }
-      forEachLine(from, to, doc, top, offset, f) {
-          let { firstLine, lineHeight } = this.lines(doc, offset);
-          for (let pos = Math.max(from, offset), end = Math.min(offset + this.length, to); pos <= end;) {
-              let line = doc.lineAt(pos);
-              if (pos == from)
-                  top += lineHeight * (line.number - firstLine);
-              f(new BlockInfo(line.from, line.length, top, lineHeight, BlockType.Text));
-              top += lineHeight;
+      blockAt(height, oracle, top, offset) {
+          let { firstLine, lastLine, perLine, perChar } = this.heightMetrics(oracle, offset);
+          if (oracle.lineWrapping) {
+              let guess = offset + Math.round(Math.max(0, Math.min(1, (height - top) / this.height)) * this.length);
+              let line = oracle.doc.lineAt(guess), lineHeight = perLine + line.length * perChar;
+              let lineTop = Math.max(top, height - lineHeight / 2);
+              return new BlockInfo(line.from, line.length, lineTop, lineHeight, 0);
+          }
+          else {
+              let line = Math.max(0, Math.min(lastLine - firstLine, Math.floor((height - top) / perLine)));
+              let { from, length } = oracle.doc.line(firstLine + line);
+              return new BlockInfo(from, length, top + perLine * line, perLine, 0);
+          }
+      }
+      lineAt(value, type, oracle, top, offset) {
+          if (type == QueryType.ByHeight)
+              return this.blockAt(value, oracle, top, offset);
+          if (type == QueryType.ByPosNoHeight) {
+              let { from, to } = oracle.doc.lineAt(value);
+              return new BlockInfo(from, to - from, 0, 0, 0);
+          }
+          let { firstLine, perLine, perChar } = this.heightMetrics(oracle, offset);
+          let line = oracle.doc.lineAt(value), lineHeight = perLine + line.length * perChar;
+          let linesAbove = line.number - firstLine;
+          let lineTop = top + perLine * linesAbove + perChar * (line.from - offset - linesAbove);
+          return new BlockInfo(line.from, line.length, Math.max(top, Math.min(lineTop, top + this.height - lineHeight)), lineHeight, 0);
+      }
+      forEachLine(from, to, oracle, top, offset, f) {
+          from = Math.max(from, offset);
+          to = Math.min(to, offset + this.length);
+          let { firstLine, perLine, perChar } = this.heightMetrics(oracle, offset);
+          for (let pos = from, lineTop = top; pos <= to;) {
+              let line = oracle.doc.lineAt(pos);
+              if (pos == from) {
+                  let linesAbove = line.number - firstLine;
+                  lineTop += perLine * linesAbove + perChar * (from - offset - linesAbove);
+              }
+              let lineHeight = perLine + perChar * line.length;
+              f(new BlockInfo(line.from, line.length, lineTop, lineHeight, 0));
+              lineTop += lineHeight;
               pos = line.to + 1;
           }
       }
@@ -25358,7 +24273,6 @@
               // they would already have been added to the heightmap (gaps
               // only contain plain text).
               let nodes = [], pos = Math.max(offset, measured.from), singleHeight = -1;
-              let wasChanged = oracle.heightChanged;
               if (measured.from > offset)
                   nodes.push(new HeightMapGap(measured.from - offset - 1).updateHeight(oracle, offset));
               while (pos <= end && measured.more) {
@@ -25378,8 +24292,9 @@
               if (pos <= end)
                   nodes.push(null, new HeightMapGap(end - pos).updateHeight(oracle, pos));
               let result = HeightMap.of(nodes);
-              oracle.heightChanged = wasChanged || singleHeight < 0 || Math.abs(result.height - this.height) >= Epsilon ||
-                  Math.abs(singleHeight - this.lines(oracle.doc, offset).lineHeight) >= Epsilon;
+              if (singleHeight < 0 || Math.abs(result.height - this.height) >= Epsilon ||
+                  Math.abs(singleHeight - this.heightMetrics(oracle, offset).perLine) >= Epsilon)
+                  oracle.heightChanged = true;
               return result;
           }
           else if (force || this.outdated) {
@@ -25392,46 +24307,46 @@
   }
   class HeightMapBranch extends HeightMap {
       constructor(left, brk, right) {
-          super(left.length + brk + right.length, left.height + right.height, brk | (left.outdated || right.outdated ? 2 /* Flag.Outdated */ : 0));
+          super(left.length + brk + right.length, left.height + right.height, brk | (left.outdated || right.outdated ? 2 /* Outdated */ : 0));
           this.left = left;
           this.right = right;
           this.size = left.size + right.size;
       }
-      get break() { return this.flags & 1 /* Flag.Break */; }
-      blockAt(height, doc, top, offset) {
+      get break() { return this.flags & 1 /* Break */; }
+      blockAt(height, oracle, top, offset) {
           let mid = top + this.left.height;
-          return height < mid ? this.left.blockAt(height, doc, top, offset)
-              : this.right.blockAt(height, doc, mid, offset + this.left.length + this.break);
+          return height < mid ? this.left.blockAt(height, oracle, top, offset)
+              : this.right.blockAt(height, oracle, mid, offset + this.left.length + this.break);
       }
-      lineAt(value, type, doc, top, offset) {
+      lineAt(value, type, oracle, top, offset) {
           let rightTop = top + this.left.height, rightOffset = offset + this.left.length + this.break;
           let left = type == QueryType.ByHeight ? value < rightTop : value < rightOffset;
-          let base = left ? this.left.lineAt(value, type, doc, top, offset)
-              : this.right.lineAt(value, type, doc, rightTop, rightOffset);
+          let base = left ? this.left.lineAt(value, type, oracle, top, offset)
+              : this.right.lineAt(value, type, oracle, rightTop, rightOffset);
           if (this.break || (left ? base.to < rightOffset : base.from > rightOffset))
               return base;
           let subQuery = type == QueryType.ByPosNoHeight ? QueryType.ByPosNoHeight : QueryType.ByPos;
           if (left)
-              return base.join(this.right.lineAt(rightOffset, subQuery, doc, rightTop, rightOffset));
+              return base.join(this.right.lineAt(rightOffset, subQuery, oracle, rightTop, rightOffset));
           else
-              return this.left.lineAt(rightOffset, subQuery, doc, top, offset).join(base);
+              return this.left.lineAt(rightOffset, subQuery, oracle, top, offset).join(base);
       }
-      forEachLine(from, to, doc, top, offset, f) {
+      forEachLine(from, to, oracle, top, offset, f) {
           let rightTop = top + this.left.height, rightOffset = offset + this.left.length + this.break;
           if (this.break) {
               if (from < rightOffset)
-                  this.left.forEachLine(from, to, doc, top, offset, f);
+                  this.left.forEachLine(from, to, oracle, top, offset, f);
               if (to >= rightOffset)
-                  this.right.forEachLine(from, to, doc, rightTop, rightOffset, f);
+                  this.right.forEachLine(from, to, oracle, rightTop, rightOffset, f);
           }
           else {
-              let mid = this.lineAt(rightOffset, QueryType.ByPos, doc, top, offset);
+              let mid = this.lineAt(rightOffset, QueryType.ByPos, oracle, top, offset);
               if (from < mid.from)
-                  this.left.forEachLine(from, mid.from - 1, doc, top, offset, f);
+                  this.left.forEachLine(from, mid.from - 1, oracle, top, offset, f);
               if (mid.to >= from && mid.from <= to)
                   f(mid);
               if (to > mid.to)
-                  this.right.forEachLine(mid.to + 1, to, doc, rightTop, rightOffset, f);
+                  this.right.forEachLine(mid.to + 1, to, oracle, rightTop, rightOffset, f);
           }
       }
       replace(from, to, nodes) {
@@ -25547,14 +24462,15 @@
       point(from, to, deco) {
           if (from < to || deco.heightRelevant) {
               let height = deco.widget ? deco.widget.estimatedHeight : 0;
+              let breaks = deco.widget ? deco.widget.lineBreaks : 0;
               if (height < 0)
                   height = this.oracle.lineHeight;
               let len = to - from;
               if (deco.block) {
-                  this.addBlock(new HeightMapBlock(len, height, deco.type));
+                  this.addBlock(new HeightMapBlock(len, height, deco));
               }
-              else if (len || height >= relevantWidgetHeight) {
-                  this.addLineDeco(height, len);
+              else if (len || breaks || height >= relevantWidgetHeight) {
+                  this.addLineDeco(height, breaks, len);
               }
           }
           else if (to > from) {
@@ -25581,7 +24497,7 @@
       blankContent(from, to) {
           let gap = new HeightMapGap(to - from);
           if (this.oracle.doc.lineAt(from).to == to)
-              gap.flags |= 4 /* Flag.SingleLine */;
+              gap.flags |= 4 /* SingleLine */;
           return gap;
       }
       ensureLine() {
@@ -25594,19 +24510,22 @@
           return line;
       }
       addBlock(block) {
+          var _a;
           this.enterLine();
-          if (block.type == BlockType.WidgetAfter && !this.isCovered)
+          let type = (_a = block.deco) === null || _a === void 0 ? void 0 : _a.type;
+          if (type == BlockType.WidgetAfter && !this.isCovered)
               this.ensureLine();
           this.nodes.push(block);
           this.writtenTo = this.pos = this.pos + block.length;
-          if (block.type != BlockType.WidgetBefore)
+          if (type != BlockType.WidgetBefore)
               this.covering = block;
       }
-      addLineDeco(height, length) {
+      addLineDeco(height, breaks, length) {
           let line = this.ensureLine();
           line.length += length;
           line.collapsed += length;
           line.widgetHeight = Math.max(line.widgetHeight, height);
+          line.breaks += breaks;
           this.writtenTo = this.pos = this.pos + length;
       }
       finish(from) {
@@ -25740,6 +24659,14 @@
           this.contentDOMHeight = 0;
           this.editorHeight = 0;
           this.editorWidth = 0;
+          this.scrollTop = 0;
+          this.scrolledToBottom = true;
+          // The vertical position (document-relative) to which to anchor the
+          // scroll position. -1 means anchor to the end of the document.
+          this.scrollAnchorPos = 0;
+          // The height at the anchor position. Set by the DOM update phase.
+          // -1 means no height available.
+          this.scrollAnchorHeight = -1;
           // See VP.MaxDOMHeight
           this.scaler = IdScaler;
           this.scrollTarget = null;
@@ -25780,12 +24707,12 @@
               }
           }
           this.viewports = viewports.sort((a, b) => a.from - b.from);
-          this.scaler = this.heightMap.height <= 7000000 /* VP.MaxDOMHeight */ ? IdScaler :
-              new BigScaler(this.heightOracle.doc, this.heightMap, this.viewports);
+          this.scaler = this.heightMap.height <= 7000000 /* MaxDOMHeight */ ? IdScaler :
+              new BigScaler(this.heightOracle, this.heightMap, this.viewports);
       }
       updateViewportLines() {
           this.viewportLines = [];
-          this.heightMap.forEachLine(this.viewport.from, this.viewport.to, this.state.doc, 0, 0, block => {
+          this.heightMap.forEachLine(this.viewport.from, this.viewport.to, this.heightOracle.setDoc(this.state.doc), 0, 0, block => {
               this.viewportLines.push(this.scaler.scale == 1 ? block : scaleBlock(block, this.scaler));
           });
       }
@@ -25796,20 +24723,29 @@
           let contentChanges = update.changedRanges;
           let heightChanges = ChangedRange.extendWithRanges(contentChanges, heightRelevantDecoChanges(prevDeco, this.stateDeco, update ? update.changes : ChangeSet.empty(this.state.doc.length)));
           let prevHeight = this.heightMap.height;
+          let scrollAnchor = this.scrolledToBottom ? null : this.lineBlockAtHeight(this.scrollTop);
           this.heightMap = this.heightMap.applyChanges(this.stateDeco, update.startState.doc, this.heightOracle.setDoc(this.state.doc), heightChanges);
           if (this.heightMap.height != prevHeight)
-              update.flags |= 2 /* UpdateFlag.Height */;
+              update.flags |= 2 /* Height */;
+          if (scrollAnchor) {
+              this.scrollAnchorPos = update.changes.mapPos(scrollAnchor.from, -1);
+              this.scrollAnchorHeight = scrollAnchor.top;
+          }
+          else {
+              this.scrollAnchorPos = -1;
+              this.scrollAnchorHeight = this.heightMap.height;
+          }
           let viewport = heightChanges.length ? this.mapViewport(this.viewport, update.changes) : this.viewport;
           if (scrollTarget && (scrollTarget.range.head < viewport.from || scrollTarget.range.head > viewport.to) ||
               !this.viewportIsAppropriate(viewport))
               viewport = this.getViewport(0, scrollTarget);
-          let updateLines = !update.changes.empty || (update.flags & 2 /* UpdateFlag.Height */) ||
+          let updateLines = !update.changes.empty || (update.flags & 2 /* Height */) ||
               viewport.from != this.viewport.from || viewport.to != this.viewport.to;
           this.viewport = viewport;
           this.updateForViewport();
           if (updateLines)
               this.updateViewportLines();
-          if (this.lineGaps.length || this.viewport.to - this.viewport.from > (2000 /* LG.Margin */ << 1))
+          if (this.lineGaps.length || this.viewport.to - this.viewport.from > (2000 /* Margin */ << 1))
               this.updateLineGaps(this.ensureLineGaps(this.mapLineGaps(this.lineGaps, update.changes)));
           update.flags |= this.computeVisibleRanges();
           if (scrollTarget)
@@ -25825,8 +24761,9 @@
           let whiteSpace = style.whiteSpace;
           this.defaultTextDirection = style.direction == "rtl" ? Direction.RTL : Direction.LTR;
           let refresh = this.heightOracle.mustRefreshForWrapping(whiteSpace);
-          let measureContent = refresh || this.mustMeasureContent || this.contentDOMHeight != dom.clientHeight;
-          this.contentDOMHeight = dom.clientHeight;
+          let domRect = dom.getBoundingClientRect();
+          let measureContent = refresh || this.mustMeasureContent || this.contentDOMHeight != domRect.height;
+          this.contentDOMHeight = domRect.height;
           this.mustMeasureContent = false;
           let result = 0, bias = 0;
           // Vertical padding
@@ -25834,14 +24771,19 @@
           if (this.paddingTop != paddingTop || this.paddingBottom != paddingBottom) {
               this.paddingTop = paddingTop;
               this.paddingBottom = paddingBottom;
-              result |= 8 /* UpdateFlag.Geometry */ | 2 /* UpdateFlag.Height */;
+              result |= 8 /* Geometry */ | 2 /* Height */;
           }
           if (this.editorWidth != view.scrollDOM.clientWidth) {
               if (oracle.lineWrapping)
                   measureContent = true;
               this.editorWidth = view.scrollDOM.clientWidth;
-              result |= 8 /* UpdateFlag.Geometry */;
+              result |= 8 /* Geometry */;
           }
+          if (this.scrollTop != view.scrollDOM.scrollTop) {
+              this.scrollAnchorHeight = -1;
+              this.scrollTop = view.scrollDOM.scrollTop;
+          }
+          this.scrolledToBottom = this.scrollTop > view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight - 4;
           // Pixel viewport
           let pixelViewport = (this.printing ? fullPixelRange : visiblePixelRange)(dom, this.paddingTop);
           let dTop = pixelViewport.top - this.pixelViewport.top, dBottom = pixelViewport.bottom - this.pixelViewport.bottom;
@@ -25854,22 +24796,22 @@
           }
           if (!this.inView && !this.scrollTarget)
               return 0;
-          let contentWidth = dom.clientWidth;
+          let contentWidth = domRect.width;
           if (this.contentDOMWidth != contentWidth || this.editorHeight != view.scrollDOM.clientHeight) {
-              this.contentDOMWidth = contentWidth;
+              this.contentDOMWidth = domRect.width;
               this.editorHeight = view.scrollDOM.clientHeight;
-              result |= 8 /* UpdateFlag.Geometry */;
+              result |= 8 /* Geometry */;
           }
           if (measureContent) {
               let lineHeights = view.docView.measureVisibleLineHeights(this.viewport);
               if (oracle.mustRefreshForHeights(lineHeights))
                   refresh = true;
               if (refresh || oracle.lineWrapping && Math.abs(contentWidth - this.contentDOMWidth) > oracle.charWidth) {
-                  let { lineHeight, charWidth } = view.docView.measureTextSize();
-                  refresh = lineHeight > 0 && oracle.refresh(whiteSpace, lineHeight, charWidth, contentWidth / charWidth, lineHeights);
+                  let { lineHeight, charWidth, textHeight } = view.docView.measureTextSize();
+                  refresh = lineHeight > 0 && oracle.refresh(whiteSpace, lineHeight, charWidth, textHeight, contentWidth / charWidth, lineHeights);
                   if (refresh) {
                       view.docView.minWidth = 0;
-                      result |= 8 /* UpdateFlag.Geometry */;
+                      result |= 8 /* Geometry */;
                   }
               }
               if (dTop > 0 && dBottom > 0)
@@ -25882,16 +24824,17 @@
                   this.heightMap = (refresh ? HeightMap.empty().applyChanges(this.stateDeco, Text$1.empty, this.heightOracle, [new ChangedRange(0, 0, 0, view.state.doc.length)]) : this.heightMap).updateHeight(oracle, 0, refresh, new MeasuredHeights(vp.from, heights));
               }
               if (oracle.heightChanged)
-                  result |= 2 /* UpdateFlag.Height */;
+                  result |= 2 /* Height */;
           }
           let viewportChange = !this.viewportIsAppropriate(this.viewport, bias) ||
-              this.scrollTarget && (this.scrollTarget.range.head < this.viewport.from || this.scrollTarget.range.head > this.viewport.to);
+              this.scrollTarget && (this.scrollTarget.range.head < this.viewport.from ||
+                  this.scrollTarget.range.head > this.viewport.to);
           if (viewportChange)
               this.viewport = this.getViewport(bias, this.scrollTarget);
           this.updateForViewport();
-          if ((result & 2 /* UpdateFlag.Height */) || viewportChange)
+          if ((result & 2 /* Height */) || viewportChange)
               this.updateViewportLines();
-          if (this.lineGaps.length || this.viewport.to - this.viewport.from > (2000 /* LG.Margin */ << 1))
+          if (this.lineGaps.length || this.viewport.to - this.viewport.from > (2000 /* Margin */ << 1))
               this.updateLineGaps(this.ensureLineGaps(refresh ? [] : this.lineGaps, view));
           result |= this.computeVisibleRanges();
           if (this.mustEnforceCursorAssoc) {
@@ -25910,42 +24853,43 @@
           // This will divide VP.Margin between the top and the
           // bottom, depending on the bias (the change in viewport position
           // since the last update). It'll hold a number between 0 and 1
-          let marginTop = 0.5 - Math.max(-0.5, Math.min(0.5, bias / 1000 /* VP.Margin */ / 2));
-          let map = this.heightMap, doc = this.state.doc, { visibleTop, visibleBottom } = this;
-          let viewport = new Viewport(map.lineAt(visibleTop - marginTop * 1000 /* VP.Margin */, QueryType.ByHeight, doc, 0, 0).from, map.lineAt(visibleBottom + (1 - marginTop) * 1000 /* VP.Margin */, QueryType.ByHeight, doc, 0, 0).to);
+          let marginTop = 0.5 - Math.max(-0.5, Math.min(0.5, bias / 1000 /* Margin */ / 2));
+          let map = this.heightMap, oracle = this.heightOracle;
+          let { visibleTop, visibleBottom } = this;
+          let viewport = new Viewport(map.lineAt(visibleTop - marginTop * 1000 /* Margin */, QueryType.ByHeight, oracle, 0, 0).from, map.lineAt(visibleBottom + (1 - marginTop) * 1000 /* Margin */, QueryType.ByHeight, oracle, 0, 0).to);
           // If scrollTarget is given, make sure the viewport includes that position
           if (scrollTarget) {
               let { head } = scrollTarget.range;
               if (head < viewport.from || head > viewport.to) {
                   let viewHeight = Math.min(this.editorHeight, this.pixelViewport.bottom - this.pixelViewport.top);
-                  let block = map.lineAt(head, QueryType.ByPos, doc, 0, 0), topPos;
+                  let block = map.lineAt(head, QueryType.ByPos, oracle, 0, 0), topPos;
                   if (scrollTarget.y == "center")
                       topPos = (block.top + block.bottom) / 2 - viewHeight / 2;
                   else if (scrollTarget.y == "start" || scrollTarget.y == "nearest" && head < viewport.from)
                       topPos = block.top;
                   else
                       topPos = block.bottom - viewHeight;
-                  viewport = new Viewport(map.lineAt(topPos - 1000 /* VP.Margin */ / 2, QueryType.ByHeight, doc, 0, 0).from, map.lineAt(topPos + viewHeight + 1000 /* VP.Margin */ / 2, QueryType.ByHeight, doc, 0, 0).to);
+                  viewport = new Viewport(map.lineAt(topPos - 1000 /* Margin */ / 2, QueryType.ByHeight, oracle, 0, 0).from, map.lineAt(topPos + viewHeight + 1000 /* Margin */ / 2, QueryType.ByHeight, oracle, 0, 0).to);
               }
           }
           return viewport;
       }
       mapViewport(viewport, changes) {
           let from = changes.mapPos(viewport.from, -1), to = changes.mapPos(viewport.to, 1);
-          return new Viewport(this.heightMap.lineAt(from, QueryType.ByPos, this.state.doc, 0, 0).from, this.heightMap.lineAt(to, QueryType.ByPos, this.state.doc, 0, 0).to);
+          return new Viewport(this.heightMap.lineAt(from, QueryType.ByPos, this.heightOracle, 0, 0).from, this.heightMap.lineAt(to, QueryType.ByPos, this.heightOracle, 0, 0).to);
       }
       // Checks if a given viewport covers the visible part of the
       // document and not too much beyond that.
       viewportIsAppropriate({ from, to }, bias = 0) {
           if (!this.inView)
               return true;
-          let { top } = this.heightMap.lineAt(from, QueryType.ByPos, this.state.doc, 0, 0);
-          let { bottom } = this.heightMap.lineAt(to, QueryType.ByPos, this.state.doc, 0, 0);
+          let { top } = this.heightMap.lineAt(from, QueryType.ByPos, this.heightOracle, 0, 0);
+          let { bottom } = this.heightMap.lineAt(to, QueryType.ByPos, this.heightOracle, 0, 0);
           let { visibleTop, visibleBottom } = this;
-          return (from == 0 || top <= visibleTop - Math.max(10 /* VP.MinCoverMargin */, Math.min(-bias, 250 /* VP.MaxCoverMargin */))) &&
+          return (from == 0 || top <= visibleTop - Math.max(10 /* MinCoverMargin */, Math.min(-bias, 250 /* MaxCoverMargin */))) &&
               (to == this.state.doc.length ||
-                  bottom >= visibleBottom + Math.max(10 /* VP.MinCoverMargin */, Math.min(bias, 250 /* VP.MaxCoverMargin */))) &&
-              (top > visibleTop - 2 * 1000 /* VP.Margin */ && bottom < visibleBottom + 2 * 1000 /* VP.Margin */);
+                  bottom >= visibleBottom + Math.max(10 /* MinCoverMargin */, Math.min(bias, 250 /* MaxCoverMargin */))) &&
+              (top > visibleTop - 2 * 1000 /* Margin */ && bottom < visibleBottom + 2 * 1000 /* Margin */);
       }
       mapLineGaps(gaps, changes) {
           if (!gaps.length || changes.empty)
@@ -25965,7 +24909,7 @@
       // the artifacts this might produce from the user.
       ensureLineGaps(current, mayMeasure) {
           let wrapping = this.heightOracle.lineWrapping;
-          let margin = wrapping ? 10000 /* LG.MarginWrap */ : 2000 /* LG.Margin */, halfMargin = margin >> 1, doubleMargin = margin << 1;
+          let margin = wrapping ? 10000 /* MarginWrap */ : 2000 /* Margin */, halfMargin = margin >> 1, doubleMargin = margin << 1;
           // The non-wrapping logic won't work at all in predominantly right-to-left text.
           if (this.defaultTextDirection != Direction.LTR && !wrapping)
               return [];
@@ -25978,8 +24922,8 @@
                   avoid.push(sel.to);
               for (let pos of avoid) {
                   if (pos > from && pos < to) {
-                      addGap(from, pos - 10 /* LG.SelectionMargin */, line, structure);
-                      addGap(pos + 10 /* LG.SelectionMargin */, to, line, structure);
+                      addGap(from, pos - 10 /* SelectionMargin */, line, structure);
+                      addGap(pos + 10 /* SelectionMargin */, to, line, structure);
                       return;
                   }
               }
@@ -26073,17 +25017,17 @@
           let changed = ranges.length != this.visibleRanges.length ||
               this.visibleRanges.some((r, i) => r.from != ranges[i].from || r.to != ranges[i].to);
           this.visibleRanges = ranges;
-          return changed ? 4 /* UpdateFlag.Viewport */ : 0;
+          return changed ? 4 /* Viewport */ : 0;
       }
       lineBlockAt(pos) {
           return (pos >= this.viewport.from && pos <= this.viewport.to && this.viewportLines.find(b => b.from <= pos && b.to >= pos)) ||
-              scaleBlock(this.heightMap.lineAt(pos, QueryType.ByPos, this.state.doc, 0, 0), this.scaler);
+              scaleBlock(this.heightMap.lineAt(pos, QueryType.ByPos, this.heightOracle, 0, 0), this.scaler);
       }
       lineBlockAtHeight(height) {
-          return scaleBlock(this.heightMap.lineAt(this.scaler.fromDOM(height), QueryType.ByHeight, this.state.doc, 0, 0), this.scaler);
+          return scaleBlock(this.heightMap.lineAt(this.scaler.fromDOM(height), QueryType.ByHeight, this.heightOracle, 0, 0), this.scaler);
       }
       elementAtHeight(height) {
-          return scaleBlock(this.heightMap.blockAt(this.scaler.fromDOM(height), this.state.doc, 0, 0), this.scaler);
+          return scaleBlock(this.heightMap.blockAt(this.scaler.fromDOM(height), this.heightOracle, 0, 0), this.scaler);
       }
       get docHeight() {
           return this.scaler.toDOM(this.heightMap.height);
@@ -26157,15 +25101,15 @@
   // regions outside the viewports so that the total height is
   // VP.MaxDOMHeight.
   class BigScaler {
-      constructor(doc, heightMap, viewports) {
+      constructor(oracle, heightMap, viewports) {
           let vpHeight = 0, base = 0, domBase = 0;
           this.viewports = viewports.map(({ from, to }) => {
-              let top = heightMap.lineAt(from, QueryType.ByPos, doc, 0, 0).top;
-              let bottom = heightMap.lineAt(to, QueryType.ByPos, doc, 0, 0).bottom;
+              let top = heightMap.lineAt(from, QueryType.ByPos, oracle, 0, 0).top;
+              let bottom = heightMap.lineAt(to, QueryType.ByPos, oracle, 0, 0).bottom;
               vpHeight += bottom - top;
               return { from, to, top, bottom, domTop: 0, domBottom: 0 };
           });
-          this.scale = (7000000 /* VP.MaxDOMHeight */ - vpHeight) / (heightMap.height - vpHeight);
+          this.scale = (7000000 /* MaxDOMHeight */ - vpHeight) / (heightMap.height - vpHeight);
           for (let obj of this.viewports) {
               obj.domTop = domBase + (obj.top - base) * this.scale;
               domBase = obj.domBottom = obj.domTop + (obj.bottom - obj.top);
@@ -26199,7 +25143,7 @@
       if (scaler.scale == 1)
           return block;
       let bTop = scaler.toDOM(block.top), bBottom = scaler.toDOM(block.bottom);
-      return new BlockInfo(block.from, block.length, bTop, bBottom - bTop, Array.isArray(block.type) ? block.type.map(b => scaleBlock(b, scaler)) : block.type);
+      return new BlockInfo(block.from, block.length, bTop, bBottom - bTop, Array.isArray(block._content) ? block._content.map(b => scaleBlock(b, scaler)) : block._content);
   }
 
   const theme = /*@__PURE__*/Facet.define({ combine: strs => strs.join(" ") });
@@ -26220,7 +25164,7 @@
       });
   }
   const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
-      "&.cm-editor": {
+      "&": {
           position: "relative !important",
           boxSizing: "border-box",
           "&.cm-focused": {
@@ -26275,6 +25219,9 @@
           padding: "0 2px 0 6px"
       },
       ".cm-layer": {
+          position: "absolute",
+          left: 0,
+          top: 0,
           contain: "size style",
           "& > *": {
               position: "absolute"
@@ -26286,16 +25233,16 @@
       "&dark .cm-selectionBackground": {
           background: "#222"
       },
-      "&light.cm-focused .cm-selectionBackground": {
+      "&light.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground": {
           background: "#d7d4f0"
       },
-      "&dark.cm-focused .cm-selectionBackground": {
+      "&dark.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground": {
           background: "#233"
       },
       ".cm-cursorLayer": {
           pointerEvents: "none"
       },
-      "&.cm-focused .cm-cursorLayer": {
+      "&.cm-focused > .cm-scroller > .cm-cursorLayer": {
           animation: "steps(1) cm-blink 1.2s infinite"
       },
       // Two animations defined so that we can switch between them to
@@ -26314,7 +25261,10 @@
       "&dark .cm-cursor": {
           borderLeftColor: "#444"
       },
-      "&.cm-focused .cm-cursor": {
+      ".cm-dropCursor": {
+          position: "absolute"
+      },
+      "&.cm-focused > .cm-scroller > .cm-cursorLayer .cm-cursor": {
           display: "block"
       },
       "&light .cm-activeLine": { backgroundColor: "#cceeff44" },
@@ -26483,13 +25433,13 @@
   function applyDOMChange(view, domChange) {
       let change;
       let { newSel } = domChange, sel = view.state.selection.main;
+      let lastKey = view.inputState.lastKeyTime > Date.now() - 100 ? view.inputState.lastKeyCode : -1;
       if (domChange.bounds) {
           let { from, to } = domChange.bounds;
           let preferredPos = sel.from, preferredSide = null;
           // Prefer anchoring to end when Backspace is pressed (or, on
           // Android, when something was deleted)
-          if (view.inputState.lastKeyCode === 8 && view.inputState.lastKeyTime > Date.now() - 100 ||
-              browser.android && domChange.text.length < to - from) {
+          if (lastKey === 8 || browser.android && domChange.text.length < to - from) {
               preferredPos = sel.to;
               preferredSide = "end";
           }
@@ -26497,14 +25447,14 @@
           if (diff) {
               // Chrome inserts two newlines when pressing shift-enter at the
               // end of a line. DomChange drops one of those.
-              if (browser.chrome && view.inputState.lastKeyCode == 13 &&
+              if (browser.chrome && lastKey == 13 &&
                   diff.toB == diff.from + 2 && domChange.text.slice(diff.from, diff.toB) == LineBreakPlaceholder + LineBreakPlaceholder)
                   diff.toB--;
               change = { from: from + diff.from, to: from + diff.toA,
                   insert: Text$1.of(domChange.text.slice(diff.from, diff.toB).split(LineBreakPlaceholder)) };
           }
       }
-      else if (newSel && (!view.hasFocus || !view.state.facet(editable) || newSel.main.eq(sel))) {
+      else if (newSel && (!view.hasFocus && view.state.facet(editable) || newSel.main.eq(sel))) {
           newSel = null;
       }
       if (!change && !newSel)
@@ -26525,7 +25475,7 @@
           };
       }
       else if ((browser.mac || browser.android) && change && change.from == change.to && change.from == sel.head - 1 &&
-          /^\. ?$/.test(change.insert.toString())) {
+          /^\. ?$/.test(change.insert.toString()) && view.contentDOM.getAttribute("autocorrect") == "off") {
           // Detect insert-period-on-double-space Mac and Android behavior,
           // and transform it into a regular space insert.
           if (newSel && change.insert.length == 2)
@@ -26555,7 +25505,8 @@
               ((change.from == sel.from && change.to == sel.to &&
                   change.insert.length == 1 && change.insert.lines == 2 &&
                   dispatchKey(view.contentDOM, "Enter", 13)) ||
-                  (change.from == sel.from - 1 && change.to == sel.to && change.insert.length == 0 &&
+                  ((change.from == sel.from - 1 && change.to == sel.to && change.insert.length == 0 ||
+                      lastKey == 8 && change.insert.length < change.to - change.from) &&
                       dispatchKey(view.contentDOM, "Backspace", 8)) ||
                   (change.from == sel.from && change.to == sel.to + 1 && change.insert.length == 0 &&
                       dispatchKey(view.contentDOM, "Delete", 46))))
@@ -26575,8 +25526,7 @@
           }
           else {
               let changes = startState.changes(change);
-              let mainSel = newSel && !startState.selection.main.eq(newSel.main) && newSel.main.to <= changes.newLength
-                  ? newSel.main : undefined;
+              let mainSel = newSel && newSel.main.to <= changes.newLength ? newSel.main : undefined;
               // Try to apply a composition change to all cursors
               if (startState.selection.ranges.length > 1 && view.inputState.composing >= 0 &&
                   change.to <= sel.to && change.to >= sel.to - 10) {
@@ -26610,7 +25560,9 @@
               }
           }
           let userEvent = "input.type";
-          if (view.composing) {
+          if (view.composing ||
+              view.inputState.compositionPendingChange && view.inputState.compositionEndedAt > Date.now() - 50) {
+              view.inputState.compositionPendingChange = false;
               userEvent += ".compose";
               if (view.inputState.compositionFirstChange) {
                   userEvent += ".start";
@@ -26773,7 +25725,7 @@
                       if (this.intersecting != this.view.inView)
                           this.onScrollChanged(document.createEvent("Event"));
                   }
-              }, {});
+              }, { threshold: [0, .001] });
               this.intersection.observe(this.dom);
               this.gapIntersection = new IntersectionObserver(entries => {
                   if (entries.length > 0 && entries[entries.length - 1].intersectionRatio > 0)
@@ -26952,7 +25904,10 @@
                   let key = this.delayedAndroidKey;
                   if (key) {
                       this.clearDelayedAndroidKey();
-                      if (!this.flush() && key.force)
+                      this.view.inputState.lastKeyCode = key.keyCode;
+                      this.view.inputState.lastKeyTime = Date.now();
+                      let flushed = this.flush();
+                      if (!flushed && key.force)
                           dispatchKey(this.dom, key.key, key.keyCode);
                   }
               };
@@ -26986,10 +25941,13 @@
           }
           this.flush();
       }
-      processRecords() {
-          let records = this.queue;
+      pendingRecords() {
           for (let mut of this.observer.takeRecords())
-              records.push(mut);
+              this.queue.push(mut);
+          return this.queue;
+      }
+      processRecords() {
+          let records = this.pendingRecords();
           if (records.length)
               this.queue = [];
           let from = -1, to = -1, typeOver = false;
@@ -27045,7 +26003,7 @@
               return null;
           cView.markDirty(rec.type == "attributes");
           if (rec.type == "attributes")
-              cView.dirty |= 4 /* Dirty.Attrs */;
+              cView.dirty |= 4 /* Attrs */;
           if (rec.type == "childList") {
               let childBefore = findChild(cView, rec.previousSibling || rec.target.previousSibling, -1);
               let childAfter = findChild(cView, rec.nextSibling || rec.target.nextSibling, 1);
@@ -27168,7 +26126,7 @@
           /**
           @internal
           */
-          this.updateState = 2 /* UpdateState.Updating */;
+          this.updateState = 2 /* Updating */;
           /**
           @internal
           */
@@ -27201,7 +26159,7 @@
           this.docView = new DocView(this);
           this.mountStyles();
           this.updateAttrs();
-          this.updateState = 0 /* UpdateState.Idle */;
+          this.updateState = 0 /* Idle */;
           this.requestMeasure();
           if (config.parent)
               config.parent.appendChild(this.dom);
@@ -27254,8 +26212,9 @@
       */
       get win() { return this.dom.ownerDocument.defaultView || window; }
       dispatch(...input) {
-          this._dispatch(input.length == 1 && input[0] instanceof Transaction ? input[0]
-              : this.state.update(...input));
+          let tr = input.length == 1 && input[0] instanceof Transaction ? input[0]
+              : this.state.update(...input);
+          this._dispatch(tr, this);
       }
       /**
       Update the view for the given array of transactions. This will
@@ -27266,7 +26225,7 @@
       as a primitive.
       */
       update(transactions) {
-          if (this.updateState != 0 /* UpdateState.Idle */)
+          if (this.updateState != 0 /* Idle */)
               throw new Error("Calls to EditorView.update are not allowed while an update is in progress");
           let redrawn = false, attrsChanged = false, update;
           let state = this.state;
@@ -27278,6 +26237,20 @@
           if (this.destroyed) {
               this.viewState.state = state;
               return;
+          }
+          let focus = this.hasFocus, focusFlag = 0, dispatchFocus = null;
+          if (transactions.some(tr => tr.annotation(isFocusChange))) {
+              this.inputState.notifiedFocused = focus;
+              // If a focus-change transaction is being dispatched, set this update flag.
+              focusFlag = 1 /* Focus */;
+          }
+          else if (focus != this.inputState.notifiedFocused) {
+              this.inputState.notifiedFocused = focus;
+              // Schedule a separate focus transaction if necessary, otherwise
+              // add a flag to this update
+              dispatchFocus = focusChangeTransaction(state, focus);
+              if (!dispatchFocus)
+                  focusFlag = 1 /* Focus */;
           }
           // If there was a pending DOM change, eagerly read it and try to
           // apply it after the given transactions.
@@ -27297,9 +26270,10 @@
           if (state.facet(EditorState.phrases) != this.state.facet(EditorState.phrases))
               return this.setState(state);
           update = ViewUpdate.create(this, state, transactions);
+          update.flags |= focusFlag;
           let scrollTarget = this.viewState.scrollTarget;
           try {
-              this.updateState = 2 /* UpdateState.Updating */;
+              this.updateState = 2 /* Updating */;
               for (let tr of transactions) {
                   if (scrollTarget)
                       scrollTarget = scrollTarget.map(tr.changes);
@@ -27325,7 +26299,7 @@
               this.docView.updateSelection(redrawn, transactions.some(tr => tr.isUserEvent("select.pointer")));
           }
           finally {
-              this.updateState = 0 /* UpdateState.Idle */;
+              this.updateState = 0 /* Idle */;
           }
           if (update.startState.facet(theme) != update.state.facet(theme))
               this.viewState.mustMeasureContent = true;
@@ -27334,10 +26308,15 @@
           if (!update.empty)
               for (let listener of this.state.facet(updateListener))
                   listener(update);
-          if (domChange) {
-              if (!applyDOMChange(this, domChange) && pendingKey.force)
-                  dispatchKey(this.contentDOM, pendingKey.key, pendingKey.keyCode);
-          }
+          if (dispatchFocus || domChange)
+              Promise.resolve().then(() => {
+                  if (dispatchFocus && this.state == dispatchFocus.startState)
+                      this.dispatch(dispatchFocus);
+                  if (domChange) {
+                      if (!applyDOMChange(this, domChange) && pendingKey.force)
+                          dispatchKey(this.contentDOM, pendingKey.key, pendingKey.keyCode);
+                  }
+              });
       }
       /**
       Reset the view to the given state. (This will cause the entire
@@ -27347,13 +26326,13 @@
       [`dispatch`](https://codemirror.net/6/docs/ref/#view.EditorView.dispatch) instead.)
       */
       setState(newState) {
-          if (this.updateState != 0 /* UpdateState.Idle */)
+          if (this.updateState != 0 /* Idle */)
               throw new Error("Calls to EditorView.setState are not allowed while an update is in progress");
           if (this.destroyed) {
               this.viewState.state = newState;
               return;
           }
-          this.updateState = 2 /* UpdateState.Updating */;
+          this.updateState = 2 /* Updating */;
           let hadFocus = this.hasFocus;
           try {
               for (let plugin of this.plugins)
@@ -27370,7 +26349,7 @@
               this.bidiCache = [];
           }
           finally {
-              this.updateState = 0 /* UpdateState.Idle */;
+              this.updateState = 0 /* Idle */;
           }
           if (hadFocus)
               this.focus();
@@ -27412,18 +26391,29 @@
           if (this.destroyed)
               return;
           if (this.measureScheduled > -1)
-              cancelAnimationFrame(this.measureScheduled);
+              this.win.cancelAnimationFrame(this.measureScheduled);
           this.measureScheduled = 0; // Prevent requestMeasure calls from scheduling another animation frame
           if (flush)
               this.observer.forceFlush();
           let updated = null;
-          let { scrollHeight, scrollTop, clientHeight } = this.scrollDOM;
-          let refHeight = scrollTop > scrollHeight - clientHeight - 4 ? scrollHeight : scrollTop;
+          let sDOM = this.scrollDOM, { scrollTop } = sDOM;
+          let { scrollAnchorPos, scrollAnchorHeight } = this.viewState;
+          this.viewState.scrollAnchorHeight = -1;
+          if (scrollAnchorHeight < 0 || scrollTop != this.viewState.scrollTop) {
+              if (scrollTop > sDOM.scrollHeight - sDOM.clientHeight - 4) {
+                  scrollAnchorPos = -1;
+                  scrollAnchorHeight = this.viewState.heightMap.height;
+              }
+              else {
+                  let block = this.viewState.lineBlockAtHeight(scrollTop);
+                  scrollAnchorPos = block.from;
+                  scrollAnchorHeight = block.top;
+              }
+          }
           try {
               for (let i = 0;; i++) {
-                  this.updateState = 1 /* UpdateState.Measuring */;
+                  this.updateState = 1 /* Measuring */;
                   let oldViewport = this.viewport;
-                  let refBlock = this.viewState.lineBlockAtHeight(refHeight);
                   let changed = this.viewState.measure(this);
                   if (!changed && !this.measureRequests.length && this.viewState.scrollTarget == null)
                       break;
@@ -27435,7 +26425,7 @@
                   }
                   let measuring = [];
                   // Only run measure requests in this cycle when the viewport didn't change
-                  if (!(changed & 4 /* UpdateFlag.Viewport */))
+                  if (!(changed & 4 /* Viewport */))
                       [this.measureRequests, measuring] = [measuring, this.measureRequests];
                   let measured = measuring.map(m => {
                       try {
@@ -27452,7 +26442,7 @@
                       updated = update;
                   else
                       updated.flags |= changed;
-                  this.updateState = 2 /* UpdateState.Updating */;
+                  this.updateState = 2 /* Updating */;
                   if (!update.empty) {
                       this.updatePlugins(update);
                       this.inputState.update(update);
@@ -27476,10 +26466,12 @@
                           this.viewState.scrollTarget = null;
                           scrolled = true;
                       }
-                      else {
-                          let diff = this.viewState.lineBlockAt(refBlock.from).top - refBlock.top;
+                      else if (scrollAnchorHeight > -1) {
+                          let newAnchorHeight = scrollAnchorPos < 0 ? this.viewState.heightMap.height :
+                              this.viewState.lineBlockAt(scrollAnchorPos).top;
+                          let diff = newAnchorHeight - scrollAnchorHeight;
                           if (diff > 1 || diff < -1) {
-                              this.scrollDOM.scrollTop += diff;
+                              sDOM.scrollTop = scrollTop + diff;
                               scrolled = true;
                           }
                       }
@@ -27489,10 +26481,11 @@
                   if (this.viewport.from == oldViewport.from && this.viewport.to == oldViewport.to &&
                       !scrolled && this.measureRequests.length == 0)
                       break;
+                  scrollAnchorHeight = -1;
               }
           }
           finally {
-              this.updateState = 0 /* UpdateState.Idle */;
+              this.updateState = 0 /* Idle */;
               this.measureScheduled = -1;
           }
           if (updated && !updated.empty)
@@ -27551,9 +26544,9 @@
           StyleModule.mount(this.root, this.styleModules.concat(baseTheme$1).reverse());
       }
       readMeasured() {
-          if (this.updateState == 2 /* UpdateState.Updating */)
+          if (this.updateState == 2 /* Updating */)
               throw new Error("Reading the editor layout isn't allowed during an update");
-          if (this.updateState == 0 /* UpdateState.Idle */ && this.measureScheduled > -1)
+          if (this.updateState == 0 /* Idle */ && this.measureScheduled > -1)
               this.measure(false);
       }
       /**
@@ -27568,6 +26561,8 @@
           if (this.measureScheduled < 0)
               this.measureScheduled = this.win.requestAnimationFrame(() => this.measure());
           if (request) {
+              if (this.measureRequests.indexOf(request) > -1)
+                  return;
               if (request.key != null)
                   for (let i = 0; i < this.measureRequests.length; i++) {
                       if (this.measureRequests[i].key === request.key) {
@@ -27848,7 +26843,7 @@
           this.dom.remove();
           this.observer.destroy();
           if (this.measureScheduled > -1)
-              cancelAnimationFrame(this.measureScheduled);
+              this.win.cancelAnimationFrame(this.measureScheduled);
           this.destroyed = true;
       }
       /**
@@ -27936,6 +26931,11 @@
   called and the default behavior is prevented.
   */
   EditorView.inputHandler = inputHandler;
+  /**
+  This facet can be used to provide functions that create effects
+  to be dispatched when the editor's focus state changes.
+  */
+  EditorView.focusChangeEffect = focusChangeEffect;
   /**
   By default, the editor assumes all its content has the same
   [text direction](https://codemirror.net/6/docs/ref/#view.Direction). Configure this with a `true`
@@ -28158,6 +27158,7 @@
           });
       }
   });
+  const knownHeight = /*@__PURE__*/new WeakMap();
   const tooltipPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
       constructor(view) {
           this.view = view;
@@ -28273,6 +27274,7 @@
           };
       }
       writeMeasure(measured) {
+          var _a;
           let { editor, space } = measured;
           let others = [];
           for (let i = 0; i < this.manager.tooltips.length; i++) {
@@ -28287,12 +27289,12 @@
                   continue;
               }
               let arrow = tooltip.arrow ? tView.dom.querySelector(".cm-tooltip-arrow") : null;
-              let arrowHeight = arrow ? 7 /* Arrow.Size */ : 0;
-              let width = size.right - size.left, height = size.bottom - size.top;
+              let arrowHeight = arrow ? 7 /* Size */ : 0;
+              let width = size.right - size.left, height = (_a = knownHeight.get(tView)) !== null && _a !== void 0 ? _a : size.bottom - size.top;
               let offset = tView.offset || noOffset, ltr = this.view.textDirection == Direction.LTR;
               let left = size.width > space.right - space.left ? (ltr ? space.left : space.right - size.width)
-                  : ltr ? Math.min(pos.left - (arrow ? 14 /* Arrow.Offset */ : 0) + offset.x, space.right - width)
-                      : Math.max(space.left, pos.left - width + (arrow ? 14 /* Arrow.Offset */ : 0) - offset.x);
+                  : ltr ? Math.min(pos.left - (arrow ? 14 /* Offset */ : 0) + offset.x, space.right - width)
+                      : Math.max(space.left, pos.left - width + (arrow ? 14 /* Offset */ : 0) - offset.x);
               let above = !!tooltip.above;
               if (!tooltip.strictSide && (above
                   ? pos.top - (size.bottom - size.top) - offset.y < space.top
@@ -28305,6 +27307,7 @@
                       dom.style.top = Outside;
                       continue;
                   }
+                  knownHeight.set(tView, height);
                   dom.style.height = (height = spaceVert) + "px";
               }
               else if (dom.style.height) {
@@ -28325,7 +27328,7 @@
                   dom.style.left = left + "px";
               }
               if (arrow)
-                  arrow.style.left = `${pos.left + (ltr ? offset.x : -offset.x) - (left + 14 /* Arrow.Offset */ - 7 /* Arrow.Size */)}px`;
+                  arrow.style.left = `${pos.left + (ltr ? offset.x : -offset.x) - (left + 14 /* Offset */ - 7 /* Size */)}px`;
               if (tView.overlap !== true)
                   others.push({ left, top, right, bottom: top + height });
               dom.classList.toggle("cm-tooltip-above", above);
@@ -28368,8 +27371,8 @@
           color: "white"
       },
       ".cm-tooltip-arrow": {
-          height: `${7 /* Arrow.Size */}px`,
-          width: `${7 /* Arrow.Size */ * 2}px`,
+          height: `${7 /* Size */}px`,
+          width: `${7 /* Size */ * 2}px`,
           position: "absolute",
           zIndex: -1,
           overflow: "hidden",
@@ -28378,26 +27381,26 @@
               position: "absolute",
               width: 0,
               height: 0,
-              borderLeft: `${7 /* Arrow.Size */}px solid transparent`,
-              borderRight: `${7 /* Arrow.Size */}px solid transparent`,
+              borderLeft: `${7 /* Size */}px solid transparent`,
+              borderRight: `${7 /* Size */}px solid transparent`,
           },
           ".cm-tooltip-above &": {
-              bottom: `-${7 /* Arrow.Size */}px`,
+              bottom: `-${7 /* Size */}px`,
               "&:before": {
-                  borderTop: `${7 /* Arrow.Size */}px solid #bbb`,
+                  borderTop: `${7 /* Size */}px solid #bbb`,
               },
               "&:after": {
-                  borderTop: `${7 /* Arrow.Size */}px solid #f5f5f5`,
+                  borderTop: `${7 /* Size */}px solid #f5f5f5`,
                   bottom: "1px"
               }
           },
           ".cm-tooltip-below &": {
-              top: `-${7 /* Arrow.Size */}px`,
+              top: `-${7 /* Size */}px`,
               "&:before": {
-                  borderBottom: `${7 /* Arrow.Size */}px solid #bbb`,
+                  borderBottom: `${7 /* Size */}px solid #bbb`,
               },
               "&:after": {
-                  borderBottom: `${7 /* Arrow.Size */}px solid #f5f5f5`,
+                  borderBottom: `${7 /* Size */}px solid #f5f5f5`,
                   top: "1px"
               }
           },
@@ -28456,6 +27459,11 @@
       }
       update(update) {
           this.manager.update(update);
+      }
+      destroy() {
+          var _a;
+          for (let t of this.manager.tooltipViews)
+              (_a = t.destroy) === null || _a === void 0 ? void 0 : _a.call(t);
       }
   }
   const showHoverTooltipHost = /*@__PURE__*/showTooltip.compute([showHoverTooltip], state => {
@@ -28542,7 +27550,7 @@
           if (tooltip && !isInTooltip(this.lastMove.target) || this.pending) {
               let { pos } = tooltip || this.pending, end = (_a = tooltip === null || tooltip === void 0 ? void 0 : tooltip.end) !== null && _a !== void 0 ? _a : pos;
               if ((pos == end ? this.view.posAtCoords(this.lastMove) != pos
-                  : !isOverRange(this.view, pos, end, event.clientX, event.clientY, 6 /* Hover.MaxDist */))) {
+                  : !isOverRange(this.view, pos, end, event.clientX, event.clientY, 6 /* MaxDist */))) {
                   this.view.dispatch({ effects: this.setHover.of(null) });
                   this.pending = null;
               }
@@ -28624,7 +27632,7 @@
       });
       return [
           hoverState,
-          ViewPlugin.define(view => new HoverPlugin(view, source, hoverState, setHover, options.hoverTime || 300 /* Hover.Time */)),
+          ViewPlugin.define(view => new HoverPlugin(view, source, hoverState, setHover, options.hoverTime || 300 /* Time */)),
           showHoverTooltipHost
       ];
   }
@@ -28824,6 +27832,11 @@
   */
   const languageDataProp = /*@__PURE__*/new NodeProp();
   /**
+  Syntax node prop used to register sublanguages. Should be added to
+  the top level node type for the language.
+  */
+  const sublanguageProp = /*@__PURE__*/new NodeProp();
+  /**
   A language object manages parsing and per-language
   [metadata](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt). Parse data is
   managed as a [Lezer](https://lezer.codemirror.net) tree. The class
@@ -28860,14 +27873,28 @@
           this.parser = parser;
           this.extension = [
               language.of(this),
-              EditorState.languageData.of((state, pos, side) => state.facet(languageDataFacetAt(state, pos, side)))
+              EditorState.languageData.of((state, pos, side) => {
+                  let top = topNodeAt(state, pos, side), data = top.type.prop(languageDataProp);
+                  if (!data)
+                      return [];
+                  let base = state.facet(data), sub = top.type.prop(sublanguageProp);
+                  if (sub) {
+                      let innerNode = top.resolve(pos - top.from, side);
+                      for (let sublang of sub)
+                          if (sublang.test(innerNode, state)) {
+                              let data = state.facet(sublang.facet);
+                              return sublang.type == "replace" ? data : data.concat(base);
+                          }
+                  }
+                  return base;
+              })
           ].concat(extraExtensions);
       }
       /**
       Query whether this language is active at the given position.
       */
       isActiveAt(state, pos, side = -1) {
-          return languageDataFacetAt(state, pos, side) == this.data;
+          return topNodeAt(state, pos, side).type.prop(languageDataProp) == this.data;
       }
       /**
       Find the document regions that were parsed using this language.
@@ -28922,16 +27949,14 @@
   @internal
   */
   Language.setState = /*@__PURE__*/StateEffect.define();
-  function languageDataFacetAt(state, pos, side) {
-      let topLang = state.facet(language);
-      if (!topLang)
-          return null;
-      let facet = topLang.data;
-      if (topLang.allowsNesting) {
-          for (let node = syntaxTree(state).topNode; node; node = node.enter(pos, side, IterMode.ExcludeBuffers))
-              facet = node.type.prop(languageDataProp) || facet;
+  function topNodeAt(state, pos, side) {
+      let topLang = state.facet(language), tree = syntaxTree(state).topNode;
+      if (!topLang || topLang.allowsNesting) {
+          for (let node = tree; node; node = node.enter(pos, side, IterMode.ExcludeBuffers))
+              if (node.type.isTop)
+                  tree = node;
       }
-      return facet;
+      return tree;
   }
   /**
   Get the syntax tree for a state, which is the current (possibly
@@ -28943,15 +27968,22 @@
       let field = state.field(Language.state, false);
       return field ? field.tree : Tree.empty;
   }
-  // Lezer-style Input object for a Text document.
+  /**
+  Lezer-style
+  [`Input`](https://lezer.codemirror.net/docs/ref#common.Input)
+  object for a [`Text`](https://codemirror.net/6/docs/ref/#state.Text) object.
+  */
   class DocInput {
-      constructor(doc, length = doc.length) {
+      /**
+      Create an input object for the given document.
+      */
+      constructor(doc) {
           this.doc = doc;
-          this.length = length;
           this.cursorPos = 0;
           this.string = "";
           this.cursor = doc.iter();
       }
+      get length() { return this.doc.length; }
       syncTo(pos) {
           this.string = this.cursor.next(pos - this.cursorPos).value;
           this.cursorPos = pos + this.string.length;
@@ -29230,14 +28262,14 @@
           // state updates with parse work beyond the viewport.
           let upto = this.context.treeLen == tr.startState.doc.length ? undefined
               : Math.max(tr.changes.mapPos(this.context.treeLen), newCx.viewport.to);
-          if (!newCx.work(20 /* Work.Apply */, upto))
+          if (!newCx.work(20 /* Apply */, upto))
               newCx.takeTree();
           return new LanguageState(newCx);
       }
       static init(state) {
-          let vpTo = Math.min(3000 /* Work.InitViewport */, state.doc.length);
+          let vpTo = Math.min(3000 /* InitViewport */, state.doc.length);
           let parseState = ParseContext.create(state.facet(language).parser, state, { from: 0, to: vpTo });
-          if (!parseState.work(20 /* Work.Apply */, vpTo))
+          if (!parseState.work(20 /* Apply */, vpTo))
               parseState.takeTree();
           return new LanguageState(parseState);
       }
@@ -29254,14 +28286,14 @@
       }
   });
   let requestIdle = (callback) => {
-      let timeout = setTimeout(() => callback(), 500 /* Work.MaxPause */);
+      let timeout = setTimeout(() => callback(), 500 /* MaxPause */);
       return () => clearTimeout(timeout);
   };
   if (typeof requestIdleCallback != "undefined")
       requestIdle = (callback) => {
           let idle = -1, timeout = setTimeout(() => {
-              idle = requestIdleCallback(callback, { timeout: 500 /* Work.MaxPause */ - 100 /* Work.MinPause */ });
-          }, 100 /* Work.MinPause */);
+              idle = requestIdleCallback(callback, { timeout: 500 /* MaxPause */ - 100 /* MinPause */ });
+          }, 100 /* MinPause */);
           return () => idle < 0 ? clearTimeout(timeout) : cancelIdleCallback(idle);
       };
   const isInputPending = typeof navigator != "undefined" && ((_a = navigator.scheduling) === null || _a === void 0 ? void 0 : _a.isInputPending)
@@ -29284,7 +28316,7 @@
               this.scheduleWork();
           if (update.docChanged) {
               if (this.view.hasFocus)
-                  this.chunkBudget += 50 /* Work.ChangeBonus */;
+                  this.chunkBudget += 50 /* ChangeBonus */;
               this.scheduleWork();
           }
           this.checkAsyncSchedule(cx);
@@ -29300,19 +28332,19 @@
           this.working = null;
           let now = Date.now();
           if (this.chunkEnd < now && (this.chunkEnd < 0 || this.view.hasFocus)) { // Start a new chunk
-              this.chunkEnd = now + 30000 /* Work.ChunkTime */;
-              this.chunkBudget = 3000 /* Work.ChunkBudget */;
+              this.chunkEnd = now + 30000 /* ChunkTime */;
+              this.chunkBudget = 3000 /* ChunkBudget */;
           }
           if (this.chunkBudget <= 0)
               return; // No more budget
           let { state, viewport: { to: vpTo } } = this.view, field = state.field(Language.state);
-          if (field.tree == field.context.tree && field.context.isDone(vpTo + 100000 /* Work.MaxParseAhead */))
+          if (field.tree == field.context.tree && field.context.isDone(vpTo + 100000 /* MaxParseAhead */))
               return;
-          let endTime = Date.now() + Math.min(this.chunkBudget, 100 /* Work.Slice */, deadline && !isInputPending ? Math.max(25 /* Work.MinSlice */, deadline.timeRemaining() - 5) : 1e9);
+          let endTime = Date.now() + Math.min(this.chunkBudget, 100 /* Slice */, deadline && !isInputPending ? Math.max(25 /* MinSlice */, deadline.timeRemaining() - 5) : 1e9);
           let viewportFirst = field.context.treeLen < vpTo && state.doc.length > vpTo + 1000;
           let done = field.context.work(() => {
               return isInputPending && isInputPending() || Date.now() > endTime;
-          }, vpTo + (viewportFirst ? 0 : 100000 /* Work.MaxParseAhead */));
+          }, vpTo + (viewportFirst ? 0 : 100000 /* MaxParseAhead */));
           this.chunkBudget -= Date.now() - now;
           if (done || this.chunkBudget <= 0) {
               field.context.takeTree();
@@ -29478,7 +28510,7 @@
   */
   /*@__PURE__*/HighlightStyle.define([
       { tag: tags.meta,
-          color: "#7a757a" },
+          color: "#404740" },
       { tag: tags.link,
           textDecoration: "underline" },
       { tag: tags.heading,
@@ -29628,7 +28660,7 @@
                       diagnostic: d
                   }).range(d.from)
                   : Decoration.mark({
-                      attributes: { class: "cm-lintRange cm-lintRange-" + d.severity },
+                      attributes: { class: "cm-lintRange cm-lintRange-" + d.severity + (d.markClass ? " " + d.markClass : "") },
                       diagnostic: d
                   }).range(d.from, d.to);
           }), true);
@@ -29646,20 +28678,11 @@
       return found;
   }
   function hideTooltip(tr, tooltip) {
-      return !!(tr.effects.some(e => e.is(setDiagnosticsEffect)) || tr.changes.touchesRange(tooltip.pos));
+      let line = tr.startState.doc.lineAt(tooltip.pos);
+      return !!(tr.effects.some(e => e.is(setDiagnosticsEffect)) || tr.changes.touchesRange(line.from, line.to));
   }
   function maybeEnableLint(state, effects) {
-      return state.field(lintState, false) ? effects : effects.concat(StateEffect.appendConfig.of([
-          lintState,
-          EditorView.decorations.compute([lintState], state => {
-              let { selected, panel } = state.field(lintState);
-              return !selected || !panel || selected.from == selected.to ? Decoration.none : Decoration.set([
-                  activeMark.range(selected.from, selected.to)
-              ]);
-          }),
-          hoverTooltip(lintTooltip, { hideOn: hideTooltip }),
-          baseTheme
-      ]));
+      return state.field(lintState, false) ? effects : effects.concat(StateEffect.appendConfig.of(lintExtensions));
   }
   /**
   Returns a transaction spec which updates the current set of
@@ -29773,7 +28796,8 @@
       }
       update(update) {
           let config = update.state.facet(lintConfig);
-          if (update.docChanged || config != update.startState.facet(lintConfig)) {
+          if (update.docChanged || config != update.startState.facet(lintConfig) ||
+              config.needsRefresh && config.needsRefresh(update)) {
               this.lintTime = Date.now() + config.delay;
               if (!this.set) {
                   this.set = true;
@@ -29796,10 +28820,12 @@
           return Object.assign({ sources: input.map(i => i.source) }, combineConfig(input.map(i => i.config), {
               delay: 750,
               markerFilter: null,
-              tooltipFilter: null
+              tooltipFilter: null,
+              needsRefresh: null
+          }, {
+              needsRefresh: (a, b) => !a ? b : !b ? a : u => a(u) || b(u)
           }));
-      },
-      enables: lintPlugin
+      }
   });
   /**
   Given a diagnostic source, this function returns an extension that
@@ -29807,7 +28833,11 @@
   editor is idle (after its content changed).
   */
   function linter(source, config = {}) {
-      return lintConfig.of({ source, config });
+      return [
+          lintConfig.of({ source, config }),
+          lintPlugin,
+          lintExtensions
+      ];
   }
   function assignKeys(actions) {
       let assigned = [];
@@ -29828,8 +28858,11 @@
       var _a;
       let keys = inPanel ? assignKeys(diagnostic.actions) : [];
       return crelt("li", { class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity }, crelt("span", { class: "cm-diagnosticText" }, diagnostic.renderMessage ? diagnostic.renderMessage() : diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
-          let click = (e) => {
+          let fired = false, click = (e) => {
               e.preventDefault();
+              if (fired)
+                  return;
+              fired = true;
               let found = findDiagnostic(view.state.field(lintState).diagnostics, diagnostic);
               if (found)
                   action.apply(view, found.from, found.to);
@@ -30049,6 +29082,7 @@
       ".cm-diagnostic-error": { borderLeft: "5px solid #d11" },
       ".cm-diagnostic-warning": { borderLeft: "5px solid orange" },
       ".cm-diagnostic-info": { borderLeft: "5px solid #999" },
+      ".cm-diagnostic-hint": { borderLeft: "5px solid #66d" },
       ".cm-diagnosticAction": {
           font: "inherit",
           border: "none",
@@ -30056,7 +29090,8 @@
           backgroundColor: "#444",
           color: "white",
           borderRadius: "3px",
-          marginLeft: "8px"
+          marginLeft: "8px",
+          cursor: "pointer"
       },
       ".cm-diagnosticSource": {
           fontSize: "70%",
@@ -30070,6 +29105,7 @@
       ".cm-lintRange-error": { backgroundImage: /*@__PURE__*/underline("#d11") },
       ".cm-lintRange-warning": { backgroundImage: /*@__PURE__*/underline("orange") },
       ".cm-lintRange-info": { backgroundImage: /*@__PURE__*/underline("#999") },
+      ".cm-lintRange-hint": { backgroundImage: /*@__PURE__*/underline("#66d") },
       ".cm-lintRange-active": { backgroundColor: "#ffdd9980" },
       ".cm-tooltip-lint": {
           padding: 0,
@@ -30092,6 +29128,9 @@
       },
       ".cm-lintPoint-info": {
           "&:after": { borderBottomColor: "#999" }
+      },
+      ".cm-lintPoint-hint": {
+          "&:after": { borderBottomColor: "#66d" }
       },
       ".cm-panel.cm-panel-lint": {
           position: "relative",
@@ -30124,6 +29163,17 @@
           }
       }
   });
+  const lintExtensions = [
+      lintState,
+      /*@__PURE__*/EditorView.decorations.compute([lintState], state => {
+          let { selected, panel } = state.field(lintState);
+          return !selected || !panel || selected.from == selected.to ? Decoration.none : Decoration.set([
+              activeMark.range(selected.from, selected.to)
+          ]);
+      }),
+      /*@__PURE__*/hoverTooltip(lintTooltip, { hideOn: hideTooltip }),
+      baseTheme
+  ];
 
   class CompositeBlock {
       constructor(type, 
@@ -32886,11 +31936,3102 @@
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-  var showdownExports = {};
-  var showdown = {
-    get exports(){ return showdownExports; },
-    set exports(v){ showdownExports = v; },
+  function getDefaultExportFromCjs (x) {
+  	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+  }
+
+  var classnames = {exports: {}};
+
+  /*!
+  	Copyright (c) 2018 Jed Watson.
+  	Licensed under the MIT License (MIT), see
+  	http://jedwatson.github.io/classnames
+  */
+
+  (function (module) {
+  	/* global define */
+
+  	(function () {
+
+  		var hasOwn = {}.hasOwnProperty;
+
+  		function classNames() {
+  			var classes = [];
+
+  			for (var i = 0; i < arguments.length; i++) {
+  				var arg = arguments[i];
+  				if (!arg) continue;
+
+  				var argType = typeof arg;
+
+  				if (argType === 'string' || argType === 'number') {
+  					classes.push(arg);
+  				} else if (Array.isArray(arg)) {
+  					if (arg.length) {
+  						var inner = classNames.apply(null, arg);
+  						if (inner) {
+  							classes.push(inner);
+  						}
+  					}
+  				} else if (argType === 'object') {
+  					if (arg.toString !== Object.prototype.toString && !arg.toString.toString().includes('[native code]')) {
+  						classes.push(arg.toString());
+  						continue;
+  					}
+
+  					for (var key in arg) {
+  						if (hasOwn.call(arg, key) && arg[key]) {
+  							classes.push(key);
+  						}
+  					}
+  				}
+  			}
+
+  			return classes.join(' ');
+  		}
+
+  		if (module.exports) {
+  			classNames.default = classNames;
+  			module.exports = classNames;
+  		} else {
+  			window.classNames = classNames;
+  		}
+  	}()); 
+  } (classnames));
+
+  var classnamesExports = classnames.exports;
+  var classNames = /*@__PURE__*/getDefaultExportFromCjs(classnamesExports);
+
+  var n$1,l$2,u$1,t$1,o$3,r$1,f$1,e$3={},c$1=[],s$1=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;function a$2(n,l){for(var u in l)n[u]=l[u];return n}function h$1(n){var l=n.parentNode;l&&l.removeChild(n);}function v$1(l,u,i){var t,o,r,f={};for(r in u)"key"==r?t=u[r]:"ref"==r?o=u[r]:f[r]=u[r];if(arguments.length>2&&(f.children=arguments.length>3?n$1.call(arguments,2):i),"function"==typeof l&&null!=l.defaultProps)for(r in l.defaultProps)void 0===f[r]&&(f[r]=l.defaultProps[r]);return y$1(l,f,t,o,null)}function y$1(n,i,t,o,r){var f={type:n,props:i,key:t,ref:o,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:null==r?++u$1:r};return null!=l$2.vnode&&l$2.vnode(f),f}function d$1(n){return n.children}function _(n,l){this.props=n,this.context=l;}function k$1(n,l){if(null==l)return n.__?k$1(n.__,n.__.__k.indexOf(n)+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return "function"==typeof n.type?k$1(n):null}function b$1(n){var l,u;if(null!=(n=n.__)&&null!=n.__c){for(n.__e=n.__c.base=null,l=0;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e){n.__e=n.__c.base=u.__e;break}return b$1(n)}}function m$1(n){(!n.__d&&(n.__d=!0)&&t$1.push(n)&&!g$1.__r++||r$1!==l$2.debounceRendering)&&((r$1=l$2.debounceRendering)||o$3)(g$1);}function g$1(){for(var n;g$1.__r=t$1.length;)n=t$1.sort(function(n,l){return n.__v.__b-l.__v.__b}),t$1=[],n.some(function(n){var l,u,i,t,o,r;n.__d&&(o=(t=(l=n).__v).__e,(r=l.__P)&&(u=[],(i=a$2({},t)).__v=t.__v+1,j$2(r,t,i,l.__n,void 0!==r.ownerSVGElement,null!=t.__h?[o]:null,u,null==o?k$1(t):o,t.__h),z(u,t),t.__e!=o&&b$1(t)));});}function w$2(n,l,u,i,t,o,r,f,s,a){var h,v,p,_,b,m,g,w=i&&i.__k||c$1,A=w.length;for(u.__k=[],h=0;h<l.length;h++)if(null!=(_=u.__k[h]=null==(_=l[h])||"boolean"==typeof _?null:"string"==typeof _||"number"==typeof _||"bigint"==typeof _?y$1(null,_,null,null,_):Array.isArray(_)?y$1(d$1,{children:_},null,null,null):_.__b>0?y$1(_.type,_.props,_.key,null,_.__v):_)){if(_.__=u,_.__b=u.__b+1,null===(p=w[h])||p&&_.key==p.key&&_.type===p.type)w[h]=void 0;else for(v=0;v<A;v++){if((p=w[v])&&_.key==p.key&&_.type===p.type){w[v]=void 0;break}p=null;}j$2(n,_,p=p||e$3,t,o,r,f,s,a),b=_.__e,(v=_.ref)&&p.ref!=v&&(g||(g=[]),p.ref&&g.push(p.ref,null,_),g.push(v,_.__c||b,_)),null!=b?(null==m&&(m=b),"function"==typeof _.type&&null!=_.__k&&_.__k===p.__k?_.__d=s=x$1(_,s,n):s=P$1(n,_,p,w,b,s),a||"option"!==u.type?"function"==typeof u.type&&(u.__d=s):n.value=""):s&&p.__e==s&&s.parentNode!=n&&(s=k$1(p));}for(u.__e=m,h=A;h--;)null!=w[h]&&("function"==typeof u.type&&null!=w[h].__e&&w[h].__e==u.__d&&(u.__d=k$1(i,h+1)),N(w[h],w[h]));if(g)for(h=0;h<g.length;h++)M$1(g[h],g[++h],g[++h]);}function x$1(n,l,u){var i,t;for(i=0;i<n.__k.length;i++)(t=n.__k[i])&&(t.__=n,l="function"==typeof t.type?x$1(t,l,u):P$1(u,t,t,n.__k,t.__e,l));return l}function A$2(n,l){return l=l||[],null==n||"boolean"==typeof n||(Array.isArray(n)?n.some(function(n){A$2(n,l);}):l.push(n)),l}function P$1(n,l,u,i,t,o){var r,f,e;if(void 0!==l.__d)r=l.__d,l.__d=void 0;else if(null==u||t!=o||null==t.parentNode)n:if(null==o||o.parentNode!==n)n.appendChild(t),r=null;else {for(f=o,e=0;(f=f.nextSibling)&&e<i.length;e+=2)if(f==t)break n;n.insertBefore(t,o),r=o;}return void 0!==r?r:t.nextSibling}function C$1(n,l,u,i,t){var o;for(o in u)"children"===o||"key"===o||o in l||H$1(n,o,null,u[o],i);for(o in l)t&&"function"!=typeof l[o]||"children"===o||"key"===o||"value"===o||"checked"===o||u[o]===l[o]||H$1(n,o,l[o],u[o],i);}function $$1(n,l,u){"-"===l[0]?n.setProperty(l,u):n[l]=null==u?"":"number"!=typeof u||s$1.test(l)?u:u+"px";}function H$1(n,l,u,i,t){var o;n:if("style"===l)if("string"==typeof u)n.style.cssText=u;else {if("string"==typeof i&&(n.style.cssText=i=""),i)for(l in i)u&&l in u||$$1(n.style,l,"");if(u)for(l in u)i&&u[l]===i[l]||$$1(n.style,l,u[l]);}else if("o"===l[0]&&"n"===l[1])o=l!==(l=l.replace(/Capture$/,"")),l=l.toLowerCase()in n?l.toLowerCase().slice(2):l.slice(2),n.l||(n.l={}),n.l[l+o]=u,u?i||n.addEventListener(l,o?T$1:I$1,o):n.removeEventListener(l,o?T$1:I$1,o);else if("dangerouslySetInnerHTML"!==l){if(t)l=l.replace(/xlink[H:h]/,"h").replace(/sName$/,"s");else if("href"!==l&&"list"!==l&&"form"!==l&&"tabIndex"!==l&&"download"!==l&&l in n)try{n[l]=null==u?"":u;break n}catch(n){}"function"==typeof u||(null!=u&&(!1!==u||"a"===l[0]&&"r"===l[1])?n.setAttribute(l,u):n.removeAttribute(l));}}function I$1(n){this.l[n.type+!1](l$2.event?l$2.event(n):n);}function T$1(n){this.l[n.type+!0](l$2.event?l$2.event(n):n);}function j$2(n,u,i,t,o,r,f,e,c){var s,h,v,y,p,k,b,m,g,x,A,P=u.type;if(void 0!==u.constructor)return null;null!=i.__h&&(c=i.__h,e=u.__e=i.__e,u.__h=null,r=[e]),(s=l$2.__b)&&s(u);try{n:if("function"==typeof P){if(m=u.props,g=(s=P.contextType)&&t[s.__c],x=s?g?g.props.value:s.__:t,i.__c?b=(h=u.__c=i.__c).__=h.__E:("prototype"in P&&P.prototype.render?u.__c=h=new P(m,x):(u.__c=h=new _(m,x),h.constructor=P,h.render=O$1),g&&g.sub(h),h.props=m,h.state||(h.state={}),h.context=x,h.__n=t,v=h.__d=!0,h.__h=[]),null==h.__s&&(h.__s=h.state),null!=P.getDerivedStateFromProps&&(h.__s==h.state&&(h.__s=a$2({},h.__s)),a$2(h.__s,P.getDerivedStateFromProps(m,h.__s))),y=h.props,p=h.state,v)null==P.getDerivedStateFromProps&&null!=h.componentWillMount&&h.componentWillMount(),null!=h.componentDidMount&&h.__h.push(h.componentDidMount);else {if(null==P.getDerivedStateFromProps&&m!==y&&null!=h.componentWillReceiveProps&&h.componentWillReceiveProps(m,x),!h.__e&&null!=h.shouldComponentUpdate&&!1===h.shouldComponentUpdate(m,h.__s,x)||u.__v===i.__v){h.props=m,h.state=h.__s,u.__v!==i.__v&&(h.__d=!1),h.__v=u,u.__e=i.__e,u.__k=i.__k,u.__k.forEach(function(n){n&&(n.__=u);}),h.__h.length&&f.push(h);break n}null!=h.componentWillUpdate&&h.componentWillUpdate(m,h.__s,x),null!=h.componentDidUpdate&&h.__h.push(function(){h.componentDidUpdate(y,p,k);});}h.context=x,h.props=m,h.state=h.__s,(s=l$2.__r)&&s(u),h.__d=!1,h.__v=u,h.__P=n,s=h.render(h.props,h.state,h.context),h.state=h.__s,null!=h.getChildContext&&(t=a$2(a$2({},t),h.getChildContext())),v||null==h.getSnapshotBeforeUpdate||(k=h.getSnapshotBeforeUpdate(y,p)),A=null!=s&&s.type===d$1&&null==s.key?s.props.children:s,w$2(n,Array.isArray(A)?A:[A],u,i,t,o,r,f,e,c),h.base=u.__e,u.__h=null,h.__h.length&&f.push(h),b&&(h.__E=h.__=null),h.__e=!1;}else null==r&&u.__v===i.__v?(u.__k=i.__k,u.__e=i.__e):u.__e=L$1(i.__e,u,i,t,o,r,f,c);(s=l$2.diffed)&&s(u);}catch(n){u.__v=null,(c||null!=r)&&(u.__e=e,u.__h=!!c,r[r.indexOf(e)]=null),l$2.__e(n,u,i);}}function z(n,u){l$2.__c&&l$2.__c(u,n),n.some(function(u){try{n=u.__h,u.__h=[],n.some(function(n){n.call(u);});}catch(n){l$2.__e(n,u.__v);}});}function L$1(l,u,i,t,o,r,f,c){var s,a,v,y=i.props,p=u.props,d=u.type,_=0;if("svg"===d&&(o=!0),null!=r)for(;_<r.length;_++)if((s=r[_])&&(s===l||(d?s.localName==d:3==s.nodeType))){l=s,r[_]=null;break}if(null==l){if(null===d)return document.createTextNode(p);l=o?document.createElementNS("http://www.w3.org/2000/svg",d):document.createElement(d,p.is&&p),r=null,c=!1;}if(null===d)y===p||c&&l.data===p||(l.data=p);else {if(r=r&&n$1.call(l.childNodes),a=(y=i.props||e$3).dangerouslySetInnerHTML,v=p.dangerouslySetInnerHTML,!c){if(null!=r)for(y={},_=0;_<l.attributes.length;_++)y[l.attributes[_].name]=l.attributes[_].value;(v||a)&&(v&&(a&&v.__html==a.__html||v.__html===l.innerHTML)||(l.innerHTML=v&&v.__html||""));}if(C$1(l,p,y,o,c),v)u.__k=[];else if(_=u.props.children,w$2(l,Array.isArray(_)?_:[_],u,i,t,o&&"foreignObject"!==d,r,f,r?r[0]:i.__k&&k$1(i,0),c),null!=r)for(_=r.length;_--;)null!=r[_]&&h$1(r[_]);c||("value"in p&&void 0!==(_=p.value)&&(_!==l.value||"progress"===d&&!_)&&H$1(l,"value",_,y.value,!1),"checked"in p&&void 0!==(_=p.checked)&&_!==l.checked&&H$1(l,"checked",_,y.checked,!1));}return l}function M$1(n,u,i){try{"function"==typeof n?n(u):n.current=u;}catch(n){l$2.__e(n,i);}}function N(n,u,i){var t,o;if(l$2.unmount&&l$2.unmount(n),(t=n.ref)&&(t.current&&t.current!==n.__e||M$1(t,null,u)),null!=(t=n.__c)){if(t.componentWillUnmount)try{t.componentWillUnmount();}catch(n){l$2.__e(n,u);}t.base=t.__P=null;}if(t=n.__k)for(o=0;o<t.length;o++)t[o]&&N(t[o],u,"function"!=typeof n.type);i||null==n.__e||h$1(n.__e),n.__e=n.__d=void 0;}function O$1(n,l,u){return this.constructor(n,u)}function S$1(u,i,t){var o,r,f;l$2.__&&l$2.__(u,i),r=(o="function"==typeof t)?null:t&&t.__k||i.__k,f=[],j$2(i,u=(!o&&t||i).__k=v$1(d$1,null,[u]),r||e$3,e$3,void 0!==i.ownerSVGElement,!o&&t?[t]:r?null:i.firstChild?n$1.call(i.childNodes):null,f,!o&&t?t:r?r.__e:i.firstChild,o),z(f,u);}function D$1(n,l){var u={__c:l="__cC"+f$1++,__:n,Consumer:function(n,l){return n.children(l)},Provider:function(n){var u,i;return this.getChildContext||(u=[],(i={})[l]=this,this.getChildContext=function(){return i},this.shouldComponentUpdate=function(n){this.props.value!==n.value&&u.some(m$1);},this.sub=function(n){u.push(n);var l=n.componentWillUnmount;n.componentWillUnmount=function(){u.splice(u.indexOf(n),1),l&&l.call(n);};}),n.children}};return u.Provider.__=u.Consumer.contextType=u}n$1=c$1.slice,l$2={__e:function(n,l){for(var u,i,t;l=l.__;)if((u=l.__c)&&!u.__)try{if((i=u.constructor)&&null!=i.getDerivedStateFromError&&(u.setState(i.getDerivedStateFromError(n)),t=u.__d),null!=u.componentDidCatch&&(u.componentDidCatch(n),t=u.__d),t)return u.__E=u}catch(l){n=l;}throw n}},u$1=0,_.prototype.setState=function(n,l){var u;u=null!=this.__s&&this.__s!==this.state?this.__s:this.__s=a$2({},this.state),"function"==typeof n&&(n=n(a$2({},u),this.props)),n&&a$2(u,n),null!=n&&this.__v&&(l&&this.__h.push(l),m$1(this));},_.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),m$1(this));},_.prototype.render=d$1,t$1=[],o$3="function"==typeof Promise?Promise.prototype.then.bind(Promise.resolve()):setTimeout,g$1.__r=0,f$1=0;
+
+  var o$2=0;function e$2(_,e,n,t,f){var l,s,u={};for(s in e)"ref"==s?l=e[s]:u[s]=e[s];var a={type:_,props:u,key:n,ref:l,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:--o$2,__source:t,__self:f};if("function"==typeof _&&(l=_.defaultProps))for(s in l)void 0===u[s]&&(u[s]=l[s]);return l$2.vnode&&l$2.vnode(a),a}
+
+  var t,u,r,o$1=0,i$1=[],c=l$2.__b,f=l$2.__r,e$1=l$2.diffed,a$1=l$2.__c,v=l$2.unmount;function m(t,r){l$2.__h&&l$2.__h(u,t,o$1||r),o$1=0;var i=u.__H||(u.__H={__:[],__h:[]});return t>=i.__.length&&i.__.push({}),i.__[t]}function l$1(n){return o$1=1,p$1(w$1,n)}function p$1(n,r,o){var i=m(t++,2);return i.t=n,i.__c||(i.__=[o?o(r):w$1(void 0,r),function(n){var t=i.t(i.__[0],n);i.__[0]!==t&&(i.__=[t,i.__[1]],i.__c.setState({}));}],i.__c=u),i.__}function y(r,o){var i=m(t++,3);!l$2.__s&&k(i.__H,o)&&(i.__=r,i.__H=o,u.__H.__h.push(i));}function h(r,o){var i=m(t++,4);!l$2.__s&&k(i.__H,o)&&(i.__=r,i.__H=o,u.__h.push(i));}function s(n){return o$1=5,d(function(){return {current:n}},[])}function d(n,u){var r=m(t++,7);return k(r.__H,u)&&(r.__=n(),r.__H=u,r.__h=n),r.__}function A$1(n,t){return o$1=8,d(function(){return n},t)}function F(n){var r=u.context[n.__c],o=m(t++,9);return o.c=n,r?(null==o.__&&(o.__=!0,r.sub(u)),r.props.value):n.__}function x(){i$1.forEach(function(t){if(t.__P)try{t.__H.__h.forEach(g),t.__H.__h.forEach(j$1),t.__H.__h=[];}catch(u){t.__H.__h=[],l$2.__e(u,t.__v);}}),i$1=[];}l$2.__b=function(n){u=null,c&&c(n);},l$2.__r=function(n){f&&f(n),t=0;var r=(u=n.__c).__H;r&&(r.__h.forEach(g),r.__h.forEach(j$1),r.__h=[]);},l$2.diffed=function(t){e$1&&e$1(t);var o=t.__c;o&&o.__H&&o.__H.__h.length&&(1!==i$1.push(o)&&r===l$2.requestAnimationFrame||((r=l$2.requestAnimationFrame)||function(n){var t,u=function(){clearTimeout(r),b&&cancelAnimationFrame(t),setTimeout(n);},r=setTimeout(u,100);b&&(t=requestAnimationFrame(u));})(x)),u=void 0;},l$2.__c=function(t,u){u.some(function(t){try{t.__h.forEach(g),t.__h=t.__h.filter(function(n){return !n.__||j$1(n)});}catch(r){u.some(function(n){n.__h&&(n.__h=[]);}),u=[],l$2.__e(r,t.__v);}}),a$1&&a$1(t,u);},l$2.unmount=function(t){v&&v(t);var u=t.__c;if(u&&u.__H)try{u.__H.__.forEach(g);}catch(t){l$2.__e(t,u.__v);}};var b="function"==typeof requestAnimationFrame;function g(n){var t=u;"function"==typeof n.__c&&n.__c(),u=t;}function j$1(n){var t=u;n.__c=n.__(),u=t;}function k(n,t){return !n||n.length!==t.length||t.some(function(t,u){return t!==n[u]})}function w$1(n,t){return "function"==typeof t?t(n):t}
+
+  function S(n,t){for(var e in t)n[e]=t[e];return n}function C(n,t){for(var e in n)if("__source"!==e&&!(e in t))return !0;for(var r in t)if("__source"!==r&&n[r]!==t[r])return !0;return !1}function E(n){this.props=n;}(E.prototype=new _).isPureReactComponent=!0,E.prototype.shouldComponentUpdate=function(n,t){return C(this.props,n)||C(this.state,t)};var w=l$2.__b;l$2.__b=function(n){n.type&&n.type.__f&&n.ref&&(n.props.ref=n.ref,n.ref=null),w&&w(n);};var A=l$2.__e;l$2.__e=function(n,t,e){if(n.then)for(var r,u=t;u=u.__;)if((r=u.__c)&&r.__c)return null==t.__e&&(t.__e=e.__e,t.__k=e.__k),r.__c(n,t);A(n,t,e);};var O=l$2.unmount;function L(){this.__u=0,this.t=null,this.__b=null;}function U(n){var t=n.__.__c;return t&&t.__e&&t.__e(n)}function M(){this.u=null,this.o=null;}l$2.unmount=function(n){var t=n.__c;t&&t.__R&&t.__R(),t&&!0===n.__h&&(n.type=null),O&&O(n);},(L.prototype=new _).__c=function(n,t){var e=t.__c,r=this;null==r.t&&(r.t=[]),r.t.push(e);var u=U(r.__v),o=!1,i=function(){o||(o=!0,e.__R=null,u?u(l):l());};e.__R=i;var l=function(){if(!--r.__u){if(r.state.__e){var n=r.state.__e;r.__v.__k[0]=function n(t,e,r){return t&&(t.__v=null,t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)}),t.__c&&t.__c.__P===e&&(t.__e&&r.insertBefore(t.__e,t.__d),t.__c.__e=!0,t.__c.__P=r)),t}(n,n.__c.__P,n.__c.__O);}var t;for(r.setState({__e:r.__b=null});t=r.t.pop();)t.forceUpdate();}},f=!0===t.__h;r.__u++||f||r.setState({__e:r.__b=r.__v.__k[0]}),n.then(i,i);},L.prototype.componentWillUnmount=function(){this.t=[];},L.prototype.render=function(n,t){if(this.__b){if(this.__v.__k){var e=document.createElement("div"),r=this.__v.__k[0].__c;this.__v.__k[0]=function n(t,e,r){return t&&(t.__c&&t.__c.__H&&(t.__c.__H.__.forEach(function(n){"function"==typeof n.__c&&n.__c();}),t.__c.__H=null),null!=(t=S({},t)).__c&&(t.__c.__P===r&&(t.__c.__P=e),t.__c=null),t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)})),t}(this.__b,e,r.__O=r.__P);}this.__b=null;}var u=t.__e&&v$1(d$1,null,n.fallback);return u&&(u.__h=null),[v$1(d$1,null,t.__e?null:n.children),u]};var T=function(n,t,e){if(++e[1]===e[0]&&n.o.delete(t),n.props.revealOrder&&("t"!==n.props.revealOrder[0]||!n.o.size))for(e=n.u;e;){for(;e.length>3;)e.pop()();if(e[1]<e[0])break;n.u=e=e[2];}};function D(n){return this.getChildContext=function(){return n.context},n.children}function I(n){var t=this,e=n.i;t.componentWillUnmount=function(){S$1(null,t.l),t.l=null,t.i=null;},t.i&&t.i!==e&&t.componentWillUnmount(),n.__v?(t.l||(t.i=e,t.l={nodeType:1,parentNode:e,childNodes:[],appendChild:function(n){this.childNodes.push(n),t.i.appendChild(n);},insertBefore:function(n,e){this.childNodes.push(n),t.i.appendChild(n);},removeChild:function(n){this.childNodes.splice(this.childNodes.indexOf(n)>>>1,1),t.i.removeChild(n);}}),S$1(v$1(D,{context:t.context},n.__v),t.l)):t.l&&t.componentWillUnmount();}function W(n,t){return v$1(I,{__v:n,i:t})}(M.prototype=new _).__e=function(n){var t=this,e=U(t.__v),r=t.o.get(n);return r[0]++,function(u){var o=function(){t.props.revealOrder?(r.push(u),T(t,n,r)):u();};e?e(o):o();}},M.prototype.render=function(n){this.u=null,this.o=new Map;var t=A$2(n.children);n.revealOrder&&"b"===n.revealOrder[0]&&t.reverse();for(var e=t.length;e--;)this.o.set(t[e],this.u=[1,0,this.u]);return n.children},M.prototype.componentDidUpdate=M.prototype.componentDidMount=function(){var n=this;this.o.forEach(function(t,e){T(n,e,t);});};var j="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.element")||60103,P=/^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|fill|flood|font|glyph(?!R)|horiz|marker(?!H|W|U)|overline|paint|stop|strikethrough|stroke|text(?!L)|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/,V=function(n){return ("undefined"!=typeof Symbol&&"symbol"==typeof Symbol()?/fil|che|rad/i:/fil|che|ra/i).test(n)};_.prototype.isReactComponent={},["componentWillMount","componentWillReceiveProps","componentWillUpdate"].forEach(function(n){Object.defineProperty(_.prototype,n,{configurable:!0,get:function(){return this["UNSAFE_"+n]},set:function(t){Object.defineProperty(this,n,{configurable:!0,writable:!0,value:t});}});});var H=l$2.event;function Z(){}function Y(){return this.cancelBubble}function $(){return this.defaultPrevented}l$2.event=function(n){return H&&(n=H(n)),n.persist=Z,n.isPropagationStopped=Y,n.isDefaultPrevented=$,n.nativeEvent=n};var G={configurable:!0,get:function(){return this.class}},J=l$2.vnode;l$2.vnode=function(n){var t=n.type,e=n.props,r=e;if("string"==typeof t){for(var u in r={},e){var o=e[u];"value"===u&&"defaultValue"in e&&null==o||("defaultValue"===u&&"value"in e&&null==e.value?u="value":"download"===u&&!0===o?o="":/ondoubleclick/i.test(u)?u="ondblclick":/^onchange(textarea|input)/i.test(u+t)&&!V(e.type)?u="oninput":/^on(Ani|Tra|Tou|BeforeInp)/.test(u)?u=u.toLowerCase():P.test(u)?u=u.replace(/[A-Z0-9]/,"-$&").toLowerCase():null===o&&(o=void 0),r[u]=o);}"select"==t&&r.multiple&&Array.isArray(r.value)&&(r.value=A$2(e.children).forEach(function(n){n.props.selected=-1!=r.value.indexOf(n.props.value);})),"select"==t&&null!=r.defaultValue&&(r.value=A$2(e.children).forEach(function(n){n.props.selected=r.multiple?-1!=r.defaultValue.indexOf(n.props.value):r.defaultValue==n.props.value;})),n.props=r;}t&&e.class!=e.className&&(G.enumerable="className"in e,null!=e.className&&(r.class=e.className),Object.defineProperty(r,"className",G)),n.$$typeof=j,J&&J(n);};var K=l$2.__r;l$2.__r=function(n){K&&K(n),n.__c;};
+
+  var HOOKS = [
+      "onChange",
+      "onClose",
+      "onDayCreate",
+      "onDestroy",
+      "onKeyDown",
+      "onMonthChange",
+      "onOpen",
+      "onParseConfig",
+      "onReady",
+      "onValueUpdate",
+      "onYearChange",
+      "onPreCalendarPosition",
+  ];
+  var defaults = {
+      _disable: [],
+      allowInput: false,
+      allowInvalidPreload: false,
+      altFormat: "F j, Y",
+      altInput: false,
+      altInputClass: "form-control input",
+      animate: typeof window === "object" &&
+          window.navigator.userAgent.indexOf("MSIE") === -1,
+      ariaDateFormat: "F j, Y",
+      autoFillDefaultTime: true,
+      clickOpens: true,
+      closeOnSelect: true,
+      conjunction: ", ",
+      dateFormat: "Y-m-d",
+      defaultHour: 12,
+      defaultMinute: 0,
+      defaultSeconds: 0,
+      disable: [],
+      disableMobile: false,
+      enableSeconds: false,
+      enableTime: false,
+      errorHandler: function (err) {
+          return typeof console !== "undefined" && console.warn(err);
+      },
+      getWeek: function (givenDate) {
+          var date = new Date(givenDate.getTime());
+          date.setHours(0, 0, 0, 0);
+          date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+          var week1 = new Date(date.getFullYear(), 0, 4);
+          return (1 +
+              Math.round(((date.getTime() - week1.getTime()) / 86400000 -
+                  3 +
+                  ((week1.getDay() + 6) % 7)) /
+                  7));
+      },
+      hourIncrement: 1,
+      ignoredFocusElements: [],
+      inline: false,
+      locale: "default",
+      minuteIncrement: 5,
+      mode: "single",
+      monthSelectorType: "dropdown",
+      nextArrow: "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 17 17'><g></g><path d='M13.207 8.472l-7.854 7.854-0.707-0.707 7.146-7.146-7.146-7.148 0.707-0.707 7.854 7.854z' /></svg>",
+      noCalendar: false,
+      now: new Date(),
+      onChange: [],
+      onClose: [],
+      onDayCreate: [],
+      onDestroy: [],
+      onKeyDown: [],
+      onMonthChange: [],
+      onOpen: [],
+      onParseConfig: [],
+      onReady: [],
+      onValueUpdate: [],
+      onYearChange: [],
+      onPreCalendarPosition: [],
+      plugins: [],
+      position: "auto",
+      positionElement: undefined,
+      prevArrow: "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 17 17'><g></g><path d='M5.207 8.471l7.146 7.147-0.707 0.707-7.853-7.854 7.854-7.853 0.707 0.707-7.147 7.146z' /></svg>",
+      shorthandCurrentMonth: false,
+      showMonths: 1,
+      static: false,
+      time_24hr: false,
+      weekNumbers: false,
+      wrap: false,
   };
+
+  var english = {
+      weekdays: {
+          shorthand: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+          longhand: [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+          ],
+      },
+      months: {
+          shorthand: [
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+              "Jul",
+              "Aug",
+              "Sep",
+              "Oct",
+              "Nov",
+              "Dec",
+          ],
+          longhand: [
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+          ],
+      },
+      daysInMonth: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+      firstDayOfWeek: 0,
+      ordinal: function (nth) {
+          var s = nth % 100;
+          if (s > 3 && s < 21)
+              return "th";
+          switch (s % 10) {
+              case 1:
+                  return "st";
+              case 2:
+                  return "nd";
+              case 3:
+                  return "rd";
+              default:
+                  return "th";
+          }
+      },
+      rangeSeparator: " to ",
+      weekAbbreviation: "Wk",
+      scrollTitle: "Scroll to increment",
+      toggleTitle: "Click to toggle",
+      amPM: ["AM", "PM"],
+      yearAriaLabel: "Year",
+      monthAriaLabel: "Month",
+      hourAriaLabel: "Hour",
+      minuteAriaLabel: "Minute",
+      time_24hr: false,
+  };
+
+  var pad = function (number, length) {
+      if (length === void 0) { length = 2; }
+      return ("000" + number).slice(length * -1);
+  };
+  var int = function (bool) { return (bool === true ? 1 : 0); };
+  function debounce(fn, wait) {
+      var t;
+      return function () {
+          var _this = this;
+          var args = arguments;
+          clearTimeout(t);
+          t = setTimeout(function () { return fn.apply(_this, args); }, wait);
+      };
+  }
+  var arrayify = function (obj) {
+      return obj instanceof Array ? obj : [obj];
+  };
+
+  function toggleClass(elem, className, bool) {
+      if (bool === true)
+          return elem.classList.add(className);
+      elem.classList.remove(className);
+  }
+  function createElement(tag, className, content) {
+      var e = window.document.createElement(tag);
+      className = className || "";
+      content = content || "";
+      e.className = className;
+      if (content !== undefined)
+          e.textContent = content;
+      return e;
+  }
+  function clearNode(node) {
+      while (node.firstChild)
+          node.removeChild(node.firstChild);
+  }
+  function findParent(node, condition) {
+      if (condition(node))
+          return node;
+      else if (node.parentNode)
+          return findParent(node.parentNode, condition);
+      return undefined;
+  }
+  function createNumberInput(inputClassName, opts) {
+      var wrapper = createElement("div", "numInputWrapper"), numInput = createElement("input", "numInput " + inputClassName), arrowUp = createElement("span", "arrowUp"), arrowDown = createElement("span", "arrowDown");
+      if (navigator.userAgent.indexOf("MSIE 9.0") === -1) {
+          numInput.type = "number";
+      }
+      else {
+          numInput.type = "text";
+          numInput.pattern = "\\d*";
+      }
+      if (opts !== undefined)
+          for (var key in opts)
+              numInput.setAttribute(key, opts[key]);
+      wrapper.appendChild(numInput);
+      wrapper.appendChild(arrowUp);
+      wrapper.appendChild(arrowDown);
+      return wrapper;
+  }
+  function getEventTarget(event) {
+      try {
+          if (typeof event.composedPath === "function") {
+              var path = event.composedPath();
+              return path[0];
+          }
+          return event.target;
+      }
+      catch (error) {
+          return event.target;
+      }
+  }
+
+  var doNothing = function () { return undefined; };
+  var monthToStr = function (monthNumber, shorthand, locale) { return locale.months[shorthand ? "shorthand" : "longhand"][monthNumber]; };
+  var revFormat = {
+      D: doNothing,
+      F: function (dateObj, monthName, locale) {
+          dateObj.setMonth(locale.months.longhand.indexOf(monthName));
+      },
+      G: function (dateObj, hour) {
+          dateObj.setHours((dateObj.getHours() >= 12 ? 12 : 0) + parseFloat(hour));
+      },
+      H: function (dateObj, hour) {
+          dateObj.setHours(parseFloat(hour));
+      },
+      J: function (dateObj, day) {
+          dateObj.setDate(parseFloat(day));
+      },
+      K: function (dateObj, amPM, locale) {
+          dateObj.setHours((dateObj.getHours() % 12) +
+              12 * int(new RegExp(locale.amPM[1], "i").test(amPM)));
+      },
+      M: function (dateObj, shortMonth, locale) {
+          dateObj.setMonth(locale.months.shorthand.indexOf(shortMonth));
+      },
+      S: function (dateObj, seconds) {
+          dateObj.setSeconds(parseFloat(seconds));
+      },
+      U: function (_, unixSeconds) { return new Date(parseFloat(unixSeconds) * 1000); },
+      W: function (dateObj, weekNum, locale) {
+          var weekNumber = parseInt(weekNum);
+          var date = new Date(dateObj.getFullYear(), 0, 2 + (weekNumber - 1) * 7, 0, 0, 0, 0);
+          date.setDate(date.getDate() - date.getDay() + locale.firstDayOfWeek);
+          return date;
+      },
+      Y: function (dateObj, year) {
+          dateObj.setFullYear(parseFloat(year));
+      },
+      Z: function (_, ISODate) { return new Date(ISODate); },
+      d: function (dateObj, day) {
+          dateObj.setDate(parseFloat(day));
+      },
+      h: function (dateObj, hour) {
+          dateObj.setHours((dateObj.getHours() >= 12 ? 12 : 0) + parseFloat(hour));
+      },
+      i: function (dateObj, minutes) {
+          dateObj.setMinutes(parseFloat(minutes));
+      },
+      j: function (dateObj, day) {
+          dateObj.setDate(parseFloat(day));
+      },
+      l: doNothing,
+      m: function (dateObj, month) {
+          dateObj.setMonth(parseFloat(month) - 1);
+      },
+      n: function (dateObj, month) {
+          dateObj.setMonth(parseFloat(month) - 1);
+      },
+      s: function (dateObj, seconds) {
+          dateObj.setSeconds(parseFloat(seconds));
+      },
+      u: function (_, unixMillSeconds) {
+          return new Date(parseFloat(unixMillSeconds));
+      },
+      w: doNothing,
+      y: function (dateObj, year) {
+          dateObj.setFullYear(2000 + parseFloat(year));
+      },
+  };
+  var tokenRegex = {
+      D: "",
+      F: "",
+      G: "(\\d\\d|\\d)",
+      H: "(\\d\\d|\\d)",
+      J: "(\\d\\d|\\d)\\w+",
+      K: "",
+      M: "",
+      S: "(\\d\\d|\\d)",
+      U: "(.+)",
+      W: "(\\d\\d|\\d)",
+      Y: "(\\d{4})",
+      Z: "(.+)",
+      d: "(\\d\\d|\\d)",
+      h: "(\\d\\d|\\d)",
+      i: "(\\d\\d|\\d)",
+      j: "(\\d\\d|\\d)",
+      l: "",
+      m: "(\\d\\d|\\d)",
+      n: "(\\d\\d|\\d)",
+      s: "(\\d\\d|\\d)",
+      u: "(.+)",
+      w: "(\\d\\d|\\d)",
+      y: "(\\d{2})",
+  };
+  var formats = {
+      Z: function (date) { return date.toISOString(); },
+      D: function (date, locale, options) {
+          return locale.weekdays.shorthand[formats.w(date, locale, options)];
+      },
+      F: function (date, locale, options) {
+          return monthToStr(formats.n(date, locale, options) - 1, false, locale);
+      },
+      G: function (date, locale, options) {
+          return pad(formats.h(date, locale, options));
+      },
+      H: function (date) { return pad(date.getHours()); },
+      J: function (date, locale) {
+          return locale.ordinal !== undefined
+              ? date.getDate() + locale.ordinal(date.getDate())
+              : date.getDate();
+      },
+      K: function (date, locale) { return locale.amPM[int(date.getHours() > 11)]; },
+      M: function (date, locale) {
+          return monthToStr(date.getMonth(), true, locale);
+      },
+      S: function (date) { return pad(date.getSeconds()); },
+      U: function (date) { return date.getTime() / 1000; },
+      W: function (date, _, options) {
+          return options.getWeek(date);
+      },
+      Y: function (date) { return pad(date.getFullYear(), 4); },
+      d: function (date) { return pad(date.getDate()); },
+      h: function (date) { return (date.getHours() % 12 ? date.getHours() % 12 : 12); },
+      i: function (date) { return pad(date.getMinutes()); },
+      j: function (date) { return date.getDate(); },
+      l: function (date, locale) {
+          return locale.weekdays.longhand[date.getDay()];
+      },
+      m: function (date) { return pad(date.getMonth() + 1); },
+      n: function (date) { return date.getMonth() + 1; },
+      s: function (date) { return date.getSeconds(); },
+      u: function (date) { return date.getTime(); },
+      w: function (date) { return date.getDay(); },
+      y: function (date) { return String(date.getFullYear()).substring(2); },
+  };
+
+  var createDateFormatter = function (_a) {
+      var _b = _a.config, config = _b === void 0 ? defaults : _b, _c = _a.l10n, l10n = _c === void 0 ? english : _c, _d = _a.isMobile, isMobile = _d === void 0 ? false : _d;
+      return function (dateObj, frmt, overrideLocale) {
+          var locale = overrideLocale || l10n;
+          if (config.formatDate !== undefined && !isMobile) {
+              return config.formatDate(dateObj, frmt, locale);
+          }
+          return frmt
+              .split("")
+              .map(function (c, i, arr) {
+              return formats[c] && arr[i - 1] !== "\\"
+                  ? formats[c](dateObj, locale, config)
+                  : c !== "\\"
+                      ? c
+                      : "";
+          })
+              .join("");
+      };
+  };
+  var createDateParser = function (_a) {
+      var _b = _a.config, config = _b === void 0 ? defaults : _b, _c = _a.l10n, l10n = _c === void 0 ? english : _c;
+      return function (date, givenFormat, timeless, customLocale) {
+          if (date !== 0 && !date)
+              return undefined;
+          var locale = customLocale || l10n;
+          var parsedDate;
+          var dateOrig = date;
+          if (date instanceof Date)
+              parsedDate = new Date(date.getTime());
+          else if (typeof date !== "string" &&
+              date.toFixed !== undefined)
+              parsedDate = new Date(date);
+          else if (typeof date === "string") {
+              var format = givenFormat || (config || defaults).dateFormat;
+              var datestr = String(date).trim();
+              if (datestr === "today") {
+                  parsedDate = new Date();
+                  timeless = true;
+              }
+              else if (config && config.parseDate) {
+                  parsedDate = config.parseDate(date, format);
+              }
+              else if (/Z$/.test(datestr) ||
+                  /GMT$/.test(datestr)) {
+                  parsedDate = new Date(date);
+              }
+              else {
+                  var matched = void 0, ops = [];
+                  for (var i = 0, matchIndex = 0, regexStr = ""; i < format.length; i++) {
+                      var token = format[i];
+                      var isBackSlash = token === "\\";
+                      var escaped = format[i - 1] === "\\" || isBackSlash;
+                      if (tokenRegex[token] && !escaped) {
+                          regexStr += tokenRegex[token];
+                          var match = new RegExp(regexStr).exec(date);
+                          if (match && (matched = true)) {
+                              ops[token !== "Y" ? "push" : "unshift"]({
+                                  fn: revFormat[token],
+                                  val: match[++matchIndex],
+                              });
+                          }
+                      }
+                      else if (!isBackSlash)
+                          regexStr += ".";
+                  }
+                  parsedDate =
+                      !config || !config.noCalendar
+                          ? new Date(new Date().getFullYear(), 0, 1, 0, 0, 0, 0)
+                          : new Date(new Date().setHours(0, 0, 0, 0));
+                  ops.forEach(function (_a) {
+                      var fn = _a.fn, val = _a.val;
+                      return (parsedDate = fn(parsedDate, val, locale) || parsedDate);
+                  });
+                  parsedDate = matched ? parsedDate : undefined;
+              }
+          }
+          if (!(parsedDate instanceof Date && !isNaN(parsedDate.getTime()))) {
+              config.errorHandler(new Error("Invalid date provided: " + dateOrig));
+              return undefined;
+          }
+          if (timeless === true)
+              parsedDate.setHours(0, 0, 0, 0);
+          return parsedDate;
+      };
+  };
+  function compareDates(date1, date2, timeless) {
+      if (timeless === void 0) { timeless = true; }
+      if (timeless !== false) {
+          return (new Date(date1.getTime()).setHours(0, 0, 0, 0) -
+              new Date(date2.getTime()).setHours(0, 0, 0, 0));
+      }
+      return date1.getTime() - date2.getTime();
+  }
+  var isBetween = function (ts, ts1, ts2) {
+      return ts > Math.min(ts1, ts2) && ts < Math.max(ts1, ts2);
+  };
+  var calculateSecondsSinceMidnight = function (hours, minutes, seconds) {
+      return hours * 3600 + minutes * 60 + seconds;
+  };
+  var parseSeconds = function (secondsSinceMidnight) {
+      var hours = Math.floor(secondsSinceMidnight / 3600), minutes = (secondsSinceMidnight - hours * 3600) / 60;
+      return [hours, minutes, secondsSinceMidnight - hours * 3600 - minutes * 60];
+  };
+  var duration = {
+      DAY: 86400000,
+  };
+  function getDefaultHours(config) {
+      var hours = config.defaultHour;
+      var minutes = config.defaultMinute;
+      var seconds = config.defaultSeconds;
+      if (config.minDate !== undefined) {
+          var minHour = config.minDate.getHours();
+          var minMinutes = config.minDate.getMinutes();
+          var minSeconds = config.minDate.getSeconds();
+          if (hours < minHour) {
+              hours = minHour;
+          }
+          if (hours === minHour && minutes < minMinutes) {
+              minutes = minMinutes;
+          }
+          if (hours === minHour && minutes === minMinutes && seconds < minSeconds)
+              seconds = config.minDate.getSeconds();
+      }
+      if (config.maxDate !== undefined) {
+          var maxHr = config.maxDate.getHours();
+          var maxMinutes = config.maxDate.getMinutes();
+          hours = Math.min(hours, maxHr);
+          if (hours === maxHr)
+              minutes = Math.min(maxMinutes, minutes);
+          if (hours === maxHr && minutes === maxMinutes)
+              seconds = config.maxDate.getSeconds();
+      }
+      return { hours: hours, minutes: minutes, seconds: seconds };
+  }
+
+  if (typeof Object.assign !== "function") {
+      Object.assign = function (target) {
+          var args = [];
+          for (var _i = 1; _i < arguments.length; _i++) {
+              args[_i - 1] = arguments[_i];
+          }
+          if (!target) {
+              throw TypeError("Cannot convert undefined or null to object");
+          }
+          var _loop_1 = function (source) {
+              if (source) {
+                  Object.keys(source).forEach(function (key) { return (target[key] = source[key]); });
+              }
+          };
+          for (var _a = 0, args_1 = args; _a < args_1.length; _a++) {
+              var source = args_1[_a];
+              _loop_1(source);
+          }
+          return target;
+      };
+  }
+
+  var __assign = (undefined && undefined.__assign) || function () {
+      __assign = Object.assign || function(t) {
+          for (var s, i = 1, n = arguments.length; i < n; i++) {
+              s = arguments[i];
+              for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                  t[p] = s[p];
+          }
+          return t;
+      };
+      return __assign.apply(this, arguments);
+  };
+  var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
+      for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+      for (var r = Array(s), k = 0, i = 0; i < il; i++)
+          for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+              r[k] = a[j];
+      return r;
+  };
+  var DEBOUNCED_CHANGE_MS = 300;
+  function FlatpickrInstance(element, instanceConfig) {
+      var self = {
+          config: __assign(__assign({}, defaults), flatpickr.defaultConfig),
+          l10n: english,
+      };
+      self.parseDate = createDateParser({ config: self.config, l10n: self.l10n });
+      self._handlers = [];
+      self.pluginElements = [];
+      self.loadedPlugins = [];
+      self._bind = bind;
+      self._setHoursFromDate = setHoursFromDate;
+      self._positionCalendar = positionCalendar;
+      self.changeMonth = changeMonth;
+      self.changeYear = changeYear;
+      self.clear = clear;
+      self.close = close;
+      self.onMouseOver = onMouseOver;
+      self._createElement = createElement;
+      self.createDay = createDay;
+      self.destroy = destroy;
+      self.isEnabled = isEnabled;
+      self.jumpToDate = jumpToDate;
+      self.updateValue = updateValue;
+      self.open = open;
+      self.redraw = redraw;
+      self.set = set;
+      self.setDate = setDate;
+      self.toggle = toggle;
+      function setupHelperFunctions() {
+          self.utils = {
+              getDaysInMonth: function (month, yr) {
+                  if (month === void 0) { month = self.currentMonth; }
+                  if (yr === void 0) { yr = self.currentYear; }
+                  if (month === 1 && ((yr % 4 === 0 && yr % 100 !== 0) || yr % 400 === 0))
+                      return 29;
+                  return self.l10n.daysInMonth[month];
+              },
+          };
+      }
+      function init() {
+          self.element = self.input = element;
+          self.isOpen = false;
+          parseConfig();
+          setupLocale();
+          setupInputs();
+          setupDates();
+          setupHelperFunctions();
+          if (!self.isMobile)
+              build();
+          bindEvents();
+          if (self.selectedDates.length || self.config.noCalendar) {
+              if (self.config.enableTime) {
+                  setHoursFromDate(self.config.noCalendar ? self.latestSelectedDateObj : undefined);
+              }
+              updateValue(false);
+          }
+          setCalendarWidth();
+          var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+          if (!self.isMobile && isSafari) {
+              positionCalendar();
+          }
+          triggerEvent("onReady");
+      }
+      function getClosestActiveElement() {
+          var _a;
+          return (((_a = self.calendarContainer) === null || _a === void 0 ? void 0 : _a.getRootNode())
+              .activeElement || document.activeElement);
+      }
+      function bindToInstance(fn) {
+          return fn.bind(self);
+      }
+      function setCalendarWidth() {
+          var config = self.config;
+          if (config.weekNumbers === false && config.showMonths === 1) {
+              return;
+          }
+          else if (config.noCalendar !== true) {
+              window.requestAnimationFrame(function () {
+                  if (self.calendarContainer !== undefined) {
+                      self.calendarContainer.style.visibility = "hidden";
+                      self.calendarContainer.style.display = "block";
+                  }
+                  if (self.daysContainer !== undefined) {
+                      var daysWidth = (self.days.offsetWidth + 1) * config.showMonths;
+                      self.daysContainer.style.width = daysWidth + "px";
+                      self.calendarContainer.style.width =
+                          daysWidth +
+                              (self.weekWrapper !== undefined
+                                  ? self.weekWrapper.offsetWidth
+                                  : 0) +
+                              "px";
+                      self.calendarContainer.style.removeProperty("visibility");
+                      self.calendarContainer.style.removeProperty("display");
+                  }
+              });
+          }
+      }
+      function updateTime(e) {
+          if (self.selectedDates.length === 0) {
+              var defaultDate = self.config.minDate === undefined ||
+                  compareDates(new Date(), self.config.minDate) >= 0
+                  ? new Date()
+                  : new Date(self.config.minDate.getTime());
+              var defaults = getDefaultHours(self.config);
+              defaultDate.setHours(defaults.hours, defaults.minutes, defaults.seconds, defaultDate.getMilliseconds());
+              self.selectedDates = [defaultDate];
+              self.latestSelectedDateObj = defaultDate;
+          }
+          if (e !== undefined && e.type !== "blur") {
+              timeWrapper(e);
+          }
+          var prevValue = self._input.value;
+          setHoursFromInputs();
+          updateValue();
+          if (self._input.value !== prevValue) {
+              self._debouncedChange();
+          }
+      }
+      function ampm2military(hour, amPM) {
+          return (hour % 12) + 12 * int(amPM === self.l10n.amPM[1]);
+      }
+      function military2ampm(hour) {
+          switch (hour % 24) {
+              case 0:
+              case 12:
+                  return 12;
+              default:
+                  return hour % 12;
+          }
+      }
+      function setHoursFromInputs() {
+          if (self.hourElement === undefined || self.minuteElement === undefined)
+              return;
+          var hours = (parseInt(self.hourElement.value.slice(-2), 10) || 0) % 24, minutes = (parseInt(self.minuteElement.value, 10) || 0) % 60, seconds = self.secondElement !== undefined
+              ? (parseInt(self.secondElement.value, 10) || 0) % 60
+              : 0;
+          if (self.amPM !== undefined) {
+              hours = ampm2military(hours, self.amPM.textContent);
+          }
+          var limitMinHours = self.config.minTime !== undefined ||
+              (self.config.minDate &&
+                  self.minDateHasTime &&
+                  self.latestSelectedDateObj &&
+                  compareDates(self.latestSelectedDateObj, self.config.minDate, true) ===
+                      0);
+          var limitMaxHours = self.config.maxTime !== undefined ||
+              (self.config.maxDate &&
+                  self.maxDateHasTime &&
+                  self.latestSelectedDateObj &&
+                  compareDates(self.latestSelectedDateObj, self.config.maxDate, true) ===
+                      0);
+          if (self.config.maxTime !== undefined &&
+              self.config.minTime !== undefined &&
+              self.config.minTime > self.config.maxTime) {
+              var minBound = calculateSecondsSinceMidnight(self.config.minTime.getHours(), self.config.minTime.getMinutes(), self.config.minTime.getSeconds());
+              var maxBound = calculateSecondsSinceMidnight(self.config.maxTime.getHours(), self.config.maxTime.getMinutes(), self.config.maxTime.getSeconds());
+              var currentTime = calculateSecondsSinceMidnight(hours, minutes, seconds);
+              if (currentTime > maxBound && currentTime < minBound) {
+                  var result = parseSeconds(minBound);
+                  hours = result[0];
+                  minutes = result[1];
+                  seconds = result[2];
+              }
+          }
+          else {
+              if (limitMaxHours) {
+                  var maxTime = self.config.maxTime !== undefined
+                      ? self.config.maxTime
+                      : self.config.maxDate;
+                  hours = Math.min(hours, maxTime.getHours());
+                  if (hours === maxTime.getHours())
+                      minutes = Math.min(minutes, maxTime.getMinutes());
+                  if (minutes === maxTime.getMinutes())
+                      seconds = Math.min(seconds, maxTime.getSeconds());
+              }
+              if (limitMinHours) {
+                  var minTime = self.config.minTime !== undefined
+                      ? self.config.minTime
+                      : self.config.minDate;
+                  hours = Math.max(hours, minTime.getHours());
+                  if (hours === minTime.getHours() && minutes < minTime.getMinutes())
+                      minutes = minTime.getMinutes();
+                  if (minutes === minTime.getMinutes())
+                      seconds = Math.max(seconds, minTime.getSeconds());
+              }
+          }
+          setHours(hours, minutes, seconds);
+      }
+      function setHoursFromDate(dateObj) {
+          var date = dateObj || self.latestSelectedDateObj;
+          if (date && date instanceof Date) {
+              setHours(date.getHours(), date.getMinutes(), date.getSeconds());
+          }
+      }
+      function setHours(hours, minutes, seconds) {
+          if (self.latestSelectedDateObj !== undefined) {
+              self.latestSelectedDateObj.setHours(hours % 24, minutes, seconds || 0, 0);
+          }
+          if (!self.hourElement || !self.minuteElement || self.isMobile)
+              return;
+          self.hourElement.value = pad(!self.config.time_24hr
+              ? ((12 + hours) % 12) + 12 * int(hours % 12 === 0)
+              : hours);
+          self.minuteElement.value = pad(minutes);
+          if (self.amPM !== undefined)
+              self.amPM.textContent = self.l10n.amPM[int(hours >= 12)];
+          if (self.secondElement !== undefined)
+              self.secondElement.value = pad(seconds);
+      }
+      function onYearInput(event) {
+          var eventTarget = getEventTarget(event);
+          var year = parseInt(eventTarget.value) + (event.delta || 0);
+          if (year / 1000 > 1 ||
+              (event.key === "Enter" && !/[^\d]/.test(year.toString()))) {
+              changeYear(year);
+          }
+      }
+      function bind(element, event, handler, options) {
+          if (event instanceof Array)
+              return event.forEach(function (ev) { return bind(element, ev, handler, options); });
+          if (element instanceof Array)
+              return element.forEach(function (el) { return bind(el, event, handler, options); });
+          element.addEventListener(event, handler, options);
+          self._handlers.push({
+              remove: function () { return element.removeEventListener(event, handler, options); },
+          });
+      }
+      function triggerChange() {
+          triggerEvent("onChange");
+      }
+      function bindEvents() {
+          if (self.config.wrap) {
+              ["open", "close", "toggle", "clear"].forEach(function (evt) {
+                  Array.prototype.forEach.call(self.element.querySelectorAll("[data-" + evt + "]"), function (el) {
+                      return bind(el, "click", self[evt]);
+                  });
+              });
+          }
+          if (self.isMobile) {
+              setupMobile();
+              return;
+          }
+          var debouncedResize = debounce(onResize, 50);
+          self._debouncedChange = debounce(triggerChange, DEBOUNCED_CHANGE_MS);
+          if (self.daysContainer && !/iPhone|iPad|iPod/i.test(navigator.userAgent))
+              bind(self.daysContainer, "mouseover", function (e) {
+                  if (self.config.mode === "range")
+                      onMouseOver(getEventTarget(e));
+              });
+          bind(self._input, "keydown", onKeyDown);
+          if (self.calendarContainer !== undefined) {
+              bind(self.calendarContainer, "keydown", onKeyDown);
+          }
+          if (!self.config.inline && !self.config.static)
+              bind(window, "resize", debouncedResize);
+          if (window.ontouchstart !== undefined)
+              bind(window.document, "touchstart", documentClick);
+          else
+              bind(window.document, "mousedown", documentClick);
+          bind(window.document, "focus", documentClick, { capture: true });
+          if (self.config.clickOpens === true) {
+              bind(self._input, "focus", self.open);
+              bind(self._input, "click", self.open);
+          }
+          if (self.daysContainer !== undefined) {
+              bind(self.monthNav, "click", onMonthNavClick);
+              bind(self.monthNav, ["keyup", "increment"], onYearInput);
+              bind(self.daysContainer, "click", selectDate);
+          }
+          if (self.timeContainer !== undefined &&
+              self.minuteElement !== undefined &&
+              self.hourElement !== undefined) {
+              var selText = function (e) {
+                  return getEventTarget(e).select();
+              };
+              bind(self.timeContainer, ["increment"], updateTime);
+              bind(self.timeContainer, "blur", updateTime, { capture: true });
+              bind(self.timeContainer, "click", timeIncrement);
+              bind([self.hourElement, self.minuteElement], ["focus", "click"], selText);
+              if (self.secondElement !== undefined)
+                  bind(self.secondElement, "focus", function () { return self.secondElement && self.secondElement.select(); });
+              if (self.amPM !== undefined) {
+                  bind(self.amPM, "click", function (e) {
+                      updateTime(e);
+                  });
+              }
+          }
+          if (self.config.allowInput) {
+              bind(self._input, "blur", onBlur);
+          }
+      }
+      function jumpToDate(jumpDate, triggerChange) {
+          var jumpTo = jumpDate !== undefined
+              ? self.parseDate(jumpDate)
+              : self.latestSelectedDateObj ||
+                  (self.config.minDate && self.config.minDate > self.now
+                      ? self.config.minDate
+                      : self.config.maxDate && self.config.maxDate < self.now
+                          ? self.config.maxDate
+                          : self.now);
+          var oldYear = self.currentYear;
+          var oldMonth = self.currentMonth;
+          try {
+              if (jumpTo !== undefined) {
+                  self.currentYear = jumpTo.getFullYear();
+                  self.currentMonth = jumpTo.getMonth();
+              }
+          }
+          catch (e) {
+              e.message = "Invalid date supplied: " + jumpTo;
+              self.config.errorHandler(e);
+          }
+          if (triggerChange && self.currentYear !== oldYear) {
+              triggerEvent("onYearChange");
+              buildMonthSwitch();
+          }
+          if (triggerChange &&
+              (self.currentYear !== oldYear || self.currentMonth !== oldMonth)) {
+              triggerEvent("onMonthChange");
+          }
+          self.redraw();
+      }
+      function timeIncrement(e) {
+          var eventTarget = getEventTarget(e);
+          if (~eventTarget.className.indexOf("arrow"))
+              incrementNumInput(e, eventTarget.classList.contains("arrowUp") ? 1 : -1);
+      }
+      function incrementNumInput(e, delta, inputElem) {
+          var target = e && getEventTarget(e);
+          var input = inputElem ||
+              (target && target.parentNode && target.parentNode.firstChild);
+          var event = createEvent("increment");
+          event.delta = delta;
+          input && input.dispatchEvent(event);
+      }
+      function build() {
+          var fragment = window.document.createDocumentFragment();
+          self.calendarContainer = createElement("div", "flatpickr-calendar");
+          self.calendarContainer.tabIndex = -1;
+          if (!self.config.noCalendar) {
+              fragment.appendChild(buildMonthNav());
+              self.innerContainer = createElement("div", "flatpickr-innerContainer");
+              if (self.config.weekNumbers) {
+                  var _a = buildWeeks(), weekWrapper = _a.weekWrapper, weekNumbers = _a.weekNumbers;
+                  self.innerContainer.appendChild(weekWrapper);
+                  self.weekNumbers = weekNumbers;
+                  self.weekWrapper = weekWrapper;
+              }
+              self.rContainer = createElement("div", "flatpickr-rContainer");
+              self.rContainer.appendChild(buildWeekdays());
+              if (!self.daysContainer) {
+                  self.daysContainer = createElement("div", "flatpickr-days");
+                  self.daysContainer.tabIndex = -1;
+              }
+              buildDays();
+              self.rContainer.appendChild(self.daysContainer);
+              self.innerContainer.appendChild(self.rContainer);
+              fragment.appendChild(self.innerContainer);
+          }
+          if (self.config.enableTime) {
+              fragment.appendChild(buildTime());
+          }
+          toggleClass(self.calendarContainer, "rangeMode", self.config.mode === "range");
+          toggleClass(self.calendarContainer, "animate", self.config.animate === true);
+          toggleClass(self.calendarContainer, "multiMonth", self.config.showMonths > 1);
+          self.calendarContainer.appendChild(fragment);
+          var customAppend = self.config.appendTo !== undefined &&
+              self.config.appendTo.nodeType !== undefined;
+          if (self.config.inline || self.config.static) {
+              self.calendarContainer.classList.add(self.config.inline ? "inline" : "static");
+              if (self.config.inline) {
+                  if (!customAppend && self.element.parentNode)
+                      self.element.parentNode.insertBefore(self.calendarContainer, self._input.nextSibling);
+                  else if (self.config.appendTo !== undefined)
+                      self.config.appendTo.appendChild(self.calendarContainer);
+              }
+              if (self.config.static) {
+                  var wrapper = createElement("div", "flatpickr-wrapper");
+                  if (self.element.parentNode)
+                      self.element.parentNode.insertBefore(wrapper, self.element);
+                  wrapper.appendChild(self.element);
+                  if (self.altInput)
+                      wrapper.appendChild(self.altInput);
+                  wrapper.appendChild(self.calendarContainer);
+              }
+          }
+          if (!self.config.static && !self.config.inline)
+              (self.config.appendTo !== undefined
+                  ? self.config.appendTo
+                  : window.document.body).appendChild(self.calendarContainer);
+      }
+      function createDay(className, date, _dayNumber, i) {
+          var dateIsEnabled = isEnabled(date, true), dayElement = createElement("span", className, date.getDate().toString());
+          dayElement.dateObj = date;
+          dayElement.$i = i;
+          dayElement.setAttribute("aria-label", self.formatDate(date, self.config.ariaDateFormat));
+          if (className.indexOf("hidden") === -1 &&
+              compareDates(date, self.now) === 0) {
+              self.todayDateElem = dayElement;
+              dayElement.classList.add("today");
+              dayElement.setAttribute("aria-current", "date");
+          }
+          if (dateIsEnabled) {
+              dayElement.tabIndex = -1;
+              if (isDateSelected(date)) {
+                  dayElement.classList.add("selected");
+                  self.selectedDateElem = dayElement;
+                  if (self.config.mode === "range") {
+                      toggleClass(dayElement, "startRange", self.selectedDates[0] &&
+                          compareDates(date, self.selectedDates[0], true) === 0);
+                      toggleClass(dayElement, "endRange", self.selectedDates[1] &&
+                          compareDates(date, self.selectedDates[1], true) === 0);
+                      if (className === "nextMonthDay")
+                          dayElement.classList.add("inRange");
+                  }
+              }
+          }
+          else {
+              dayElement.classList.add("flatpickr-disabled");
+          }
+          if (self.config.mode === "range") {
+              if (isDateInRange(date) && !isDateSelected(date))
+                  dayElement.classList.add("inRange");
+          }
+          if (self.weekNumbers &&
+              self.config.showMonths === 1 &&
+              className !== "prevMonthDay" &&
+              i % 7 === 6) {
+              self.weekNumbers.insertAdjacentHTML("beforeend", "<span class='flatpickr-day'>" + self.config.getWeek(date) + "</span>");
+          }
+          triggerEvent("onDayCreate", dayElement);
+          return dayElement;
+      }
+      function focusOnDayElem(targetNode) {
+          targetNode.focus();
+          if (self.config.mode === "range")
+              onMouseOver(targetNode);
+      }
+      function getFirstAvailableDay(delta) {
+          var startMonth = delta > 0 ? 0 : self.config.showMonths - 1;
+          var endMonth = delta > 0 ? self.config.showMonths : -1;
+          for (var m = startMonth; m != endMonth; m += delta) {
+              var month = self.daysContainer.children[m];
+              var startIndex = delta > 0 ? 0 : month.children.length - 1;
+              var endIndex = delta > 0 ? month.children.length : -1;
+              for (var i = startIndex; i != endIndex; i += delta) {
+                  var c = month.children[i];
+                  if (c.className.indexOf("hidden") === -1 && isEnabled(c.dateObj))
+                      return c;
+              }
+          }
+          return undefined;
+      }
+      function getNextAvailableDay(current, delta) {
+          var givenMonth = current.className.indexOf("Month") === -1
+              ? current.dateObj.getMonth()
+              : self.currentMonth;
+          var endMonth = delta > 0 ? self.config.showMonths : -1;
+          var loopDelta = delta > 0 ? 1 : -1;
+          for (var m = givenMonth - self.currentMonth; m != endMonth; m += loopDelta) {
+              var month = self.daysContainer.children[m];
+              var startIndex = givenMonth - self.currentMonth === m
+                  ? current.$i + delta
+                  : delta < 0
+                      ? month.children.length - 1
+                      : 0;
+              var numMonthDays = month.children.length;
+              for (var i = startIndex; i >= 0 && i < numMonthDays && i != (delta > 0 ? numMonthDays : -1); i += loopDelta) {
+                  var c = month.children[i];
+                  if (c.className.indexOf("hidden") === -1 &&
+                      isEnabled(c.dateObj) &&
+                      Math.abs(current.$i - i) >= Math.abs(delta))
+                      return focusOnDayElem(c);
+              }
+          }
+          self.changeMonth(loopDelta);
+          focusOnDay(getFirstAvailableDay(loopDelta), 0);
+          return undefined;
+      }
+      function focusOnDay(current, offset) {
+          var activeElement = getClosestActiveElement();
+          var dayFocused = isInView(activeElement || document.body);
+          var startElem = current !== undefined
+              ? current
+              : dayFocused
+                  ? activeElement
+                  : self.selectedDateElem !== undefined && isInView(self.selectedDateElem)
+                      ? self.selectedDateElem
+                      : self.todayDateElem !== undefined && isInView(self.todayDateElem)
+                          ? self.todayDateElem
+                          : getFirstAvailableDay(offset > 0 ? 1 : -1);
+          if (startElem === undefined) {
+              self._input.focus();
+          }
+          else if (!dayFocused) {
+              focusOnDayElem(startElem);
+          }
+          else {
+              getNextAvailableDay(startElem, offset);
+          }
+      }
+      function buildMonthDays(year, month) {
+          var firstOfMonth = (new Date(year, month, 1).getDay() - self.l10n.firstDayOfWeek + 7) % 7;
+          var prevMonthDays = self.utils.getDaysInMonth((month - 1 + 12) % 12, year);
+          var daysInMonth = self.utils.getDaysInMonth(month, year), days = window.document.createDocumentFragment(), isMultiMonth = self.config.showMonths > 1, prevMonthDayClass = isMultiMonth ? "prevMonthDay hidden" : "prevMonthDay", nextMonthDayClass = isMultiMonth ? "nextMonthDay hidden" : "nextMonthDay";
+          var dayNumber = prevMonthDays + 1 - firstOfMonth, dayIndex = 0;
+          for (; dayNumber <= prevMonthDays; dayNumber++, dayIndex++) {
+              days.appendChild(createDay("flatpickr-day " + prevMonthDayClass, new Date(year, month - 1, dayNumber), dayNumber, dayIndex));
+          }
+          for (dayNumber = 1; dayNumber <= daysInMonth; dayNumber++, dayIndex++) {
+              days.appendChild(createDay("flatpickr-day", new Date(year, month, dayNumber), dayNumber, dayIndex));
+          }
+          for (var dayNum = daysInMonth + 1; dayNum <= 42 - firstOfMonth &&
+              (self.config.showMonths === 1 || dayIndex % 7 !== 0); dayNum++, dayIndex++) {
+              days.appendChild(createDay("flatpickr-day " + nextMonthDayClass, new Date(year, month + 1, dayNum % daysInMonth), dayNum, dayIndex));
+          }
+          var dayContainer = createElement("div", "dayContainer");
+          dayContainer.appendChild(days);
+          return dayContainer;
+      }
+      function buildDays() {
+          if (self.daysContainer === undefined) {
+              return;
+          }
+          clearNode(self.daysContainer);
+          if (self.weekNumbers)
+              clearNode(self.weekNumbers);
+          var frag = document.createDocumentFragment();
+          for (var i = 0; i < self.config.showMonths; i++) {
+              var d = new Date(self.currentYear, self.currentMonth, 1);
+              d.setMonth(self.currentMonth + i);
+              frag.appendChild(buildMonthDays(d.getFullYear(), d.getMonth()));
+          }
+          self.daysContainer.appendChild(frag);
+          self.days = self.daysContainer.firstChild;
+          if (self.config.mode === "range" && self.selectedDates.length === 1) {
+              onMouseOver();
+          }
+      }
+      function buildMonthSwitch() {
+          if (self.config.showMonths > 1 ||
+              self.config.monthSelectorType !== "dropdown")
+              return;
+          var shouldBuildMonth = function (month) {
+              if (self.config.minDate !== undefined &&
+                  self.currentYear === self.config.minDate.getFullYear() &&
+                  month < self.config.minDate.getMonth()) {
+                  return false;
+              }
+              return !(self.config.maxDate !== undefined &&
+                  self.currentYear === self.config.maxDate.getFullYear() &&
+                  month > self.config.maxDate.getMonth());
+          };
+          self.monthsDropdownContainer.tabIndex = -1;
+          self.monthsDropdownContainer.innerHTML = "";
+          for (var i = 0; i < 12; i++) {
+              if (!shouldBuildMonth(i))
+                  continue;
+              var month = createElement("option", "flatpickr-monthDropdown-month");
+              month.value = new Date(self.currentYear, i).getMonth().toString();
+              month.textContent = monthToStr(i, self.config.shorthandCurrentMonth, self.l10n);
+              month.tabIndex = -1;
+              if (self.currentMonth === i) {
+                  month.selected = true;
+              }
+              self.monthsDropdownContainer.appendChild(month);
+          }
+      }
+      function buildMonth() {
+          var container = createElement("div", "flatpickr-month");
+          var monthNavFragment = window.document.createDocumentFragment();
+          var monthElement;
+          if (self.config.showMonths > 1 ||
+              self.config.monthSelectorType === "static") {
+              monthElement = createElement("span", "cur-month");
+          }
+          else {
+              self.monthsDropdownContainer = createElement("select", "flatpickr-monthDropdown-months");
+              self.monthsDropdownContainer.setAttribute("aria-label", self.l10n.monthAriaLabel);
+              bind(self.monthsDropdownContainer, "change", function (e) {
+                  var target = getEventTarget(e);
+                  var selectedMonth = parseInt(target.value, 10);
+                  self.changeMonth(selectedMonth - self.currentMonth);
+                  triggerEvent("onMonthChange");
+              });
+              buildMonthSwitch();
+              monthElement = self.monthsDropdownContainer;
+          }
+          var yearInput = createNumberInput("cur-year", { tabindex: "-1" });
+          var yearElement = yearInput.getElementsByTagName("input")[0];
+          yearElement.setAttribute("aria-label", self.l10n.yearAriaLabel);
+          if (self.config.minDate) {
+              yearElement.setAttribute("min", self.config.minDate.getFullYear().toString());
+          }
+          if (self.config.maxDate) {
+              yearElement.setAttribute("max", self.config.maxDate.getFullYear().toString());
+              yearElement.disabled =
+                  !!self.config.minDate &&
+                      self.config.minDate.getFullYear() === self.config.maxDate.getFullYear();
+          }
+          var currentMonth = createElement("div", "flatpickr-current-month");
+          currentMonth.appendChild(monthElement);
+          currentMonth.appendChild(yearInput);
+          monthNavFragment.appendChild(currentMonth);
+          container.appendChild(monthNavFragment);
+          return {
+              container: container,
+              yearElement: yearElement,
+              monthElement: monthElement,
+          };
+      }
+      function buildMonths() {
+          clearNode(self.monthNav);
+          self.monthNav.appendChild(self.prevMonthNav);
+          if (self.config.showMonths) {
+              self.yearElements = [];
+              self.monthElements = [];
+          }
+          for (var m = self.config.showMonths; m--;) {
+              var month = buildMonth();
+              self.yearElements.push(month.yearElement);
+              self.monthElements.push(month.monthElement);
+              self.monthNav.appendChild(month.container);
+          }
+          self.monthNav.appendChild(self.nextMonthNav);
+      }
+      function buildMonthNav() {
+          self.monthNav = createElement("div", "flatpickr-months");
+          self.yearElements = [];
+          self.monthElements = [];
+          self.prevMonthNav = createElement("span", "flatpickr-prev-month");
+          self.prevMonthNav.innerHTML = self.config.prevArrow;
+          self.nextMonthNav = createElement("span", "flatpickr-next-month");
+          self.nextMonthNav.innerHTML = self.config.nextArrow;
+          buildMonths();
+          Object.defineProperty(self, "_hidePrevMonthArrow", {
+              get: function () { return self.__hidePrevMonthArrow; },
+              set: function (bool) {
+                  if (self.__hidePrevMonthArrow !== bool) {
+                      toggleClass(self.prevMonthNav, "flatpickr-disabled", bool);
+                      self.__hidePrevMonthArrow = bool;
+                  }
+              },
+          });
+          Object.defineProperty(self, "_hideNextMonthArrow", {
+              get: function () { return self.__hideNextMonthArrow; },
+              set: function (bool) {
+                  if (self.__hideNextMonthArrow !== bool) {
+                      toggleClass(self.nextMonthNav, "flatpickr-disabled", bool);
+                      self.__hideNextMonthArrow = bool;
+                  }
+              },
+          });
+          self.currentYearElement = self.yearElements[0];
+          updateNavigationCurrentMonth();
+          return self.monthNav;
+      }
+      function buildTime() {
+          self.calendarContainer.classList.add("hasTime");
+          if (self.config.noCalendar)
+              self.calendarContainer.classList.add("noCalendar");
+          var defaults = getDefaultHours(self.config);
+          self.timeContainer = createElement("div", "flatpickr-time");
+          self.timeContainer.tabIndex = -1;
+          var separator = createElement("span", "flatpickr-time-separator", ":");
+          var hourInput = createNumberInput("flatpickr-hour", {
+              "aria-label": self.l10n.hourAriaLabel,
+          });
+          self.hourElement = hourInput.getElementsByTagName("input")[0];
+          var minuteInput = createNumberInput("flatpickr-minute", {
+              "aria-label": self.l10n.minuteAriaLabel,
+          });
+          self.minuteElement = minuteInput.getElementsByTagName("input")[0];
+          self.hourElement.tabIndex = self.minuteElement.tabIndex = -1;
+          self.hourElement.value = pad(self.latestSelectedDateObj
+              ? self.latestSelectedDateObj.getHours()
+              : self.config.time_24hr
+                  ? defaults.hours
+                  : military2ampm(defaults.hours));
+          self.minuteElement.value = pad(self.latestSelectedDateObj
+              ? self.latestSelectedDateObj.getMinutes()
+              : defaults.minutes);
+          self.hourElement.setAttribute("step", self.config.hourIncrement.toString());
+          self.minuteElement.setAttribute("step", self.config.minuteIncrement.toString());
+          self.hourElement.setAttribute("min", self.config.time_24hr ? "0" : "1");
+          self.hourElement.setAttribute("max", self.config.time_24hr ? "23" : "12");
+          self.hourElement.setAttribute("maxlength", "2");
+          self.minuteElement.setAttribute("min", "0");
+          self.minuteElement.setAttribute("max", "59");
+          self.minuteElement.setAttribute("maxlength", "2");
+          self.timeContainer.appendChild(hourInput);
+          self.timeContainer.appendChild(separator);
+          self.timeContainer.appendChild(minuteInput);
+          if (self.config.time_24hr)
+              self.timeContainer.classList.add("time24hr");
+          if (self.config.enableSeconds) {
+              self.timeContainer.classList.add("hasSeconds");
+              var secondInput = createNumberInput("flatpickr-second");
+              self.secondElement = secondInput.getElementsByTagName("input")[0];
+              self.secondElement.value = pad(self.latestSelectedDateObj
+                  ? self.latestSelectedDateObj.getSeconds()
+                  : defaults.seconds);
+              self.secondElement.setAttribute("step", self.minuteElement.getAttribute("step"));
+              self.secondElement.setAttribute("min", "0");
+              self.secondElement.setAttribute("max", "59");
+              self.secondElement.setAttribute("maxlength", "2");
+              self.timeContainer.appendChild(createElement("span", "flatpickr-time-separator", ":"));
+              self.timeContainer.appendChild(secondInput);
+          }
+          if (!self.config.time_24hr) {
+              self.amPM = createElement("span", "flatpickr-am-pm", self.l10n.amPM[int((self.latestSelectedDateObj
+                  ? self.hourElement.value
+                  : self.config.defaultHour) > 11)]);
+              self.amPM.title = self.l10n.toggleTitle;
+              self.amPM.tabIndex = -1;
+              self.timeContainer.appendChild(self.amPM);
+          }
+          return self.timeContainer;
+      }
+      function buildWeekdays() {
+          if (!self.weekdayContainer)
+              self.weekdayContainer = createElement("div", "flatpickr-weekdays");
+          else
+              clearNode(self.weekdayContainer);
+          for (var i = self.config.showMonths; i--;) {
+              var container = createElement("div", "flatpickr-weekdaycontainer");
+              self.weekdayContainer.appendChild(container);
+          }
+          updateWeekdays();
+          return self.weekdayContainer;
+      }
+      function updateWeekdays() {
+          if (!self.weekdayContainer) {
+              return;
+          }
+          var firstDayOfWeek = self.l10n.firstDayOfWeek;
+          var weekdays = __spreadArrays(self.l10n.weekdays.shorthand);
+          if (firstDayOfWeek > 0 && firstDayOfWeek < weekdays.length) {
+              weekdays = __spreadArrays(weekdays.splice(firstDayOfWeek, weekdays.length), weekdays.splice(0, firstDayOfWeek));
+          }
+          for (var i = self.config.showMonths; i--;) {
+              self.weekdayContainer.children[i].innerHTML = "\n      <span class='flatpickr-weekday'>\n        " + weekdays.join("</span><span class='flatpickr-weekday'>") + "\n      </span>\n      ";
+          }
+      }
+      function buildWeeks() {
+          self.calendarContainer.classList.add("hasWeeks");
+          var weekWrapper = createElement("div", "flatpickr-weekwrapper");
+          weekWrapper.appendChild(createElement("span", "flatpickr-weekday", self.l10n.weekAbbreviation));
+          var weekNumbers = createElement("div", "flatpickr-weeks");
+          weekWrapper.appendChild(weekNumbers);
+          return {
+              weekWrapper: weekWrapper,
+              weekNumbers: weekNumbers,
+          };
+      }
+      function changeMonth(value, isOffset) {
+          if (isOffset === void 0) { isOffset = true; }
+          var delta = isOffset ? value : value - self.currentMonth;
+          if ((delta < 0 && self._hidePrevMonthArrow === true) ||
+              (delta > 0 && self._hideNextMonthArrow === true))
+              return;
+          self.currentMonth += delta;
+          if (self.currentMonth < 0 || self.currentMonth > 11) {
+              self.currentYear += self.currentMonth > 11 ? 1 : -1;
+              self.currentMonth = (self.currentMonth + 12) % 12;
+              triggerEvent("onYearChange");
+              buildMonthSwitch();
+          }
+          buildDays();
+          triggerEvent("onMonthChange");
+          updateNavigationCurrentMonth();
+      }
+      function clear(triggerChangeEvent, toInitial) {
+          if (triggerChangeEvent === void 0) { triggerChangeEvent = true; }
+          if (toInitial === void 0) { toInitial = true; }
+          self.input.value = "";
+          if (self.altInput !== undefined)
+              self.altInput.value = "";
+          if (self.mobileInput !== undefined)
+              self.mobileInput.value = "";
+          self.selectedDates = [];
+          self.latestSelectedDateObj = undefined;
+          if (toInitial === true) {
+              self.currentYear = self._initialDate.getFullYear();
+              self.currentMonth = self._initialDate.getMonth();
+          }
+          if (self.config.enableTime === true) {
+              var _a = getDefaultHours(self.config), hours = _a.hours, minutes = _a.minutes, seconds = _a.seconds;
+              setHours(hours, minutes, seconds);
+          }
+          self.redraw();
+          if (triggerChangeEvent)
+              triggerEvent("onChange");
+      }
+      function close() {
+          self.isOpen = false;
+          if (!self.isMobile) {
+              if (self.calendarContainer !== undefined) {
+                  self.calendarContainer.classList.remove("open");
+              }
+              if (self._input !== undefined) {
+                  self._input.classList.remove("active");
+              }
+          }
+          triggerEvent("onClose");
+      }
+      function destroy() {
+          if (self.config !== undefined)
+              triggerEvent("onDestroy");
+          for (var i = self._handlers.length; i--;) {
+              self._handlers[i].remove();
+          }
+          self._handlers = [];
+          if (self.mobileInput) {
+              if (self.mobileInput.parentNode)
+                  self.mobileInput.parentNode.removeChild(self.mobileInput);
+              self.mobileInput = undefined;
+          }
+          else if (self.calendarContainer && self.calendarContainer.parentNode) {
+              if (self.config.static && self.calendarContainer.parentNode) {
+                  var wrapper = self.calendarContainer.parentNode;
+                  wrapper.lastChild && wrapper.removeChild(wrapper.lastChild);
+                  if (wrapper.parentNode) {
+                      while (wrapper.firstChild)
+                          wrapper.parentNode.insertBefore(wrapper.firstChild, wrapper);
+                      wrapper.parentNode.removeChild(wrapper);
+                  }
+              }
+              else
+                  self.calendarContainer.parentNode.removeChild(self.calendarContainer);
+          }
+          if (self.altInput) {
+              self.input.type = "text";
+              if (self.altInput.parentNode)
+                  self.altInput.parentNode.removeChild(self.altInput);
+              delete self.altInput;
+          }
+          if (self.input) {
+              self.input.type = self.input._type;
+              self.input.classList.remove("flatpickr-input");
+              self.input.removeAttribute("readonly");
+          }
+          [
+              "_showTimeInput",
+              "latestSelectedDateObj",
+              "_hideNextMonthArrow",
+              "_hidePrevMonthArrow",
+              "__hideNextMonthArrow",
+              "__hidePrevMonthArrow",
+              "isMobile",
+              "isOpen",
+              "selectedDateElem",
+              "minDateHasTime",
+              "maxDateHasTime",
+              "days",
+              "daysContainer",
+              "_input",
+              "_positionElement",
+              "innerContainer",
+              "rContainer",
+              "monthNav",
+              "todayDateElem",
+              "calendarContainer",
+              "weekdayContainer",
+              "prevMonthNav",
+              "nextMonthNav",
+              "monthsDropdownContainer",
+              "currentMonthElement",
+              "currentYearElement",
+              "navigationCurrentMonth",
+              "selectedDateElem",
+              "config",
+          ].forEach(function (k) {
+              try {
+                  delete self[k];
+              }
+              catch (_) { }
+          });
+      }
+      function isCalendarElem(elem) {
+          return self.calendarContainer.contains(elem);
+      }
+      function documentClick(e) {
+          if (self.isOpen && !self.config.inline) {
+              var eventTarget_1 = getEventTarget(e);
+              var isCalendarElement = isCalendarElem(eventTarget_1);
+              var isInput = eventTarget_1 === self.input ||
+                  eventTarget_1 === self.altInput ||
+                  self.element.contains(eventTarget_1) ||
+                  (e.path &&
+                      e.path.indexOf &&
+                      (~e.path.indexOf(self.input) ||
+                          ~e.path.indexOf(self.altInput)));
+              var lostFocus = !isInput &&
+                  !isCalendarElement &&
+                  !isCalendarElem(e.relatedTarget);
+              var isIgnored = !self.config.ignoredFocusElements.some(function (elem) {
+                  return elem.contains(eventTarget_1);
+              });
+              if (lostFocus && isIgnored) {
+                  if (self.config.allowInput) {
+                      self.setDate(self._input.value, false, self.config.altInput
+                          ? self.config.altFormat
+                          : self.config.dateFormat);
+                  }
+                  if (self.timeContainer !== undefined &&
+                      self.minuteElement !== undefined &&
+                      self.hourElement !== undefined &&
+                      self.input.value !== "" &&
+                      self.input.value !== undefined) {
+                      updateTime();
+                  }
+                  self.close();
+                  if (self.config &&
+                      self.config.mode === "range" &&
+                      self.selectedDates.length === 1)
+                      self.clear(false);
+              }
+          }
+      }
+      function changeYear(newYear) {
+          if (!newYear ||
+              (self.config.minDate && newYear < self.config.minDate.getFullYear()) ||
+              (self.config.maxDate && newYear > self.config.maxDate.getFullYear()))
+              return;
+          var newYearNum = newYear, isNewYear = self.currentYear !== newYearNum;
+          self.currentYear = newYearNum || self.currentYear;
+          if (self.config.maxDate &&
+              self.currentYear === self.config.maxDate.getFullYear()) {
+              self.currentMonth = Math.min(self.config.maxDate.getMonth(), self.currentMonth);
+          }
+          else if (self.config.minDate &&
+              self.currentYear === self.config.minDate.getFullYear()) {
+              self.currentMonth = Math.max(self.config.minDate.getMonth(), self.currentMonth);
+          }
+          if (isNewYear) {
+              self.redraw();
+              triggerEvent("onYearChange");
+              buildMonthSwitch();
+          }
+      }
+      function isEnabled(date, timeless) {
+          var _a;
+          if (timeless === void 0) { timeless = true; }
+          var dateToCheck = self.parseDate(date, undefined, timeless);
+          if ((self.config.minDate &&
+              dateToCheck &&
+              compareDates(dateToCheck, self.config.minDate, timeless !== undefined ? timeless : !self.minDateHasTime) < 0) ||
+              (self.config.maxDate &&
+                  dateToCheck &&
+                  compareDates(dateToCheck, self.config.maxDate, timeless !== undefined ? timeless : !self.maxDateHasTime) > 0))
+              return false;
+          if (!self.config.enable && self.config.disable.length === 0)
+              return true;
+          if (dateToCheck === undefined)
+              return false;
+          var bool = !!self.config.enable, array = (_a = self.config.enable) !== null && _a !== void 0 ? _a : self.config.disable;
+          for (var i = 0, d = void 0; i < array.length; i++) {
+              d = array[i];
+              if (typeof d === "function" &&
+                  d(dateToCheck))
+                  return bool;
+              else if (d instanceof Date &&
+                  dateToCheck !== undefined &&
+                  d.getTime() === dateToCheck.getTime())
+                  return bool;
+              else if (typeof d === "string") {
+                  var parsed = self.parseDate(d, undefined, true);
+                  return parsed && parsed.getTime() === dateToCheck.getTime()
+                      ? bool
+                      : !bool;
+              }
+              else if (typeof d === "object" &&
+                  dateToCheck !== undefined &&
+                  d.from &&
+                  d.to &&
+                  dateToCheck.getTime() >= d.from.getTime() &&
+                  dateToCheck.getTime() <= d.to.getTime())
+                  return bool;
+          }
+          return !bool;
+      }
+      function isInView(elem) {
+          if (self.daysContainer !== undefined)
+              return (elem.className.indexOf("hidden") === -1 &&
+                  elem.className.indexOf("flatpickr-disabled") === -1 &&
+                  self.daysContainer.contains(elem));
+          return false;
+      }
+      function onBlur(e) {
+          var isInput = e.target === self._input;
+          var valueChanged = self._input.value.trimEnd() !== getDateStr();
+          if (isInput &&
+              valueChanged &&
+              !(e.relatedTarget && isCalendarElem(e.relatedTarget))) {
+              self.setDate(self._input.value, true, e.target === self.altInput
+                  ? self.config.altFormat
+                  : self.config.dateFormat);
+          }
+      }
+      function onKeyDown(e) {
+          var eventTarget = getEventTarget(e);
+          var isInput = self.config.wrap
+              ? element.contains(eventTarget)
+              : eventTarget === self._input;
+          var allowInput = self.config.allowInput;
+          var allowKeydown = self.isOpen && (!allowInput || !isInput);
+          var allowInlineKeydown = self.config.inline && isInput && !allowInput;
+          if (e.keyCode === 13 && isInput) {
+              if (allowInput) {
+                  self.setDate(self._input.value, true, eventTarget === self.altInput
+                      ? self.config.altFormat
+                      : self.config.dateFormat);
+                  self.close();
+                  return eventTarget.blur();
+              }
+              else {
+                  self.open();
+              }
+          }
+          else if (isCalendarElem(eventTarget) ||
+              allowKeydown ||
+              allowInlineKeydown) {
+              var isTimeObj = !!self.timeContainer &&
+                  self.timeContainer.contains(eventTarget);
+              switch (e.keyCode) {
+                  case 13:
+                      if (isTimeObj) {
+                          e.preventDefault();
+                          updateTime();
+                          focusAndClose();
+                      }
+                      else
+                          selectDate(e);
+                      break;
+                  case 27:
+                      e.preventDefault();
+                      focusAndClose();
+                      break;
+                  case 8:
+                  case 46:
+                      if (isInput && !self.config.allowInput) {
+                          e.preventDefault();
+                          self.clear();
+                      }
+                      break;
+                  case 37:
+                  case 39:
+                      if (!isTimeObj && !isInput) {
+                          e.preventDefault();
+                          var activeElement = getClosestActiveElement();
+                          if (self.daysContainer !== undefined &&
+                              (allowInput === false ||
+                                  (activeElement && isInView(activeElement)))) {
+                              var delta_1 = e.keyCode === 39 ? 1 : -1;
+                              if (!e.ctrlKey)
+                                  focusOnDay(undefined, delta_1);
+                              else {
+                                  e.stopPropagation();
+                                  changeMonth(delta_1);
+                                  focusOnDay(getFirstAvailableDay(1), 0);
+                              }
+                          }
+                      }
+                      else if (self.hourElement)
+                          self.hourElement.focus();
+                      break;
+                  case 38:
+                  case 40:
+                      e.preventDefault();
+                      var delta = e.keyCode === 40 ? 1 : -1;
+                      if ((self.daysContainer &&
+                          eventTarget.$i !== undefined) ||
+                          eventTarget === self.input ||
+                          eventTarget === self.altInput) {
+                          if (e.ctrlKey) {
+                              e.stopPropagation();
+                              changeYear(self.currentYear - delta);
+                              focusOnDay(getFirstAvailableDay(1), 0);
+                          }
+                          else if (!isTimeObj)
+                              focusOnDay(undefined, delta * 7);
+                      }
+                      else if (eventTarget === self.currentYearElement) {
+                          changeYear(self.currentYear - delta);
+                      }
+                      else if (self.config.enableTime) {
+                          if (!isTimeObj && self.hourElement)
+                              self.hourElement.focus();
+                          updateTime(e);
+                          self._debouncedChange();
+                      }
+                      break;
+                  case 9:
+                      if (isTimeObj) {
+                          var elems = [
+                              self.hourElement,
+                              self.minuteElement,
+                              self.secondElement,
+                              self.amPM,
+                          ]
+                              .concat(self.pluginElements)
+                              .filter(function (x) { return x; });
+                          var i = elems.indexOf(eventTarget);
+                          if (i !== -1) {
+                              var target = elems[i + (e.shiftKey ? -1 : 1)];
+                              e.preventDefault();
+                              (target || self._input).focus();
+                          }
+                      }
+                      else if (!self.config.noCalendar &&
+                          self.daysContainer &&
+                          self.daysContainer.contains(eventTarget) &&
+                          e.shiftKey) {
+                          e.preventDefault();
+                          self._input.focus();
+                      }
+                      break;
+              }
+          }
+          if (self.amPM !== undefined && eventTarget === self.amPM) {
+              switch (e.key) {
+                  case self.l10n.amPM[0].charAt(0):
+                  case self.l10n.amPM[0].charAt(0).toLowerCase():
+                      self.amPM.textContent = self.l10n.amPM[0];
+                      setHoursFromInputs();
+                      updateValue();
+                      break;
+                  case self.l10n.amPM[1].charAt(0):
+                  case self.l10n.amPM[1].charAt(0).toLowerCase():
+                      self.amPM.textContent = self.l10n.amPM[1];
+                      setHoursFromInputs();
+                      updateValue();
+                      break;
+              }
+          }
+          if (isInput || isCalendarElem(eventTarget)) {
+              triggerEvent("onKeyDown", e);
+          }
+      }
+      function onMouseOver(elem, cellClass) {
+          if (cellClass === void 0) { cellClass = "flatpickr-day"; }
+          if (self.selectedDates.length !== 1 ||
+              (elem &&
+                  (!elem.classList.contains(cellClass) ||
+                      elem.classList.contains("flatpickr-disabled"))))
+              return;
+          var hoverDate = elem
+              ? elem.dateObj.getTime()
+              : self.days.firstElementChild.dateObj.getTime(), initialDate = self.parseDate(self.selectedDates[0], undefined, true).getTime(), rangeStartDate = Math.min(hoverDate, self.selectedDates[0].getTime()), rangeEndDate = Math.max(hoverDate, self.selectedDates[0].getTime());
+          var containsDisabled = false;
+          var minRange = 0, maxRange = 0;
+          for (var t = rangeStartDate; t < rangeEndDate; t += duration.DAY) {
+              if (!isEnabled(new Date(t), true)) {
+                  containsDisabled =
+                      containsDisabled || (t > rangeStartDate && t < rangeEndDate);
+                  if (t < initialDate && (!minRange || t > minRange))
+                      minRange = t;
+                  else if (t > initialDate && (!maxRange || t < maxRange))
+                      maxRange = t;
+              }
+          }
+          var hoverableCells = Array.from(self.rContainer.querySelectorAll("*:nth-child(-n+" + self.config.showMonths + ") > ." + cellClass));
+          hoverableCells.forEach(function (dayElem) {
+              var date = dayElem.dateObj;
+              var timestamp = date.getTime();
+              var outOfRange = (minRange > 0 && timestamp < minRange) ||
+                  (maxRange > 0 && timestamp > maxRange);
+              if (outOfRange) {
+                  dayElem.classList.add("notAllowed");
+                  ["inRange", "startRange", "endRange"].forEach(function (c) {
+                      dayElem.classList.remove(c);
+                  });
+                  return;
+              }
+              else if (containsDisabled && !outOfRange)
+                  return;
+              ["startRange", "inRange", "endRange", "notAllowed"].forEach(function (c) {
+                  dayElem.classList.remove(c);
+              });
+              if (elem !== undefined) {
+                  elem.classList.add(hoverDate <= self.selectedDates[0].getTime()
+                      ? "startRange"
+                      : "endRange");
+                  if (initialDate < hoverDate && timestamp === initialDate)
+                      dayElem.classList.add("startRange");
+                  else if (initialDate > hoverDate && timestamp === initialDate)
+                      dayElem.classList.add("endRange");
+                  if (timestamp >= minRange &&
+                      (maxRange === 0 || timestamp <= maxRange) &&
+                      isBetween(timestamp, initialDate, hoverDate))
+                      dayElem.classList.add("inRange");
+              }
+          });
+      }
+      function onResize() {
+          if (self.isOpen && !self.config.static && !self.config.inline)
+              positionCalendar();
+      }
+      function open(e, positionElement) {
+          if (positionElement === void 0) { positionElement = self._positionElement; }
+          if (self.isMobile === true) {
+              if (e) {
+                  e.preventDefault();
+                  var eventTarget = getEventTarget(e);
+                  if (eventTarget) {
+                      eventTarget.blur();
+                  }
+              }
+              if (self.mobileInput !== undefined) {
+                  self.mobileInput.focus();
+                  self.mobileInput.click();
+              }
+              triggerEvent("onOpen");
+              return;
+          }
+          else if (self._input.disabled || self.config.inline) {
+              return;
+          }
+          var wasOpen = self.isOpen;
+          self.isOpen = true;
+          if (!wasOpen) {
+              self.calendarContainer.classList.add("open");
+              self._input.classList.add("active");
+              triggerEvent("onOpen");
+              positionCalendar(positionElement);
+          }
+          if (self.config.enableTime === true && self.config.noCalendar === true) {
+              if (self.config.allowInput === false &&
+                  (e === undefined ||
+                      !self.timeContainer.contains(e.relatedTarget))) {
+                  setTimeout(function () { return self.hourElement.select(); }, 50);
+              }
+          }
+      }
+      function minMaxDateSetter(type) {
+          return function (date) {
+              var dateObj = (self.config["_" + type + "Date"] = self.parseDate(date, self.config.dateFormat));
+              var inverseDateObj = self.config["_" + (type === "min" ? "max" : "min") + "Date"];
+              if (dateObj !== undefined) {
+                  self[type === "min" ? "minDateHasTime" : "maxDateHasTime"] =
+                      dateObj.getHours() > 0 ||
+                          dateObj.getMinutes() > 0 ||
+                          dateObj.getSeconds() > 0;
+              }
+              if (self.selectedDates) {
+                  self.selectedDates = self.selectedDates.filter(function (d) { return isEnabled(d); });
+                  if (!self.selectedDates.length && type === "min")
+                      setHoursFromDate(dateObj);
+                  updateValue();
+              }
+              if (self.daysContainer) {
+                  redraw();
+                  if (dateObj !== undefined)
+                      self.currentYearElement[type] = dateObj.getFullYear().toString();
+                  else
+                      self.currentYearElement.removeAttribute(type);
+                  self.currentYearElement.disabled =
+                      !!inverseDateObj &&
+                          dateObj !== undefined &&
+                          inverseDateObj.getFullYear() === dateObj.getFullYear();
+              }
+          };
+      }
+      function parseConfig() {
+          var boolOpts = [
+              "wrap",
+              "weekNumbers",
+              "allowInput",
+              "allowInvalidPreload",
+              "clickOpens",
+              "time_24hr",
+              "enableTime",
+              "noCalendar",
+              "altInput",
+              "shorthandCurrentMonth",
+              "inline",
+              "static",
+              "enableSeconds",
+              "disableMobile",
+          ];
+          var userConfig = __assign(__assign({}, JSON.parse(JSON.stringify(element.dataset || {}))), instanceConfig);
+          var formats = {};
+          self.config.parseDate = userConfig.parseDate;
+          self.config.formatDate = userConfig.formatDate;
+          Object.defineProperty(self.config, "enable", {
+              get: function () { return self.config._enable; },
+              set: function (dates) {
+                  self.config._enable = parseDateRules(dates);
+              },
+          });
+          Object.defineProperty(self.config, "disable", {
+              get: function () { return self.config._disable; },
+              set: function (dates) {
+                  self.config._disable = parseDateRules(dates);
+              },
+          });
+          var timeMode = userConfig.mode === "time";
+          if (!userConfig.dateFormat && (userConfig.enableTime || timeMode)) {
+              var defaultDateFormat = flatpickr.defaultConfig.dateFormat || defaults.dateFormat;
+              formats.dateFormat =
+                  userConfig.noCalendar || timeMode
+                      ? "H:i" + (userConfig.enableSeconds ? ":S" : "")
+                      : defaultDateFormat + " H:i" + (userConfig.enableSeconds ? ":S" : "");
+          }
+          if (userConfig.altInput &&
+              (userConfig.enableTime || timeMode) &&
+              !userConfig.altFormat) {
+              var defaultAltFormat = flatpickr.defaultConfig.altFormat || defaults.altFormat;
+              formats.altFormat =
+                  userConfig.noCalendar || timeMode
+                      ? "h:i" + (userConfig.enableSeconds ? ":S K" : " K")
+                      : defaultAltFormat + (" h:i" + (userConfig.enableSeconds ? ":S" : "") + " K");
+          }
+          Object.defineProperty(self.config, "minDate", {
+              get: function () { return self.config._minDate; },
+              set: minMaxDateSetter("min"),
+          });
+          Object.defineProperty(self.config, "maxDate", {
+              get: function () { return self.config._maxDate; },
+              set: minMaxDateSetter("max"),
+          });
+          var minMaxTimeSetter = function (type) { return function (val) {
+              self.config[type === "min" ? "_minTime" : "_maxTime"] = self.parseDate(val, "H:i:S");
+          }; };
+          Object.defineProperty(self.config, "minTime", {
+              get: function () { return self.config._minTime; },
+              set: minMaxTimeSetter("min"),
+          });
+          Object.defineProperty(self.config, "maxTime", {
+              get: function () { return self.config._maxTime; },
+              set: minMaxTimeSetter("max"),
+          });
+          if (userConfig.mode === "time") {
+              self.config.noCalendar = true;
+              self.config.enableTime = true;
+          }
+          Object.assign(self.config, formats, userConfig);
+          for (var i = 0; i < boolOpts.length; i++)
+              self.config[boolOpts[i]] =
+                  self.config[boolOpts[i]] === true ||
+                      self.config[boolOpts[i]] === "true";
+          HOOKS.filter(function (hook) { return self.config[hook] !== undefined; }).forEach(function (hook) {
+              self.config[hook] = arrayify(self.config[hook] || []).map(bindToInstance);
+          });
+          self.isMobile =
+              !self.config.disableMobile &&
+                  !self.config.inline &&
+                  self.config.mode === "single" &&
+                  !self.config.disable.length &&
+                  !self.config.enable &&
+                  !self.config.weekNumbers &&
+                  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          for (var i = 0; i < self.config.plugins.length; i++) {
+              var pluginConf = self.config.plugins[i](self) || {};
+              for (var key in pluginConf) {
+                  if (HOOKS.indexOf(key) > -1) {
+                      self.config[key] = arrayify(pluginConf[key])
+                          .map(bindToInstance)
+                          .concat(self.config[key]);
+                  }
+                  else if (typeof userConfig[key] === "undefined")
+                      self.config[key] = pluginConf[key];
+              }
+          }
+          if (!userConfig.altInputClass) {
+              self.config.altInputClass =
+                  getInputElem().className + " " + self.config.altInputClass;
+          }
+          triggerEvent("onParseConfig");
+      }
+      function getInputElem() {
+          return self.config.wrap
+              ? element.querySelector("[data-input]")
+              : element;
+      }
+      function setupLocale() {
+          if (typeof self.config.locale !== "object" &&
+              typeof flatpickr.l10ns[self.config.locale] === "undefined")
+              self.config.errorHandler(new Error("flatpickr: invalid locale " + self.config.locale));
+          self.l10n = __assign(__assign({}, flatpickr.l10ns.default), (typeof self.config.locale === "object"
+              ? self.config.locale
+              : self.config.locale !== "default"
+                  ? flatpickr.l10ns[self.config.locale]
+                  : undefined));
+          tokenRegex.D = "(" + self.l10n.weekdays.shorthand.join("|") + ")";
+          tokenRegex.l = "(" + self.l10n.weekdays.longhand.join("|") + ")";
+          tokenRegex.M = "(" + self.l10n.months.shorthand.join("|") + ")";
+          tokenRegex.F = "(" + self.l10n.months.longhand.join("|") + ")";
+          tokenRegex.K = "(" + self.l10n.amPM[0] + "|" + self.l10n.amPM[1] + "|" + self.l10n.amPM[0].toLowerCase() + "|" + self.l10n.amPM[1].toLowerCase() + ")";
+          var userConfig = __assign(__assign({}, instanceConfig), JSON.parse(JSON.stringify(element.dataset || {})));
+          if (userConfig.time_24hr === undefined &&
+              flatpickr.defaultConfig.time_24hr === undefined) {
+              self.config.time_24hr = self.l10n.time_24hr;
+          }
+          self.formatDate = createDateFormatter(self);
+          self.parseDate = createDateParser({ config: self.config, l10n: self.l10n });
+      }
+      function positionCalendar(customPositionElement) {
+          if (typeof self.config.position === "function") {
+              return void self.config.position(self, customPositionElement);
+          }
+          if (self.calendarContainer === undefined)
+              return;
+          triggerEvent("onPreCalendarPosition");
+          var positionElement = customPositionElement || self._positionElement;
+          var calendarHeight = Array.prototype.reduce.call(self.calendarContainer.children, (function (acc, child) { return acc + child.offsetHeight; }), 0), calendarWidth = self.calendarContainer.offsetWidth, configPos = self.config.position.split(" "), configPosVertical = configPos[0], configPosHorizontal = configPos.length > 1 ? configPos[1] : null, inputBounds = positionElement.getBoundingClientRect(), distanceFromBottom = window.innerHeight - inputBounds.bottom, showOnTop = configPosVertical === "above" ||
+              (configPosVertical !== "below" &&
+                  distanceFromBottom < calendarHeight &&
+                  inputBounds.top > calendarHeight);
+          var top = window.pageYOffset +
+              inputBounds.top +
+              (!showOnTop ? positionElement.offsetHeight + 2 : -calendarHeight - 2);
+          toggleClass(self.calendarContainer, "arrowTop", !showOnTop);
+          toggleClass(self.calendarContainer, "arrowBottom", showOnTop);
+          if (self.config.inline)
+              return;
+          var left = window.pageXOffset + inputBounds.left;
+          var isCenter = false;
+          var isRight = false;
+          if (configPosHorizontal === "center") {
+              left -= (calendarWidth - inputBounds.width) / 2;
+              isCenter = true;
+          }
+          else if (configPosHorizontal === "right") {
+              left -= calendarWidth - inputBounds.width;
+              isRight = true;
+          }
+          toggleClass(self.calendarContainer, "arrowLeft", !isCenter && !isRight);
+          toggleClass(self.calendarContainer, "arrowCenter", isCenter);
+          toggleClass(self.calendarContainer, "arrowRight", isRight);
+          var right = window.document.body.offsetWidth -
+              (window.pageXOffset + inputBounds.right);
+          var rightMost = left + calendarWidth > window.document.body.offsetWidth;
+          var centerMost = right + calendarWidth > window.document.body.offsetWidth;
+          toggleClass(self.calendarContainer, "rightMost", rightMost);
+          if (self.config.static)
+              return;
+          self.calendarContainer.style.top = top + "px";
+          if (!rightMost) {
+              self.calendarContainer.style.left = left + "px";
+              self.calendarContainer.style.right = "auto";
+          }
+          else if (!centerMost) {
+              self.calendarContainer.style.left = "auto";
+              self.calendarContainer.style.right = right + "px";
+          }
+          else {
+              var doc = getDocumentStyleSheet();
+              if (doc === undefined)
+                  return;
+              var bodyWidth = window.document.body.offsetWidth;
+              var centerLeft = Math.max(0, bodyWidth / 2 - calendarWidth / 2);
+              var centerBefore = ".flatpickr-calendar.centerMost:before";
+              var centerAfter = ".flatpickr-calendar.centerMost:after";
+              var centerIndex = doc.cssRules.length;
+              var centerStyle = "{left:" + inputBounds.left + "px;right:auto;}";
+              toggleClass(self.calendarContainer, "rightMost", false);
+              toggleClass(self.calendarContainer, "centerMost", true);
+              doc.insertRule(centerBefore + "," + centerAfter + centerStyle, centerIndex);
+              self.calendarContainer.style.left = centerLeft + "px";
+              self.calendarContainer.style.right = "auto";
+          }
+      }
+      function getDocumentStyleSheet() {
+          var editableSheet = null;
+          for (var i = 0; i < document.styleSheets.length; i++) {
+              var sheet = document.styleSheets[i];
+              if (!sheet.cssRules)
+                  continue;
+              try {
+                  sheet.cssRules;
+              }
+              catch (err) {
+                  continue;
+              }
+              editableSheet = sheet;
+              break;
+          }
+          return editableSheet != null ? editableSheet : createStyleSheet();
+      }
+      function createStyleSheet() {
+          var style = document.createElement("style");
+          document.head.appendChild(style);
+          return style.sheet;
+      }
+      function redraw() {
+          if (self.config.noCalendar || self.isMobile)
+              return;
+          buildMonthSwitch();
+          updateNavigationCurrentMonth();
+          buildDays();
+      }
+      function focusAndClose() {
+          self._input.focus();
+          if (window.navigator.userAgent.indexOf("MSIE") !== -1 ||
+              navigator.msMaxTouchPoints !== undefined) {
+              setTimeout(self.close, 0);
+          }
+          else {
+              self.close();
+          }
+      }
+      function selectDate(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var isSelectable = function (day) {
+              return day.classList &&
+                  day.classList.contains("flatpickr-day") &&
+                  !day.classList.contains("flatpickr-disabled") &&
+                  !day.classList.contains("notAllowed");
+          };
+          var t = findParent(getEventTarget(e), isSelectable);
+          if (t === undefined)
+              return;
+          var target = t;
+          var selectedDate = (self.latestSelectedDateObj = new Date(target.dateObj.getTime()));
+          var shouldChangeMonth = (selectedDate.getMonth() < self.currentMonth ||
+              selectedDate.getMonth() >
+                  self.currentMonth + self.config.showMonths - 1) &&
+              self.config.mode !== "range";
+          self.selectedDateElem = target;
+          if (self.config.mode === "single")
+              self.selectedDates = [selectedDate];
+          else if (self.config.mode === "multiple") {
+              var selectedIndex = isDateSelected(selectedDate);
+              if (selectedIndex)
+                  self.selectedDates.splice(parseInt(selectedIndex), 1);
+              else
+                  self.selectedDates.push(selectedDate);
+          }
+          else if (self.config.mode === "range") {
+              if (self.selectedDates.length === 2) {
+                  self.clear(false, false);
+              }
+              self.latestSelectedDateObj = selectedDate;
+              self.selectedDates.push(selectedDate);
+              if (compareDates(selectedDate, self.selectedDates[0], true) !== 0)
+                  self.selectedDates.sort(function (a, b) { return a.getTime() - b.getTime(); });
+          }
+          setHoursFromInputs();
+          if (shouldChangeMonth) {
+              var isNewYear = self.currentYear !== selectedDate.getFullYear();
+              self.currentYear = selectedDate.getFullYear();
+              self.currentMonth = selectedDate.getMonth();
+              if (isNewYear) {
+                  triggerEvent("onYearChange");
+                  buildMonthSwitch();
+              }
+              triggerEvent("onMonthChange");
+          }
+          updateNavigationCurrentMonth();
+          buildDays();
+          updateValue();
+          if (!shouldChangeMonth &&
+              self.config.mode !== "range" &&
+              self.config.showMonths === 1)
+              focusOnDayElem(target);
+          else if (self.selectedDateElem !== undefined &&
+              self.hourElement === undefined) {
+              self.selectedDateElem && self.selectedDateElem.focus();
+          }
+          if (self.hourElement !== undefined)
+              self.hourElement !== undefined && self.hourElement.focus();
+          if (self.config.closeOnSelect) {
+              var single = self.config.mode === "single" && !self.config.enableTime;
+              var range = self.config.mode === "range" &&
+                  self.selectedDates.length === 2 &&
+                  !self.config.enableTime;
+              if (single || range) {
+                  focusAndClose();
+              }
+          }
+          triggerChange();
+      }
+      var CALLBACKS = {
+          locale: [setupLocale, updateWeekdays],
+          showMonths: [buildMonths, setCalendarWidth, buildWeekdays],
+          minDate: [jumpToDate],
+          maxDate: [jumpToDate],
+          positionElement: [updatePositionElement],
+          clickOpens: [
+              function () {
+                  if (self.config.clickOpens === true) {
+                      bind(self._input, "focus", self.open);
+                      bind(self._input, "click", self.open);
+                  }
+                  else {
+                      self._input.removeEventListener("focus", self.open);
+                      self._input.removeEventListener("click", self.open);
+                  }
+              },
+          ],
+      };
+      function set(option, value) {
+          if (option !== null && typeof option === "object") {
+              Object.assign(self.config, option);
+              for (var key in option) {
+                  if (CALLBACKS[key] !== undefined)
+                      CALLBACKS[key].forEach(function (x) { return x(); });
+              }
+          }
+          else {
+              self.config[option] = value;
+              if (CALLBACKS[option] !== undefined)
+                  CALLBACKS[option].forEach(function (x) { return x(); });
+              else if (HOOKS.indexOf(option) > -1)
+                  self.config[option] = arrayify(value);
+          }
+          self.redraw();
+          updateValue(true);
+      }
+      function setSelectedDate(inputDate, format) {
+          var dates = [];
+          if (inputDate instanceof Array)
+              dates = inputDate.map(function (d) { return self.parseDate(d, format); });
+          else if (inputDate instanceof Date || typeof inputDate === "number")
+              dates = [self.parseDate(inputDate, format)];
+          else if (typeof inputDate === "string") {
+              switch (self.config.mode) {
+                  case "single":
+                  case "time":
+                      dates = [self.parseDate(inputDate, format)];
+                      break;
+                  case "multiple":
+                      dates = inputDate
+                          .split(self.config.conjunction)
+                          .map(function (date) { return self.parseDate(date, format); });
+                      break;
+                  case "range":
+                      dates = inputDate
+                          .split(self.l10n.rangeSeparator)
+                          .map(function (date) { return self.parseDate(date, format); });
+                      break;
+              }
+          }
+          else
+              self.config.errorHandler(new Error("Invalid date supplied: " + JSON.stringify(inputDate)));
+          self.selectedDates = (self.config.allowInvalidPreload
+              ? dates
+              : dates.filter(function (d) { return d instanceof Date && isEnabled(d, false); }));
+          if (self.config.mode === "range")
+              self.selectedDates.sort(function (a, b) { return a.getTime() - b.getTime(); });
+      }
+      function setDate(date, triggerChange, format) {
+          if (triggerChange === void 0) { triggerChange = false; }
+          if (format === void 0) { format = self.config.dateFormat; }
+          if ((date !== 0 && !date) || (date instanceof Array && date.length === 0))
+              return self.clear(triggerChange);
+          setSelectedDate(date, format);
+          self.latestSelectedDateObj =
+              self.selectedDates[self.selectedDates.length - 1];
+          self.redraw();
+          jumpToDate(undefined, triggerChange);
+          setHoursFromDate();
+          if (self.selectedDates.length === 0) {
+              self.clear(false);
+          }
+          updateValue(triggerChange);
+          if (triggerChange)
+              triggerEvent("onChange");
+      }
+      function parseDateRules(arr) {
+          return arr
+              .slice()
+              .map(function (rule) {
+              if (typeof rule === "string" ||
+                  typeof rule === "number" ||
+                  rule instanceof Date) {
+                  return self.parseDate(rule, undefined, true);
+              }
+              else if (rule &&
+                  typeof rule === "object" &&
+                  rule.from &&
+                  rule.to)
+                  return {
+                      from: self.parseDate(rule.from, undefined),
+                      to: self.parseDate(rule.to, undefined),
+                  };
+              return rule;
+          })
+              .filter(function (x) { return x; });
+      }
+      function setupDates() {
+          self.selectedDates = [];
+          self.now = self.parseDate(self.config.now) || new Date();
+          var preloadedDate = self.config.defaultDate ||
+              ((self.input.nodeName === "INPUT" ||
+                  self.input.nodeName === "TEXTAREA") &&
+                  self.input.placeholder &&
+                  self.input.value === self.input.placeholder
+                  ? null
+                  : self.input.value);
+          if (preloadedDate)
+              setSelectedDate(preloadedDate, self.config.dateFormat);
+          self._initialDate =
+              self.selectedDates.length > 0
+                  ? self.selectedDates[0]
+                  : self.config.minDate &&
+                      self.config.minDate.getTime() > self.now.getTime()
+                      ? self.config.minDate
+                      : self.config.maxDate &&
+                          self.config.maxDate.getTime() < self.now.getTime()
+                          ? self.config.maxDate
+                          : self.now;
+          self.currentYear = self._initialDate.getFullYear();
+          self.currentMonth = self._initialDate.getMonth();
+          if (self.selectedDates.length > 0)
+              self.latestSelectedDateObj = self.selectedDates[0];
+          if (self.config.minTime !== undefined)
+              self.config.minTime = self.parseDate(self.config.minTime, "H:i");
+          if (self.config.maxTime !== undefined)
+              self.config.maxTime = self.parseDate(self.config.maxTime, "H:i");
+          self.minDateHasTime =
+              !!self.config.minDate &&
+                  (self.config.minDate.getHours() > 0 ||
+                      self.config.minDate.getMinutes() > 0 ||
+                      self.config.minDate.getSeconds() > 0);
+          self.maxDateHasTime =
+              !!self.config.maxDate &&
+                  (self.config.maxDate.getHours() > 0 ||
+                      self.config.maxDate.getMinutes() > 0 ||
+                      self.config.maxDate.getSeconds() > 0);
+      }
+      function setupInputs() {
+          self.input = getInputElem();
+          if (!self.input) {
+              self.config.errorHandler(new Error("Invalid input element specified"));
+              return;
+          }
+          self.input._type = self.input.type;
+          self.input.type = "text";
+          self.input.classList.add("flatpickr-input");
+          self._input = self.input;
+          if (self.config.altInput) {
+              self.altInput = createElement(self.input.nodeName, self.config.altInputClass);
+              self._input = self.altInput;
+              self.altInput.placeholder = self.input.placeholder;
+              self.altInput.disabled = self.input.disabled;
+              self.altInput.required = self.input.required;
+              self.altInput.tabIndex = self.input.tabIndex;
+              self.altInput.type = "text";
+              self.input.setAttribute("type", "hidden");
+              if (!self.config.static && self.input.parentNode)
+                  self.input.parentNode.insertBefore(self.altInput, self.input.nextSibling);
+          }
+          if (!self.config.allowInput)
+              self._input.setAttribute("readonly", "readonly");
+          updatePositionElement();
+      }
+      function updatePositionElement() {
+          self._positionElement = self.config.positionElement || self._input;
+      }
+      function setupMobile() {
+          var inputType = self.config.enableTime
+              ? self.config.noCalendar
+                  ? "time"
+                  : "datetime-local"
+              : "date";
+          self.mobileInput = createElement("input", self.input.className + " flatpickr-mobile");
+          self.mobileInput.tabIndex = 1;
+          self.mobileInput.type = inputType;
+          self.mobileInput.disabled = self.input.disabled;
+          self.mobileInput.required = self.input.required;
+          self.mobileInput.placeholder = self.input.placeholder;
+          self.mobileFormatStr =
+              inputType === "datetime-local"
+                  ? "Y-m-d\\TH:i:S"
+                  : inputType === "date"
+                      ? "Y-m-d"
+                      : "H:i:S";
+          if (self.selectedDates.length > 0) {
+              self.mobileInput.defaultValue = self.mobileInput.value = self.formatDate(self.selectedDates[0], self.mobileFormatStr);
+          }
+          if (self.config.minDate)
+              self.mobileInput.min = self.formatDate(self.config.minDate, "Y-m-d");
+          if (self.config.maxDate)
+              self.mobileInput.max = self.formatDate(self.config.maxDate, "Y-m-d");
+          if (self.input.getAttribute("step"))
+              self.mobileInput.step = String(self.input.getAttribute("step"));
+          self.input.type = "hidden";
+          if (self.altInput !== undefined)
+              self.altInput.type = "hidden";
+          try {
+              if (self.input.parentNode)
+                  self.input.parentNode.insertBefore(self.mobileInput, self.input.nextSibling);
+          }
+          catch (_a) { }
+          bind(self.mobileInput, "change", function (e) {
+              self.setDate(getEventTarget(e).value, false, self.mobileFormatStr);
+              triggerEvent("onChange");
+              triggerEvent("onClose");
+          });
+      }
+      function toggle(e) {
+          if (self.isOpen === true)
+              return self.close();
+          self.open(e);
+      }
+      function triggerEvent(event, data) {
+          if (self.config === undefined)
+              return;
+          var hooks = self.config[event];
+          if (hooks !== undefined && hooks.length > 0) {
+              for (var i = 0; hooks[i] && i < hooks.length; i++)
+                  hooks[i](self.selectedDates, self.input.value, self, data);
+          }
+          if (event === "onChange") {
+              self.input.dispatchEvent(createEvent("change"));
+              self.input.dispatchEvent(createEvent("input"));
+          }
+      }
+      function createEvent(name) {
+          var e = document.createEvent("Event");
+          e.initEvent(name, true, true);
+          return e;
+      }
+      function isDateSelected(date) {
+          for (var i = 0; i < self.selectedDates.length; i++) {
+              var selectedDate = self.selectedDates[i];
+              if (selectedDate instanceof Date &&
+                  compareDates(selectedDate, date) === 0)
+                  return "" + i;
+          }
+          return false;
+      }
+      function isDateInRange(date) {
+          if (self.config.mode !== "range" || self.selectedDates.length < 2)
+              return false;
+          return (compareDates(date, self.selectedDates[0]) >= 0 &&
+              compareDates(date, self.selectedDates[1]) <= 0);
+      }
+      function updateNavigationCurrentMonth() {
+          if (self.config.noCalendar || self.isMobile || !self.monthNav)
+              return;
+          self.yearElements.forEach(function (yearElement, i) {
+              var d = new Date(self.currentYear, self.currentMonth, 1);
+              d.setMonth(self.currentMonth + i);
+              if (self.config.showMonths > 1 ||
+                  self.config.monthSelectorType === "static") {
+                  self.monthElements[i].textContent =
+                      monthToStr(d.getMonth(), self.config.shorthandCurrentMonth, self.l10n) + " ";
+              }
+              else {
+                  self.monthsDropdownContainer.value = d.getMonth().toString();
+              }
+              yearElement.value = d.getFullYear().toString();
+          });
+          self._hidePrevMonthArrow =
+              self.config.minDate !== undefined &&
+                  (self.currentYear === self.config.minDate.getFullYear()
+                      ? self.currentMonth <= self.config.minDate.getMonth()
+                      : self.currentYear < self.config.minDate.getFullYear());
+          self._hideNextMonthArrow =
+              self.config.maxDate !== undefined &&
+                  (self.currentYear === self.config.maxDate.getFullYear()
+                      ? self.currentMonth + 1 > self.config.maxDate.getMonth()
+                      : self.currentYear > self.config.maxDate.getFullYear());
+      }
+      function getDateStr(specificFormat) {
+          var format = specificFormat ||
+              (self.config.altInput ? self.config.altFormat : self.config.dateFormat);
+          return self.selectedDates
+              .map(function (dObj) { return self.formatDate(dObj, format); })
+              .filter(function (d, i, arr) {
+              return self.config.mode !== "range" ||
+                  self.config.enableTime ||
+                  arr.indexOf(d) === i;
+          })
+              .join(self.config.mode !== "range"
+              ? self.config.conjunction
+              : self.l10n.rangeSeparator);
+      }
+      function updateValue(triggerChange) {
+          if (triggerChange === void 0) { triggerChange = true; }
+          if (self.mobileInput !== undefined && self.mobileFormatStr) {
+              self.mobileInput.value =
+                  self.latestSelectedDateObj !== undefined
+                      ? self.formatDate(self.latestSelectedDateObj, self.mobileFormatStr)
+                      : "";
+          }
+          self.input.value = getDateStr(self.config.dateFormat);
+          if (self.altInput !== undefined) {
+              self.altInput.value = getDateStr(self.config.altFormat);
+          }
+          if (triggerChange !== false)
+              triggerEvent("onValueUpdate");
+      }
+      function onMonthNavClick(e) {
+          var eventTarget = getEventTarget(e);
+          var isPrevMonth = self.prevMonthNav.contains(eventTarget);
+          var isNextMonth = self.nextMonthNav.contains(eventTarget);
+          if (isPrevMonth || isNextMonth) {
+              changeMonth(isPrevMonth ? -1 : 1);
+          }
+          else if (self.yearElements.indexOf(eventTarget) >= 0) {
+              eventTarget.select();
+          }
+          else if (eventTarget.classList.contains("arrowUp")) {
+              self.changeYear(self.currentYear + 1);
+          }
+          else if (eventTarget.classList.contains("arrowDown")) {
+              self.changeYear(self.currentYear - 1);
+          }
+      }
+      function timeWrapper(e) {
+          e.preventDefault();
+          var isKeyDown = e.type === "keydown", eventTarget = getEventTarget(e), input = eventTarget;
+          if (self.amPM !== undefined && eventTarget === self.amPM) {
+              self.amPM.textContent =
+                  self.l10n.amPM[int(self.amPM.textContent === self.l10n.amPM[0])];
+          }
+          var min = parseFloat(input.getAttribute("min")), max = parseFloat(input.getAttribute("max")), step = parseFloat(input.getAttribute("step")), curValue = parseInt(input.value, 10), delta = e.delta ||
+              (isKeyDown ? (e.which === 38 ? 1 : -1) : 0);
+          var newValue = curValue + step * delta;
+          if (typeof input.value !== "undefined" && input.value.length === 2) {
+              var isHourElem = input === self.hourElement, isMinuteElem = input === self.minuteElement;
+              if (newValue < min) {
+                  newValue =
+                      max +
+                          newValue +
+                          int(!isHourElem) +
+                          (int(isHourElem) && int(!self.amPM));
+                  if (isMinuteElem)
+                      incrementNumInput(undefined, -1, self.hourElement);
+              }
+              else if (newValue > max) {
+                  newValue =
+                      input === self.hourElement ? newValue - max - int(!self.amPM) : min;
+                  if (isMinuteElem)
+                      incrementNumInput(undefined, 1, self.hourElement);
+              }
+              if (self.amPM &&
+                  isHourElem &&
+                  (step === 1
+                      ? newValue + curValue === 23
+                      : Math.abs(newValue - curValue) > step)) {
+                  self.amPM.textContent =
+                      self.l10n.amPM[int(self.amPM.textContent === self.l10n.amPM[0])];
+              }
+              input.value = pad(newValue);
+          }
+      }
+      init();
+      return self;
+  }
+  function _flatpickr(nodeList, config) {
+      var nodes = Array.prototype.slice
+          .call(nodeList)
+          .filter(function (x) { return x instanceof HTMLElement; });
+      var instances = [];
+      for (var i = 0; i < nodes.length; i++) {
+          var node = nodes[i];
+          try {
+              if (node.getAttribute("data-fp-omit") !== null)
+                  continue;
+              if (node._flatpickr !== undefined) {
+                  node._flatpickr.destroy();
+                  node._flatpickr = undefined;
+              }
+              node._flatpickr = FlatpickrInstance(node, config || {});
+              instances.push(node._flatpickr);
+          }
+          catch (e) {
+              console.error(e);
+          }
+      }
+      return instances.length === 1 ? instances[0] : instances;
+  }
+  if (typeof HTMLElement !== "undefined" &&
+      typeof HTMLCollection !== "undefined" &&
+      typeof NodeList !== "undefined") {
+      HTMLCollection.prototype.flatpickr = NodeList.prototype.flatpickr = function (config) {
+          return _flatpickr(this, config);
+      };
+      HTMLElement.prototype.flatpickr = function (config) {
+          return _flatpickr([this], config);
+      };
+  }
+  var flatpickr = function (selector, config) {
+      if (typeof selector === "string") {
+          return _flatpickr(window.document.querySelectorAll(selector), config);
+      }
+      else if (selector instanceof Node) {
+          return _flatpickr([selector], config);
+      }
+      else {
+          return _flatpickr(selector, config);
+      }
+  };
+  flatpickr.defaultConfig = {};
+  flatpickr.l10ns = {
+      en: __assign({}, english),
+      default: __assign({}, english),
+  };
+  flatpickr.localize = function (l10n) {
+      flatpickr.l10ns.default = __assign(__assign({}, flatpickr.l10ns.default), l10n);
+  };
+  flatpickr.setDefaults = function (config) {
+      flatpickr.defaultConfig = __assign(__assign({}, flatpickr.defaultConfig), config);
+  };
+  flatpickr.parseDate = createDateParser({});
+  flatpickr.formatDate = createDateFormatter({});
+  flatpickr.compareDates = compareDates;
+  if (typeof jQuery !== "undefined" && typeof jQuery.fn !== "undefined") {
+      jQuery.fn.flatpickr = function (config) {
+          return _flatpickr(this, config);
+      };
+  }
+  Date.prototype.fp_incr = function (days) {
+      return new Date(this.getFullYear(), this.getMonth(), this.getDate() + (typeof days === "string" ? parseInt(days, 10) : days));
+  };
+  if (typeof window !== "undefined") {
+      window.flatpickr = flatpickr;
+  }
+
+  var e,o={};function n(r,t,e){if(3===r.nodeType){var o="textContent"in r?r.textContent:r.nodeValue||"";if(!1!==n.options.trim){var a=0===t||t===e.length-1;if((!(o=o.match(/^[\s\n]+$/g)&&"all"!==n.options.trim?" ":o.replace(/(^[\s\n]+|[\s\n]+$)/g,"all"===n.options.trim||a?"":" "))||" "===o)&&e.length>1&&a)return null}return o}if(1!==r.nodeType)return null;var p=String(r.nodeName).toLowerCase();if("script"===p&&!n.options.allowScripts)return null;var l,s,u=n.h(p,function(r){var t=r&&r.length;if(!t)return null;for(var e={},o=0;o<t;o++){var a=r[o],i=a.name,p=a.value;"on"===i.substring(0,2)&&n.options.allowEvents&&(p=new Function(p)),e[i]=p;}return e}(r.attributes),(s=(l=r.childNodes)&&Array.prototype.map.call(l,n).filter(i))&&s.length?s:null);return n.visitor&&n.visitor(u),u}var a,i=function(r){return r},p={};function l(r){var t=(r.type||"").toLowerCase(),e=l.map;e&&e.hasOwnProperty(t)?(r.type=e[t],r.props=Object.keys(r.props||{}).reduce(function(t,e){var o;return t[(o=e,o.replace(/-(.)/g,function(r,t){return t.toUpperCase()}))]=r.props[e],t},{})):r.type=t.replace(/[^a-z0-9-]/i,"");}var Markup = (function(t){function i(){t.apply(this,arguments);}return t&&(i.__proto__=t),(i.prototype=Object.create(t&&t.prototype)).constructor=i,i.setReviver=function(r){a=r;},i.prototype.shouldComponentUpdate=function(r){var t=this.props;return r.wrap!==t.wrap||r.type!==t.type||r.markup!==t.markup},i.prototype.setComponents=function(r){if(this.map={},r)for(var t in r)if(r.hasOwnProperty(t)){var e=t.replace(/([A-Z]+)([A-Z][a-z0-9])|([a-z0-9]+)([A-Z])/g,"$1$3-$2$4").toLowerCase();this.map[e]=r[t];}},i.prototype.render=function(t){var i=t.wrap;void 0===i&&(i=!0);var s,u=t.type,c=t.markup,m=t.components,v=t.reviver,f=t.onError,d=t["allow-scripts"],h=t["allow-events"],y=t.trim,w=function(r,t){var e={};for(var o in r)Object.prototype.hasOwnProperty.call(r,o)&&-1===t.indexOf(o)&&(e[o]=r[o]);return e}(t,["wrap","type","markup","components","reviver","onError","allow-scripts","allow-events","trim"]),C=v||this.reviver||this.constructor.prototype.reviver||a||v$1;this.setComponents(m);var g={allowScripts:d,allowEvents:h,trim:y};try{s=function(r,t,a,i,s){var u=function(r,t){var o,n,a,i,p="html"===t?"text/html":"application/xml";"html"===t?(i="body",a="<!DOCTYPE html>\n<html><body>"+r+"</body></html>"):(i="xml",a='<?xml version="1.0" encoding="UTF-8"?>\n<xml>'+r+"</xml>");try{o=(new DOMParser).parseFromString(a,p);}catch(r){n=r;}if(o||"html"!==t||((o=e||(e=function(){if(document.implementation&&document.implementation.createHTMLDocument)return document.implementation.createHTMLDocument("");var r=document.createElement("iframe");return r.style.cssText="position:absolute; left:0; top:-999em; width:1px; height:1px; overflow:hidden;",r.setAttribute("sandbox","allow-forms"),document.body.appendChild(r),r.contentWindow.document}())).open(),o.write(a),o.close()),o){var l=o.getElementsByTagName(i)[0],s=l.firstChild;return r&&!s&&(l.error="Document parse failed."),s&&"parsererror"===String(s.nodeName).toLowerCase()&&(s.removeChild(s.firstChild),s.removeChild(s.lastChild),l.error=s.textContent||s.nodeValue||n||"Unknown error",l.removeChild(s)),l}}(r,t);if(u&&u.error)throw new Error(u.error);var c=u&&u.body||u;l.map=i||p;var m=c&&function(r,t,e,a){return n.visitor=t,n.h=e,n.options=a||o,n(r)}(c,l,a,s);return l.map=null,m&&m.props&&m.props.children||null}(c,u,C,this.map,g);}catch(r){f?f({error:r}):"undefined"!=typeof console&&console.error&&console.error("preact-markup: "+r);}if(!1===i)return s||null;var x=w.hasOwnProperty("className")?"className":"class",b=w[x];return b?b.splice?b.splice(0,0,"markup"):"string"==typeof b?w[x]+=" markup":"object"==typeof b&&(b.markup=!0):w[x]="markup",C("div",w,s||null)},i}(_));
+
+  const CLASS_PATTERN = /^class[ {]/;
+
+
+  /**
+   * @param {function} fn
+   *
+   * @return {boolean}
+   */
+  function isClass(fn) {
+    return CLASS_PATTERN.test(fn.toString());
+  }
+
+  /**
+   * @param {any} obj
+   *
+   * @return {boolean}
+   */
+  function isArray(obj) {
+    return Array.isArray(obj);
+  }
+
+  /**
+   * @param {any} obj
+   * @param {string} prop
+   *
+   * @return {boolean}
+   */
+  function hasOwnProp(obj, prop) {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+  }
+
+  /**
+   * @typedef {import('./index').InjectAnnotated } InjectAnnotated
+   */
+
+  /**
+   * @template T
+   *
+   * @params {[...string[], T] | ...string[], T} args
+   *
+   * @return {T & InjectAnnotated}
+   */
+  function annotate(...args) {
+
+    if (args.length === 1 && isArray(args[0])) {
+      args = args[0];
+    }
+
+    args = [ ...args ];
+
+    const fn = args.pop();
+
+    fn.$inject = args;
+
+    return fn;
+  }
+
+
+  // Current limitations:
+  // - can't put into "function arg" comments
+  // function /* (no parenthesis like this) */ (){}
+  // function abc( /* xx (no parenthesis like this) */ a, b) {}
+  //
+  // Just put the comment before function or inside:
+  // /* (((this is fine))) */ function(a, b) {}
+  // function abc(a) { /* (((this is fine))) */}
+  //
+  // - can't reliably auto-annotate constructor; we'll match the
+  // first constructor(...) pattern found which may be the one
+  // of a nested class, too.
+
+  const CONSTRUCTOR_ARGS = /constructor\s*[^(]*\(\s*([^)]*)\)/m;
+  const FN_ARGS = /^(?:async\s+)?(?:function\s*[^(]*)?(?:\(\s*([^)]*)\)|(\w+))/m;
+  const FN_ARG = /\/\*([^*]*)\*\//m;
+
+  /**
+   * @param {unknown} fn
+   *
+   * @return {string[]}
+   */
+  function parseAnnotations(fn) {
+
+    if (typeof fn !== 'function') {
+      throw new Error(`Cannot annotate "${fn}". Expected a function!`);
+    }
+
+    const match = fn.toString().match(isClass(fn) ? CONSTRUCTOR_ARGS : FN_ARGS);
+
+    // may parse class without constructor
+    if (!match) {
+      return [];
+    }
+
+    const args = match[1] || match[2];
+
+    return args && args.split(',').map(arg => {
+      const argMatch = arg.match(FN_ARG);
+      return (argMatch && argMatch[1] || arg).trim();
+    }) || [];
+  }
+
+  /**
+   * @typedef { import('./index').ModuleDeclaration } ModuleDeclaration
+   * @typedef { import('./index').ModuleDefinition } ModuleDefinition
+   * @typedef { import('./index').InjectorContext } InjectorContext
+   */
+
+  /**
+   * Create a new injector with the given modules.
+   *
+   * @param {ModuleDefinition[]} modules
+   * @param {InjectorContext} [parent]
+   */
+  function Injector(modules, parent) {
+    parent = parent || {
+      get: function(name, strict) {
+        currentlyResolving.push(name);
+
+        if (strict === false) {
+          return null;
+        } else {
+          throw error(`No provider for "${ name }"!`);
+        }
+      }
+    };
+
+    const currentlyResolving = [];
+    const providers = this._providers = Object.create(parent._providers || null);
+    const instances = this._instances = Object.create(null);
+
+    const self = instances.injector = this;
+
+    const error = function(msg) {
+      const stack = currentlyResolving.join(' -> ');
+      currentlyResolving.length = 0;
+      return new Error(stack ? `${ msg } (Resolving: ${ stack })` : msg);
+    };
+
+    /**
+     * Return a named service.
+     *
+     * @param {string} name
+     * @param {boolean} [strict=true] if false, resolve missing services to null
+     *
+     * @return {any}
+     */
+    function get(name, strict) {
+      if (!providers[name] && name.indexOf('.') !== -1) {
+        const parts = name.split('.');
+        let pivot = get(parts.shift());
+
+        while (parts.length) {
+          pivot = pivot[parts.shift()];
+        }
+
+        return pivot;
+      }
+
+      if (hasOwnProp(instances, name)) {
+        return instances[name];
+      }
+
+      if (hasOwnProp(providers, name)) {
+        if (currentlyResolving.indexOf(name) !== -1) {
+          currentlyResolving.push(name);
+          throw error('Cannot resolve circular dependency!');
+        }
+
+        currentlyResolving.push(name);
+        instances[name] = providers[name][0](providers[name][1]);
+        currentlyResolving.pop();
+
+        return instances[name];
+      }
+
+      return parent.get(name, strict);
+    }
+
+    function fnDef(fn, locals) {
+
+      if (typeof locals === 'undefined') {
+        locals = {};
+      }
+
+      if (typeof fn !== 'function') {
+        if (isArray(fn)) {
+          fn = annotate(fn.slice());
+        } else {
+          throw error(`Cannot invoke "${ fn }". Expected a function!`);
+        }
+      }
+
+      const inject = fn.$inject || parseAnnotations(fn);
+      const dependencies = inject.map(dep => {
+        if (hasOwnProp(locals, dep)) {
+          return locals[dep];
+        } else {
+          return get(dep);
+        }
+      });
+
+      return {
+        fn: fn,
+        dependencies: dependencies
+      };
+    }
+
+    function instantiate(Type) {
+      const {
+        fn,
+        dependencies
+      } = fnDef(Type);
+
+      // instantiate var args constructor
+      const Constructor = Function.prototype.bind.apply(fn, [ null ].concat(dependencies));
+
+      return new Constructor();
+    }
+
+    function invoke(func, context, locals) {
+      const {
+        fn,
+        dependencies
+      } = fnDef(func, locals);
+
+      return fn.apply(context, dependencies);
+    }
+
+    /**
+     * @param {Injector} childInjector
+     *
+     * @return {Function}
+     */
+    function createPrivateInjectorFactory(childInjector) {
+      return annotate(key => childInjector.get(key));
+    }
+
+    /**
+     * @param {ModuleDefinition[]} modules
+     * @param {string[]} [forceNewInstances]
+     *
+     * @return {Injector}
+     */
+    function createChild(modules, forceNewInstances) {
+      if (forceNewInstances && forceNewInstances.length) {
+        const fromParentModule = Object.create(null);
+        const matchedScopes = Object.create(null);
+
+        const privateInjectorsCache = [];
+        const privateChildInjectors = [];
+        const privateChildFactories = [];
+
+        let provider;
+        let cacheIdx;
+        let privateChildInjector;
+        let privateChildInjectorFactory;
+
+        for (let name in providers) {
+          provider = providers[name];
+
+          if (forceNewInstances.indexOf(name) !== -1) {
+            if (provider[2] === 'private') {
+              cacheIdx = privateInjectorsCache.indexOf(provider[3]);
+              if (cacheIdx === -1) {
+                privateChildInjector = provider[3].createChild([], forceNewInstances);
+                privateChildInjectorFactory = createPrivateInjectorFactory(privateChildInjector);
+                privateInjectorsCache.push(provider[3]);
+                privateChildInjectors.push(privateChildInjector);
+                privateChildFactories.push(privateChildInjectorFactory);
+                fromParentModule[name] = [ privateChildInjectorFactory, name, 'private', privateChildInjector ];
+              } else {
+                fromParentModule[name] = [ privateChildFactories[cacheIdx], name, 'private', privateChildInjectors[cacheIdx] ];
+              }
+            } else {
+              fromParentModule[name] = [ provider[2], provider[1] ];
+            }
+            matchedScopes[name] = true;
+          }
+
+          if ((provider[2] === 'factory' || provider[2] === 'type') && provider[1].$scope) {
+            /* jshint -W083 */
+            forceNewInstances.forEach(scope => {
+              if (provider[1].$scope.indexOf(scope) !== -1) {
+                fromParentModule[name] = [ provider[2], provider[1] ];
+                matchedScopes[scope] = true;
+              }
+            });
+          }
+        }
+
+        forceNewInstances.forEach(scope => {
+          if (!matchedScopes[scope]) {
+            throw new Error('No provider for "' + scope + '". Cannot use provider from the parent!');
+          }
+        });
+
+        modules.unshift(fromParentModule);
+      }
+
+      return new Injector(modules, self);
+    }
+
+    const factoryMap = {
+      factory: invoke,
+      type: instantiate,
+      value: function(value) {
+        return value;
+      }
+    };
+
+    /**
+     * @param {ModuleDefinition} moduleDefinition
+     * @param {Injector} injector
+     */
+    function createInitializer(moduleDefinition, injector) {
+
+      const initializers = moduleDefinition.__init__ || [];
+
+      return function() {
+        initializers.forEach(initializer => {
+
+          // eagerly resolve component (fn or string)
+          if (typeof initializer === 'string') {
+            injector.get(initializer);
+          } else {
+            injector.invoke(initializer);
+          }
+        });
+      };
+    }
+
+    /**
+     * @param {ModuleDefinition} moduleDefinition
+     */
+    function loadModule(moduleDefinition) {
+
+      const moduleExports = moduleDefinition.__exports__;
+
+      // private module
+      if (moduleExports) {
+        const nestedModules = moduleDefinition.__modules__;
+
+        const clonedModule = Object.keys(moduleDefinition).reduce((clonedModule, key) => {
+
+          if (key !== '__exports__' && key !== '__modules__' && key !== '__init__' && key !== '__depends__') {
+            clonedModule[key] = moduleDefinition[key];
+          }
+
+          return clonedModule;
+        }, Object.create(null));
+
+        const childModules = (nestedModules || []).concat(clonedModule);
+
+        const privateInjector = createChild(childModules);
+        const getFromPrivateInjector = annotate(function(key) {
+          return privateInjector.get(key);
+        });
+
+        moduleExports.forEach(function(key) {
+          providers[key] = [ getFromPrivateInjector, key, 'private', privateInjector ];
+        });
+
+        // ensure child injector initializes
+        const initializers = (moduleDefinition.__init__ || []).slice();
+
+        initializers.unshift(function() {
+          privateInjector.init();
+        });
+
+        moduleDefinition = Object.assign({}, moduleDefinition, {
+          __init__: initializers
+        });
+
+        return createInitializer(moduleDefinition, privateInjector);
+      }
+
+      // normal module
+      Object.keys(moduleDefinition).forEach(function(key) {
+
+        if (key === '__init__' || key === '__depends__') {
+          return;
+        }
+
+        if (moduleDefinition[key][2] === 'private') {
+          providers[key] = moduleDefinition[key];
+          return;
+        }
+
+        const type = moduleDefinition[key][0];
+        const value = moduleDefinition[key][1];
+
+        providers[key] = [ factoryMap[type], arrayUnwrap(type, value), type ];
+      });
+
+      return createInitializer(moduleDefinition, self);
+    }
+
+    /**
+     * @param {ModuleDefinition[]} moduleDefinitions
+     * @param {ModuleDefinition} moduleDefinition
+     *
+     * @return {ModuleDefinition[]}
+     */
+    function resolveDependencies(moduleDefinitions, moduleDefinition) {
+
+      if (moduleDefinitions.indexOf(moduleDefinition) !== -1) {
+        return moduleDefinitions;
+      }
+
+      moduleDefinitions = (moduleDefinition.__depends__ || []).reduce(resolveDependencies, moduleDefinitions);
+
+      if (moduleDefinitions.indexOf(moduleDefinition) !== -1) {
+        return moduleDefinitions;
+      }
+
+      return moduleDefinitions.concat(moduleDefinition);
+    }
+
+    /**
+     * @param {ModuleDefinition[]} moduleDefinitions
+     *
+     * @return { () => void } initializerFn
+     */
+    function bootstrap(moduleDefinitions) {
+
+      const initializers = moduleDefinitions
+        .reduce(resolveDependencies, [])
+        .map(loadModule);
+
+      let initialized = false;
+
+      return function() {
+
+        if (initialized) {
+          return;
+        }
+
+        initialized = true;
+
+        initializers.forEach(initializer => initializer());
+      };
+    }
+
+    // public API
+    this.get = get;
+    this.invoke = invoke;
+    this.instantiate = instantiate;
+    this.createChild = createChild;
+
+    // setup
+    this.init = bootstrap(modules);
+  }
+
+
+  // helpers ///////////////
+
+  function arrayUnwrap(type, value) {
+    if (type !== 'value' && isArray(value)) {
+      value = annotate(value.slice());
+    }
+
+    return value;
+  }
+
+  var showdown$1 = {exports: {}};
 
   (function (module) {
   	(function(){
@@ -37945,4136 +40086,20 @@
   	}).call(commonjsGlobal);
 
   	
-  } (showdown));
+  } (showdown$1));
 
-  /*
-   *  big.js v6.2.1
-   *  A small, fast, easy-to-use library for arbitrary-precision decimal arithmetic.
-   *  Copyright (c) 2022 Michael Mclaughlin
-   *  https://github.com/MikeMcl/big.js/LICENCE.md
-   */
+  var showdownExports = showdown$1.exports;
+  var showdown = /*@__PURE__*/getDefaultExportFromCjs(showdownExports);
 
-
-  /************************************** EDITABLE DEFAULTS *****************************************/
-
-
-    // The default values below must be integers within the stated ranges.
-
-    /*
-     * The maximum number of decimal places (DP) of the results of operations involving division:
-     * div and sqrt, and pow with negative exponents.
-     */
-  var DP = 20,          // 0 to MAX_DP
-
-    /*
-     * The rounding mode (RM) used when rounding to the above decimal places.
-     *
-     *  0  Towards zero (i.e. truncate, no rounding).       (ROUND_DOWN)
-     *  1  To nearest neighbour. If equidistant, round up.  (ROUND_HALF_UP)
-     *  2  To nearest neighbour. If equidistant, to even.   (ROUND_HALF_EVEN)
-     *  3  Away from zero.                                  (ROUND_UP)
-     */
-    RM = 1,             // 0, 1, 2 or 3
-
-    // The maximum value of DP and Big.DP.
-    MAX_DP = 1E6,       // 0 to 1000000
-
-    // The maximum magnitude of the exponent argument to the pow method.
-    MAX_POWER = 1E6,    // 1 to 1000000
-
-    /*
-     * The negative exponent (NE) at and beneath which toString returns exponential notation.
-     * (JavaScript numbers: -7)
-     * -1000000 is the minimum recommended exponent value of a Big.
-     */
-    NE = -7,            // 0 to -1000000
-
-    /*
-     * The positive exponent (PE) at and above which toString returns exponential notation.
-     * (JavaScript numbers: 21)
-     * 1000000 is the maximum recommended exponent value of a Big, but this limit is not enforced.
-     */
-    PE = 21,            // 0 to 1000000
-
-    /*
-     * When true, an error will be thrown if a primitive number is passed to the Big constructor,
-     * or if valueOf is called, or if toNumber is called on a Big which cannot be converted to a
-     * primitive number without a loss of precision.
-     */
-    STRICT = false,     // true or false
-
-
-  /**************************************************************************************************/
-
-
-    // Error messages.
-    NAME = '[big.js] ',
-    INVALID = NAME + 'Invalid ',
-    INVALID_DP = INVALID + 'decimal places',
-    INVALID_RM = INVALID + 'rounding mode',
-    DIV_BY_ZERO = NAME + 'Division by zero',
-
-    // The shared prototype object.
-    P$2 = {},
-    UNDEFINED = void 0,
-    NUMERIC = /^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i;
-
-
-  /*
-   * Create and return a Big constructor.
-   */
-  function _Big_() {
-
-    /*
-     * The Big constructor and exported function.
-     * Create and return a new instance of a Big number object.
-     *
-     * n {number|string|Big} A numeric value.
-     */
-    function Big(n) {
-      var x = this;
-
-      // Enable constructor usage without new.
-      if (!(x instanceof Big)) return n === UNDEFINED ? _Big_() : new Big(n);
-
-      // Duplicate.
-      if (n instanceof Big) {
-        x.s = n.s;
-        x.e = n.e;
-        x.c = n.c.slice();
-      } else {
-        if (typeof n !== 'string') {
-          if (Big.strict === true && typeof n !== 'bigint') {
-            throw TypeError(INVALID + 'value');
-          }
-
-          // Minus zero?
-          n = n === 0 && 1 / n < 0 ? '-0' : String(n);
-        }
-
-        parse(x, n);
-      }
-
-      // Retain a reference to this Big constructor.
-      // Shadow Big.prototype.constructor which points to Object.
-      x.constructor = Big;
-    }
-
-    Big.prototype = P$2;
-    Big.DP = DP;
-    Big.RM = RM;
-    Big.NE = NE;
-    Big.PE = PE;
-    Big.strict = STRICT;
-    Big.roundDown = 0;
-    Big.roundHalfUp = 1;
-    Big.roundHalfEven = 2;
-    Big.roundUp = 3;
-
-    return Big;
-  }
-
-
-  /*
-   * Parse the number or string value passed to a Big constructor.
-   *
-   * x {Big} A Big number instance.
-   * n {number|string} A numeric value.
-   */
-  function parse(x, n) {
-    var e, i, nl;
-
-    if (!NUMERIC.test(n)) {
-      throw Error(INVALID + 'number');
-    }
-
-    // Determine sign.
-    x.s = n.charAt(0) == '-' ? (n = n.slice(1), -1) : 1;
-
-    // Decimal point?
-    if ((e = n.indexOf('.')) > -1) n = n.replace('.', '');
-
-    // Exponential form?
-    if ((i = n.search(/e/i)) > 0) {
-
-      // Determine exponent.
-      if (e < 0) e = i;
-      e += +n.slice(i + 1);
-      n = n.substring(0, i);
-    } else if (e < 0) {
-
-      // Integer.
-      e = n.length;
-    }
-
-    nl = n.length;
-
-    // Determine leading zeros.
-    for (i = 0; i < nl && n.charAt(i) == '0';) ++i;
-
-    if (i == nl) {
-
-      // Zero.
-      x.c = [x.e = 0];
-    } else {
-
-      // Determine trailing zeros.
-      for (; nl > 0 && n.charAt(--nl) == '0';);
-      x.e = e - i - 1;
-      x.c = [];
-
-      // Convert string to array of digits without leading/trailing zeros.
-      for (e = 0; i <= nl;) x.c[e++] = +n.charAt(i++);
-    }
-
-    return x;
-  }
-
-
-  /*
-   * Round Big x to a maximum of sd significant digits using rounding mode rm.
-   *
-   * x {Big} The Big to round.
-   * sd {number} Significant digits: integer, 0 to MAX_DP inclusive.
-   * rm {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
-   * [more] {boolean} Whether the result of division was truncated.
-   */
-  function round(x, sd, rm, more) {
-    var xc = x.c;
-
-    if (rm === UNDEFINED) rm = x.constructor.RM;
-    if (rm !== 0 && rm !== 1 && rm !== 2 && rm !== 3) {
-      throw Error(INVALID_RM);
-    }
-
-    if (sd < 1) {
-      more =
-        rm === 3 && (more || !!xc[0]) || sd === 0 && (
-        rm === 1 && xc[0] >= 5 ||
-        rm === 2 && (xc[0] > 5 || xc[0] === 5 && (more || xc[1] !== UNDEFINED))
-      );
-
-      xc.length = 1;
-
-      if (more) {
-
-        // 1, 0.1, 0.01, 0.001, 0.0001 etc.
-        x.e = x.e - sd + 1;
-        xc[0] = 1;
-      } else {
-
-        // Zero.
-        xc[0] = x.e = 0;
-      }
-    } else if (sd < xc.length) {
-
-      // xc[sd] is the digit after the digit that may be rounded up.
-      more =
-        rm === 1 && xc[sd] >= 5 ||
-        rm === 2 && (xc[sd] > 5 || xc[sd] === 5 &&
-          (more || xc[sd + 1] !== UNDEFINED || xc[sd - 1] & 1)) ||
-        rm === 3 && (more || !!xc[0]);
-
-      // Remove any digits after the required precision.
-      xc.length = sd;
-
-      // Round up?
-      if (more) {
-
-        // Rounding up may mean the previous digit has to be rounded up.
-        for (; ++xc[--sd] > 9;) {
-          xc[sd] = 0;
-          if (sd === 0) {
-            ++x.e;
-            xc.unshift(1);
-            break;
-          }
-        }
-      }
-
-      // Remove trailing zeros.
-      for (sd = xc.length; !xc[--sd];) xc.pop();
-    }
-
-    return x;
-  }
-
-
-  /*
-   * Return a string representing the value of Big x in normal or exponential notation.
-   * Handles P.toExponential, P.toFixed, P.toJSON, P.toPrecision, P.toString and P.valueOf.
-   */
-  function stringify(x, doExponential, isNonzero) {
-    var e = x.e,
-      s = x.c.join(''),
-      n = s.length;
-
-    // Exponential notation?
-    if (doExponential) {
-      s = s.charAt(0) + (n > 1 ? '.' + s.slice(1) : '') + (e < 0 ? 'e' : 'e+') + e;
-
-    // Normal notation.
-    } else if (e < 0) {
-      for (; ++e;) s = '0' + s;
-      s = '0.' + s;
-    } else if (e > 0) {
-      if (++e > n) {
-        for (e -= n; e--;) s += '0';
-      } else if (e < n) {
-        s = s.slice(0, e) + '.' + s.slice(e);
-      }
-    } else if (n > 1) {
-      s = s.charAt(0) + '.' + s.slice(1);
-    }
-
-    return x.s < 0 && isNonzero ? '-' + s : s;
-  }
-
-
-  // Prototype/instance methods
-
-
-  /*
-   * Return a new Big whose value is the absolute value of this Big.
-   */
-  P$2.abs = function () {
-    var x = new this.constructor(this);
-    x.s = 1;
-    return x;
-  };
-
-
-  /*
-   * Return 1 if the value of this Big is greater than the value of Big y,
-   *       -1 if the value of this Big is less than the value of Big y, or
-   *        0 if they have the same value.
-   */
-  P$2.cmp = function (y) {
-    var isneg,
-      x = this,
-      xc = x.c,
-      yc = (y = new x.constructor(y)).c,
-      i = x.s,
-      j = y.s,
-      k = x.e,
-      l = y.e;
-
-    // Either zero?
-    if (!xc[0] || !yc[0]) return !xc[0] ? !yc[0] ? 0 : -j : i;
-
-    // Signs differ?
-    if (i != j) return i;
-
-    isneg = i < 0;
-
-    // Compare exponents.
-    if (k != l) return k > l ^ isneg ? 1 : -1;
-
-    j = (k = xc.length) < (l = yc.length) ? k : l;
-
-    // Compare digit by digit.
-    for (i = -1; ++i < j;) {
-      if (xc[i] != yc[i]) return xc[i] > yc[i] ^ isneg ? 1 : -1;
-    }
-
-    // Compare lengths.
-    return k == l ? 0 : k > l ^ isneg ? 1 : -1;
-  };
-
-
-  /*
-   * Return a new Big whose value is the value of this Big divided by the value of Big y, rounded,
-   * if necessary, to a maximum of Big.DP decimal places using rounding mode Big.RM.
-   */
-  P$2.div = function (y) {
-    var x = this,
-      Big = x.constructor,
-      a = x.c,                  // dividend
-      b = (y = new Big(y)).c,   // divisor
-      k = x.s == y.s ? 1 : -1,
-      dp = Big.DP;
-
-    if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
-      throw Error(INVALID_DP);
-    }
-
-    // Divisor is zero?
-    if (!b[0]) {
-      throw Error(DIV_BY_ZERO);
-    }
-
-    // Dividend is 0? Return +-0.
-    if (!a[0]) {
-      y.s = k;
-      y.c = [y.e = 0];
-      return y;
-    }
-
-    var bl, bt, n, cmp, ri,
-      bz = b.slice(),
-      ai = bl = b.length,
-      al = a.length,
-      r = a.slice(0, bl),   // remainder
-      rl = r.length,
-      q = y,                // quotient
-      qc = q.c = [],
-      qi = 0,
-      p = dp + (q.e = x.e - y.e) + 1;    // precision of the result
-
-    q.s = k;
-    k = p < 0 ? 0 : p;
-
-    // Create version of divisor with leading zero.
-    bz.unshift(0);
-
-    // Add zeros to make remainder as long as divisor.
-    for (; rl++ < bl;) r.push(0);
-
-    do {
-
-      // n is how many times the divisor goes into current remainder.
-      for (n = 0; n < 10; n++) {
-
-        // Compare divisor and remainder.
-        if (bl != (rl = r.length)) {
-          cmp = bl > rl ? 1 : -1;
-        } else {
-          for (ri = -1, cmp = 0; ++ri < bl;) {
-            if (b[ri] != r[ri]) {
-              cmp = b[ri] > r[ri] ? 1 : -1;
-              break;
-            }
-          }
-        }
-
-        // If divisor < remainder, subtract divisor from remainder.
-        if (cmp < 0) {
-
-          // Remainder can't be more than 1 digit longer than divisor.
-          // Equalise lengths using divisor with extra leading zero?
-          for (bt = rl == bl ? b : bz; rl;) {
-            if (r[--rl] < bt[rl]) {
-              ri = rl;
-              for (; ri && !r[--ri];) r[ri] = 9;
-              --r[ri];
-              r[rl] += 10;
-            }
-            r[rl] -= bt[rl];
-          }
-
-          for (; !r[0];) r.shift();
-        } else {
-          break;
-        }
-      }
-
-      // Add the digit n to the result array.
-      qc[qi++] = cmp ? n : ++n;
-
-      // Update the remainder.
-      if (r[0] && cmp) r[rl] = a[ai] || 0;
-      else r = [a[ai]];
-
-    } while ((ai++ < al || r[0] !== UNDEFINED) && k--);
-
-    // Leading zero? Do not remove if result is simply zero (qi == 1).
-    if (!qc[0] && qi != 1) {
-
-      // There can't be more than one zero.
-      qc.shift();
-      q.e--;
-      p--;
-    }
-
-    // Round?
-    if (qi > p) round(q, p, Big.RM, r[0] !== UNDEFINED);
-
-    return q;
-  };
-
-
-  /*
-   * Return true if the value of this Big is equal to the value of Big y, otherwise return false.
-   */
-  P$2.eq = function (y) {
-    return this.cmp(y) === 0;
-  };
-
-
-  /*
-   * Return true if the value of this Big is greater than the value of Big y, otherwise return
-   * false.
-   */
-  P$2.gt = function (y) {
-    return this.cmp(y) > 0;
-  };
-
-
-  /*
-   * Return true if the value of this Big is greater than or equal to the value of Big y, otherwise
-   * return false.
-   */
-  P$2.gte = function (y) {
-    return this.cmp(y) > -1;
-  };
-
-
-  /*
-   * Return true if the value of this Big is less than the value of Big y, otherwise return false.
-   */
-  P$2.lt = function (y) {
-    return this.cmp(y) < 0;
-  };
-
-
-  /*
-   * Return true if the value of this Big is less than or equal to the value of Big y, otherwise
-   * return false.
-   */
-  P$2.lte = function (y) {
-    return this.cmp(y) < 1;
-  };
-
-
-  /*
-   * Return a new Big whose value is the value of this Big minus the value of Big y.
-   */
-  P$2.minus = P$2.sub = function (y) {
-    var i, j, t, xlty,
-      x = this,
-      Big = x.constructor,
-      a = x.s,
-      b = (y = new Big(y)).s;
-
-    // Signs differ?
-    if (a != b) {
-      y.s = -b;
-      return x.plus(y);
-    }
-
-    var xc = x.c.slice(),
-      xe = x.e,
-      yc = y.c,
-      ye = y.e;
-
-    // Either zero?
-    if (!xc[0] || !yc[0]) {
-      if (yc[0]) {
-        y.s = -b;
-      } else if (xc[0]) {
-        y = new Big(x);
-      } else {
-        y.s = 1;
-      }
-      return y;
-    }
-
-    // Determine which is the bigger number. Prepend zeros to equalise exponents.
-    if (a = xe - ye) {
-
-      if (xlty = a < 0) {
-        a = -a;
-        t = xc;
-      } else {
-        ye = xe;
-        t = yc;
-      }
-
-      t.reverse();
-      for (b = a; b--;) t.push(0);
-      t.reverse();
-    } else {
-
-      // Exponents equal. Check digit by digit.
-      j = ((xlty = xc.length < yc.length) ? xc : yc).length;
-
-      for (a = b = 0; b < j; b++) {
-        if (xc[b] != yc[b]) {
-          xlty = xc[b] < yc[b];
-          break;
-        }
-      }
-    }
-
-    // x < y? Point xc to the array of the bigger number.
-    if (xlty) {
-      t = xc;
-      xc = yc;
-      yc = t;
-      y.s = -y.s;
-    }
-
-    /*
-     * Append zeros to xc if shorter. No need to add zeros to yc if shorter as subtraction only
-     * needs to start at yc.length.
-     */
-    if ((b = (j = yc.length) - (i = xc.length)) > 0) for (; b--;) xc[i++] = 0;
-
-    // Subtract yc from xc.
-    for (b = i; j > a;) {
-      if (xc[--j] < yc[j]) {
-        for (i = j; i && !xc[--i];) xc[i] = 9;
-        --xc[i];
-        xc[j] += 10;
-      }
-
-      xc[j] -= yc[j];
-    }
-
-    // Remove trailing zeros.
-    for (; xc[--b] === 0;) xc.pop();
-
-    // Remove leading zeros and adjust exponent accordingly.
-    for (; xc[0] === 0;) {
-      xc.shift();
-      --ye;
-    }
-
-    if (!xc[0]) {
-
-      // n - n = +0
-      y.s = 1;
-
-      // Result must be zero.
-      xc = [ye = 0];
-    }
-
-    y.c = xc;
-    y.e = ye;
-
-    return y;
-  };
-
-
-  /*
-   * Return a new Big whose value is the value of this Big modulo the value of Big y.
-   */
-  P$2.mod = function (y) {
-    var ygtx,
-      x = this,
-      Big = x.constructor,
-      a = x.s,
-      b = (y = new Big(y)).s;
-
-    if (!y.c[0]) {
-      throw Error(DIV_BY_ZERO);
-    }
-
-    x.s = y.s = 1;
-    ygtx = y.cmp(x) == 1;
-    x.s = a;
-    y.s = b;
-
-    if (ygtx) return new Big(x);
-
-    a = Big.DP;
-    b = Big.RM;
-    Big.DP = Big.RM = 0;
-    x = x.div(y);
-    Big.DP = a;
-    Big.RM = b;
-
-    return this.minus(x.times(y));
-  };
-
-
-  /*
-   * Return a new Big whose value is the value of this Big negated.
-   */
-  P$2.neg = function () {
-    var x = new this.constructor(this);
-    x.s = -x.s;
-    return x;
-  };
-
-
-  /*
-   * Return a new Big whose value is the value of this Big plus the value of Big y.
-   */
-  P$2.plus = P$2.add = function (y) {
-    var e, k, t,
-      x = this,
-      Big = x.constructor;
-
-    y = new Big(y);
-
-    // Signs differ?
-    if (x.s != y.s) {
-      y.s = -y.s;
-      return x.minus(y);
-    }
-
-    var xe = x.e,
-      xc = x.c,
-      ye = y.e,
-      yc = y.c;
-
-    // Either zero?
-    if (!xc[0] || !yc[0]) {
-      if (!yc[0]) {
-        if (xc[0]) {
-          y = new Big(x);
-        } else {
-          y.s = x.s;
-        }
-      }
-      return y;
-    }
-
-    xc = xc.slice();
-
-    // Prepend zeros to equalise exponents.
-    // Note: reverse faster than unshifts.
-    if (e = xe - ye) {
-      if (e > 0) {
-        ye = xe;
-        t = yc;
-      } else {
-        e = -e;
-        t = xc;
-      }
-
-      t.reverse();
-      for (; e--;) t.push(0);
-      t.reverse();
-    }
-
-    // Point xc to the longer array.
-    if (xc.length - yc.length < 0) {
-      t = yc;
-      yc = xc;
-      xc = t;
-    }
-
-    e = yc.length;
-
-    // Only start adding at yc.length - 1 as the further digits of xc can be left as they are.
-    for (k = 0; e; xc[e] %= 10) k = (xc[--e] = xc[e] + yc[e] + k) / 10 | 0;
-
-    // No need to check for zero, as +x + +y != 0 && -x + -y != 0
-
-    if (k) {
-      xc.unshift(k);
-      ++ye;
-    }
-
-    // Remove trailing zeros.
-    for (e = xc.length; xc[--e] === 0;) xc.pop();
-
-    y.c = xc;
-    y.e = ye;
-
-    return y;
-  };
-
-
-  /*
-   * Return a Big whose value is the value of this Big raised to the power n.
-   * If n is negative, round to a maximum of Big.DP decimal places using rounding
-   * mode Big.RM.
-   *
-   * n {number} Integer, -MAX_POWER to MAX_POWER inclusive.
-   */
-  P$2.pow = function (n) {
-    var x = this,
-      one = new x.constructor('1'),
-      y = one,
-      isneg = n < 0;
-
-    if (n !== ~~n || n < -MAX_POWER || n > MAX_POWER) {
-      throw Error(INVALID + 'exponent');
-    }
-
-    if (isneg) n = -n;
-
-    for (;;) {
-      if (n & 1) y = y.times(x);
-      n >>= 1;
-      if (!n) break;
-      x = x.times(x);
-    }
-
-    return isneg ? one.div(y) : y;
-  };
-
-
-  /*
-   * Return a new Big whose value is the value of this Big rounded to a maximum precision of sd
-   * significant digits using rounding mode rm, or Big.RM if rm is not specified.
-   *
-   * sd {number} Significant digits: integer, 1 to MAX_DP inclusive.
-   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
-   */
-  P$2.prec = function (sd, rm) {
-    if (sd !== ~~sd || sd < 1 || sd > MAX_DP) {
-      throw Error(INVALID + 'precision');
-    }
-    return round(new this.constructor(this), sd, rm);
-  };
-
-
-  /*
-   * Return a new Big whose value is the value of this Big rounded to a maximum of dp decimal places
-   * using rounding mode rm, or Big.RM if rm is not specified.
-   * If dp is negative, round to an integer which is a multiple of 10**-dp.
-   * If dp is not specified, round to 0 decimal places.
-   *
-   * dp? {number} Integer, -MAX_DP to MAX_DP inclusive.
-   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
-   */
-  P$2.round = function (dp, rm) {
-    if (dp === UNDEFINED) dp = 0;
-    else if (dp !== ~~dp || dp < -MAX_DP || dp > MAX_DP) {
-      throw Error(INVALID_DP);
-    }
-    return round(new this.constructor(this), dp + this.e + 1, rm);
-  };
-
-
-  /*
-   * Return a new Big whose value is the square root of the value of this Big, rounded, if
-   * necessary, to a maximum of Big.DP decimal places using rounding mode Big.RM.
-   */
-  P$2.sqrt = function () {
-    var r, c, t,
-      x = this,
-      Big = x.constructor,
-      s = x.s,
-      e = x.e,
-      half = new Big('0.5');
-
-    // Zero?
-    if (!x.c[0]) return new Big(x);
-
-    // Negative?
-    if (s < 0) {
-      throw Error(NAME + 'No square root');
-    }
-
-    // Estimate.
-    s = Math.sqrt(x + '');
-
-    // Math.sqrt underflow/overflow?
-    // Re-estimate: pass x coefficient to Math.sqrt as integer, then adjust the result exponent.
-    if (s === 0 || s === 1 / 0) {
-      c = x.c.join('');
-      if (!(c.length + e & 1)) c += '0';
-      s = Math.sqrt(c);
-      e = ((e + 1) / 2 | 0) - (e < 0 || e & 1);
-      r = new Big((s == 1 / 0 ? '5e' : (s = s.toExponential()).slice(0, s.indexOf('e') + 1)) + e);
-    } else {
-      r = new Big(s + '');
-    }
-
-    e = r.e + (Big.DP += 4);
-
-    // Newton-Raphson iteration.
-    do {
-      t = r;
-      r = half.times(t.plus(x.div(t)));
-    } while (t.c.slice(0, e).join('') !== r.c.slice(0, e).join(''));
-
-    return round(r, (Big.DP -= 4) + r.e + 1, Big.RM);
-  };
-
-
-  /*
-   * Return a new Big whose value is the value of this Big times the value of Big y.
-   */
-  P$2.times = P$2.mul = function (y) {
-    var c,
-      x = this,
-      Big = x.constructor,
-      xc = x.c,
-      yc = (y = new Big(y)).c,
-      a = xc.length,
-      b = yc.length,
-      i = x.e,
-      j = y.e;
-
-    // Determine sign of result.
-    y.s = x.s == y.s ? 1 : -1;
-
-    // Return signed 0 if either 0.
-    if (!xc[0] || !yc[0]) {
-      y.c = [y.e = 0];
-      return y;
-    }
-
-    // Initialise exponent of result as x.e + y.e.
-    y.e = i + j;
-
-    // If array xc has fewer digits than yc, swap xc and yc, and lengths.
-    if (a < b) {
-      c = xc;
-      xc = yc;
-      yc = c;
-      j = a;
-      a = b;
-      b = j;
-    }
-
-    // Initialise coefficient array of result with zeros.
-    for (c = new Array(j = a + b); j--;) c[j] = 0;
-
-    // Multiply.
-
-    // i is initially xc.length.
-    for (i = b; i--;) {
-      b = 0;
-
-      // a is yc.length.
-      for (j = a + i; j > i;) {
-
-        // Current sum of products at this digit position, plus carry.
-        b = c[j] + yc[i] * xc[j - i - 1] + b;
-        c[j--] = b % 10;
-
-        // carry
-        b = b / 10 | 0;
-      }
-
-      c[j] = b;
-    }
-
-    // Increment result exponent if there is a final carry, otherwise remove leading zero.
-    if (b) ++y.e;
-    else c.shift();
-
-    // Remove trailing zeros.
-    for (i = c.length; !c[--i];) c.pop();
-    y.c = c;
-
-    return y;
-  };
-
-
-  /*
-   * Return a string representing the value of this Big in exponential notation rounded to dp fixed
-   * decimal places using rounding mode rm, or Big.RM if rm is not specified.
-   *
-   * dp? {number} Decimal places: integer, 0 to MAX_DP inclusive.
-   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
-   */
-  P$2.toExponential = function (dp, rm) {
-    var x = this,
-      n = x.c[0];
-
-    if (dp !== UNDEFINED) {
-      if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
-        throw Error(INVALID_DP);
-      }
-      x = round(new x.constructor(x), ++dp, rm);
-      for (; x.c.length < dp;) x.c.push(0);
-    }
-
-    return stringify(x, true, !!n);
-  };
-
-
-  /*
-   * Return a string representing the value of this Big in normal notation rounded to dp fixed
-   * decimal places using rounding mode rm, or Big.RM if rm is not specified.
-   *
-   * dp? {number} Decimal places: integer, 0 to MAX_DP inclusive.
-   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
-   *
-   * (-0).toFixed(0) is '0', but (-0.1).toFixed(0) is '-0'.
-   * (-0).toFixed(1) is '0.0', but (-0.01).toFixed(1) is '-0.0'.
-   */
-  P$2.toFixed = function (dp, rm) {
-    var x = this,
-      n = x.c[0];
-
-    if (dp !== UNDEFINED) {
-      if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
-        throw Error(INVALID_DP);
-      }
-      x = round(new x.constructor(x), dp + x.e + 1, rm);
-
-      // x.e may have changed if the value is rounded up.
-      for (dp = dp + x.e + 1; x.c.length < dp;) x.c.push(0);
-    }
-
-    return stringify(x, false, !!n);
-  };
-
-
-  /*
-   * Return a string representing the value of this Big.
-   * Return exponential notation if this Big has a positive exponent equal to or greater than
-   * Big.PE, or a negative exponent equal to or less than Big.NE.
-   * Omit the sign for negative zero.
-   */
-  P$2[Symbol.for('nodejs.util.inspect.custom')] = P$2.toJSON = P$2.toString = function () {
-    var x = this,
-      Big = x.constructor;
-    return stringify(x, x.e <= Big.NE || x.e >= Big.PE, !!x.c[0]);
-  };
-
-
-  /*
-   * Return the value of this Big as a primitve number.
-   */
-  P$2.toNumber = function () {
-    var n = Number(stringify(this, true, true));
-    if (this.constructor.strict === true && !this.eq(n.toString())) {
-      throw Error(NAME + 'Imprecise conversion');
-    }
-    return n;
-  };
-
-
-  /*
-   * Return a string representing the value of this Big rounded to sd significant digits using
-   * rounding mode rm, or Big.RM if rm is not specified.
-   * Use exponential notation if sd is less than the number of digits necessary to represent
-   * the integer part of the value in normal notation.
-   *
-   * sd {number} Significant digits: integer, 1 to MAX_DP inclusive.
-   * rm? {number} Rounding mode: 0 (down), 1 (half-up), 2 (half-even) or 3 (up).
-   */
-  P$2.toPrecision = function (sd, rm) {
-    var x = this,
-      Big = x.constructor,
-      n = x.c[0];
-
-    if (sd !== UNDEFINED) {
-      if (sd !== ~~sd || sd < 1 || sd > MAX_DP) {
-        throw Error(INVALID + 'precision');
-      }
-      x = round(new Big(x), sd, rm);
-      for (; x.c.length < sd;) x.c.push(0);
-    }
-
-    return stringify(x, sd <= x.e || x.e <= Big.NE || x.e >= Big.PE, !!n);
-  };
-
-
-  /*
-   * Return a string representing the value of this Big.
-   * Return exponential notation if this Big has a positive exponent equal to or greater than
-   * Big.PE, or a negative exponent equal to or less than Big.NE.
-   * Include the sign for negative zero.
-   */
-  P$2.valueOf = function () {
-    var x = this,
-      Big = x.constructor;
-    if (Big.strict === true) {
-      throw Error(NAME + 'valueOf disallowed');
-    }
-    return stringify(x, x.e <= Big.NE || x.e >= Big.PE, true);
-  };
-
-
-  // Export
-
-
-  var Big = _Big_();
-
-  var classnamesExports = {};
-  var classnames = {
-    get exports(){ return classnamesExports; },
-    set exports(v){ classnamesExports = v; },
-  };
-
-  /*!
-  	Copyright (c) 2018 Jed Watson.
-  	Licensed under the MIT License (MIT), see
-  	http://jedwatson.github.io/classnames
-  */
-
-  (function (module) {
-  	/* global define */
-
-  	(function () {
-
-  		var hasOwn = {}.hasOwnProperty;
-
-  		function classNames() {
-  			var classes = [];
-
-  			for (var i = 0; i < arguments.length; i++) {
-  				var arg = arguments[i];
-  				if (!arg) continue;
-
-  				var argType = typeof arg;
-
-  				if (argType === 'string' || argType === 'number') {
-  					classes.push(arg);
-  				} else if (Array.isArray(arg)) {
-  					if (arg.length) {
-  						var inner = classNames.apply(null, arg);
-  						if (inner) {
-  							classes.push(inner);
-  						}
-  					}
-  				} else if (argType === 'object') {
-  					if (arg.toString !== Object.prototype.toString && !arg.toString.toString().includes('[native code]')) {
-  						classes.push(arg.toString());
-  						continue;
-  					}
-
-  					for (var key in arg) {
-  						if (hasOwn.call(arg, key) && arg[key]) {
-  							classes.push(key);
-  						}
-  					}
-  				}
-  			}
-
-  			return classes.join(' ');
-  		}
-
-  		if (module.exports) {
-  			classNames.default = classNames;
-  			module.exports = classNames;
-  		} else {
-  			window.classNames = classNames;
-  		}
-  	}());
-  } (classnames));
-
-  var classNames = classnamesExports;
-
-  var n$1,l$2,u$1,t$1,o$3,r$1,f$1,e$3={},c$1=[],s$1=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;function a$2(n,l){for(var u in l)n[u]=l[u];return n}function h(n){var l=n.parentNode;l&&l.removeChild(n);}function v$1(l,u,i){var t,o,r,f={};for(r in u)"key"==r?t=u[r]:"ref"==r?o=u[r]:f[r]=u[r];if(arguments.length>2&&(f.children=arguments.length>3?n$1.call(arguments,2):i),"function"==typeof l&&null!=l.defaultProps)for(r in l.defaultProps)void 0===f[r]&&(f[r]=l.defaultProps[r]);return y$1(l,f,t,o,null)}function y$1(n,i,t,o,r){var f={type:n,props:i,key:t,ref:o,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:null==r?++u$1:r};return null!=l$2.vnode&&l$2.vnode(f),f}function d$1(n){return n.children}function _(n,l){this.props=n,this.context=l;}function k$1(n,l){if(null==l)return n.__?k$1(n.__,n.__.__k.indexOf(n)+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return "function"==typeof n.type?k$1(n):null}function b$1(n){var l,u;if(null!=(n=n.__)&&null!=n.__c){for(n.__e=n.__c.base=null,l=0;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e){n.__e=n.__c.base=u.__e;break}return b$1(n)}}function m$1(n){(!n.__d&&(n.__d=!0)&&t$1.push(n)&&!g$1.__r++||r$1!==l$2.debounceRendering)&&((r$1=l$2.debounceRendering)||o$3)(g$1);}function g$1(){for(var n;g$1.__r=t$1.length;)n=t$1.sort(function(n,l){return n.__v.__b-l.__v.__b}),t$1=[],n.some(function(n){var l,u,i,t,o,r;n.__d&&(o=(t=(l=n).__v).__e,(r=l.__P)&&(u=[],(i=a$2({},t)).__v=t.__v+1,j$2(r,t,i,l.__n,void 0!==r.ownerSVGElement,null!=t.__h?[o]:null,u,null==o?k$1(t):o,t.__h),z(u,t),t.__e!=o&&b$1(t)));});}function w$2(n,l,u,i,t,o,r,f,s,a){var h,v,p,_,b,m,g,w=i&&i.__k||c$1,A=w.length;for(u.__k=[],h=0;h<l.length;h++)if(null!=(_=u.__k[h]=null==(_=l[h])||"boolean"==typeof _?null:"string"==typeof _||"number"==typeof _||"bigint"==typeof _?y$1(null,_,null,null,_):Array.isArray(_)?y$1(d$1,{children:_},null,null,null):_.__b>0?y$1(_.type,_.props,_.key,null,_.__v):_)){if(_.__=u,_.__b=u.__b+1,null===(p=w[h])||p&&_.key==p.key&&_.type===p.type)w[h]=void 0;else for(v=0;v<A;v++){if((p=w[v])&&_.key==p.key&&_.type===p.type){w[v]=void 0;break}p=null;}j$2(n,_,p=p||e$3,t,o,r,f,s,a),b=_.__e,(v=_.ref)&&p.ref!=v&&(g||(g=[]),p.ref&&g.push(p.ref,null,_),g.push(v,_.__c||b,_)),null!=b?(null==m&&(m=b),"function"==typeof _.type&&null!=_.__k&&_.__k===p.__k?_.__d=s=x$1(_,s,n):s=P$1(n,_,p,w,b,s),a||"option"!==u.type?"function"==typeof u.type&&(u.__d=s):n.value=""):s&&p.__e==s&&s.parentNode!=n&&(s=k$1(p));}for(u.__e=m,h=A;h--;)null!=w[h]&&("function"==typeof u.type&&null!=w[h].__e&&w[h].__e==u.__d&&(u.__d=k$1(i,h+1)),N(w[h],w[h]));if(g)for(h=0;h<g.length;h++)M$1(g[h],g[++h],g[++h]);}function x$1(n,l,u){var i,t;for(i=0;i<n.__k.length;i++)(t=n.__k[i])&&(t.__=n,l="function"==typeof t.type?x$1(t,l,u):P$1(u,t,t,n.__k,t.__e,l));return l}function A$2(n,l){return l=l||[],null==n||"boolean"==typeof n||(Array.isArray(n)?n.some(function(n){A$2(n,l);}):l.push(n)),l}function P$1(n,l,u,i,t,o){var r,f,e;if(void 0!==l.__d)r=l.__d,l.__d=void 0;else if(null==u||t!=o||null==t.parentNode)n:if(null==o||o.parentNode!==n)n.appendChild(t),r=null;else {for(f=o,e=0;(f=f.nextSibling)&&e<i.length;e+=2)if(f==t)break n;n.insertBefore(t,o),r=o;}return void 0!==r?r:t.nextSibling}function C$1(n,l,u,i,t){var o;for(o in u)"children"===o||"key"===o||o in l||H$1(n,o,null,u[o],i);for(o in l)t&&"function"!=typeof l[o]||"children"===o||"key"===o||"value"===o||"checked"===o||u[o]===l[o]||H$1(n,o,l[o],u[o],i);}function $$1(n,l,u){"-"===l[0]?n.setProperty(l,u):n[l]=null==u?"":"number"!=typeof u||s$1.test(l)?u:u+"px";}function H$1(n,l,u,i,t){var o;n:if("style"===l)if("string"==typeof u)n.style.cssText=u;else {if("string"==typeof i&&(n.style.cssText=i=""),i)for(l in i)u&&l in u||$$1(n.style,l,"");if(u)for(l in u)i&&u[l]===i[l]||$$1(n.style,l,u[l]);}else if("o"===l[0]&&"n"===l[1])o=l!==(l=l.replace(/Capture$/,"")),l=l.toLowerCase()in n?l.toLowerCase().slice(2):l.slice(2),n.l||(n.l={}),n.l[l+o]=u,u?i||n.addEventListener(l,o?T$1:I$1,o):n.removeEventListener(l,o?T$1:I$1,o);else if("dangerouslySetInnerHTML"!==l){if(t)l=l.replace(/xlink[H:h]/,"h").replace(/sName$/,"s");else if("href"!==l&&"list"!==l&&"form"!==l&&"tabIndex"!==l&&"download"!==l&&l in n)try{n[l]=null==u?"":u;break n}catch(n){}"function"==typeof u||(null!=u&&(!1!==u||"a"===l[0]&&"r"===l[1])?n.setAttribute(l,u):n.removeAttribute(l));}}function I$1(n){this.l[n.type+!1](l$2.event?l$2.event(n):n);}function T$1(n){this.l[n.type+!0](l$2.event?l$2.event(n):n);}function j$2(n,u,i,t,o,r,f,e,c){var s,h,v,y,p,k,b,m,g,x,A,P=u.type;if(void 0!==u.constructor)return null;null!=i.__h&&(c=i.__h,e=u.__e=i.__e,u.__h=null,r=[e]),(s=l$2.__b)&&s(u);try{n:if("function"==typeof P){if(m=u.props,g=(s=P.contextType)&&t[s.__c],x=s?g?g.props.value:s.__:t,i.__c?b=(h=u.__c=i.__c).__=h.__E:("prototype"in P&&P.prototype.render?u.__c=h=new P(m,x):(u.__c=h=new _(m,x),h.constructor=P,h.render=O$1),g&&g.sub(h),h.props=m,h.state||(h.state={}),h.context=x,h.__n=t,v=h.__d=!0,h.__h=[]),null==h.__s&&(h.__s=h.state),null!=P.getDerivedStateFromProps&&(h.__s==h.state&&(h.__s=a$2({},h.__s)),a$2(h.__s,P.getDerivedStateFromProps(m,h.__s))),y=h.props,p=h.state,v)null==P.getDerivedStateFromProps&&null!=h.componentWillMount&&h.componentWillMount(),null!=h.componentDidMount&&h.__h.push(h.componentDidMount);else {if(null==P.getDerivedStateFromProps&&m!==y&&null!=h.componentWillReceiveProps&&h.componentWillReceiveProps(m,x),!h.__e&&null!=h.shouldComponentUpdate&&!1===h.shouldComponentUpdate(m,h.__s,x)||u.__v===i.__v){h.props=m,h.state=h.__s,u.__v!==i.__v&&(h.__d=!1),h.__v=u,u.__e=i.__e,u.__k=i.__k,u.__k.forEach(function(n){n&&(n.__=u);}),h.__h.length&&f.push(h);break n}null!=h.componentWillUpdate&&h.componentWillUpdate(m,h.__s,x),null!=h.componentDidUpdate&&h.__h.push(function(){h.componentDidUpdate(y,p,k);});}h.context=x,h.props=m,h.state=h.__s,(s=l$2.__r)&&s(u),h.__d=!1,h.__v=u,h.__P=n,s=h.render(h.props,h.state,h.context),h.state=h.__s,null!=h.getChildContext&&(t=a$2(a$2({},t),h.getChildContext())),v||null==h.getSnapshotBeforeUpdate||(k=h.getSnapshotBeforeUpdate(y,p)),A=null!=s&&s.type===d$1&&null==s.key?s.props.children:s,w$2(n,Array.isArray(A)?A:[A],u,i,t,o,r,f,e,c),h.base=u.__e,u.__h=null,h.__h.length&&f.push(h),b&&(h.__E=h.__=null),h.__e=!1;}else null==r&&u.__v===i.__v?(u.__k=i.__k,u.__e=i.__e):u.__e=L$1(i.__e,u,i,t,o,r,f,c);(s=l$2.diffed)&&s(u);}catch(n){u.__v=null,(c||null!=r)&&(u.__e=e,u.__h=!!c,r[r.indexOf(e)]=null),l$2.__e(n,u,i);}}function z(n,u){l$2.__c&&l$2.__c(u,n),n.some(function(u){try{n=u.__h,u.__h=[],n.some(function(n){n.call(u);});}catch(n){l$2.__e(n,u.__v);}});}function L$1(l,u,i,t,o,r,f,c){var s,a,v,y=i.props,p=u.props,d=u.type,_=0;if("svg"===d&&(o=!0),null!=r)for(;_<r.length;_++)if((s=r[_])&&(s===l||(d?s.localName==d:3==s.nodeType))){l=s,r[_]=null;break}if(null==l){if(null===d)return document.createTextNode(p);l=o?document.createElementNS("http://www.w3.org/2000/svg",d):document.createElement(d,p.is&&p),r=null,c=!1;}if(null===d)y===p||c&&l.data===p||(l.data=p);else {if(r=r&&n$1.call(l.childNodes),a=(y=i.props||e$3).dangerouslySetInnerHTML,v=p.dangerouslySetInnerHTML,!c){if(null!=r)for(y={},_=0;_<l.attributes.length;_++)y[l.attributes[_].name]=l.attributes[_].value;(v||a)&&(v&&(a&&v.__html==a.__html||v.__html===l.innerHTML)||(l.innerHTML=v&&v.__html||""));}if(C$1(l,p,y,o,c),v)u.__k=[];else if(_=u.props.children,w$2(l,Array.isArray(_)?_:[_],u,i,t,o&&"foreignObject"!==d,r,f,r?r[0]:i.__k&&k$1(i,0),c),null!=r)for(_=r.length;_--;)null!=r[_]&&h(r[_]);c||("value"in p&&void 0!==(_=p.value)&&(_!==l.value||"progress"===d&&!_)&&H$1(l,"value",_,y.value,!1),"checked"in p&&void 0!==(_=p.checked)&&_!==l.checked&&H$1(l,"checked",_,y.checked,!1));}return l}function M$1(n,u,i){try{"function"==typeof n?n(u):n.current=u;}catch(n){l$2.__e(n,i);}}function N(n,u,i){var t,o;if(l$2.unmount&&l$2.unmount(n),(t=n.ref)&&(t.current&&t.current!==n.__e||M$1(t,null,u)),null!=(t=n.__c)){if(t.componentWillUnmount)try{t.componentWillUnmount();}catch(n){l$2.__e(n,u);}t.base=t.__P=null;}if(t=n.__k)for(o=0;o<t.length;o++)t[o]&&N(t[o],u,"function"!=typeof n.type);i||null==n.__e||h(n.__e),n.__e=n.__d=void 0;}function O$1(n,l,u){return this.constructor(n,u)}function S$1(u,i,t){var o,r,f;l$2.__&&l$2.__(u,i),r=(o="function"==typeof t)?null:t&&t.__k||i.__k,f=[],j$2(i,u=(!o&&t||i).__k=v$1(d$1,null,[u]),r||e$3,e$3,void 0!==i.ownerSVGElement,!o&&t?[t]:r?null:i.firstChild?n$1.call(i.childNodes):null,f,!o&&t?t:r?r.__e:i.firstChild,o),z(f,u);}function D$1(n,l){var u={__c:l="__cC"+f$1++,__:n,Consumer:function(n,l){return n.children(l)},Provider:function(n){var u,i;return this.getChildContext||(u=[],(i={})[l]=this,this.getChildContext=function(){return i},this.shouldComponentUpdate=function(n){this.props.value!==n.value&&u.some(m$1);},this.sub=function(n){u.push(n);var l=n.componentWillUnmount;n.componentWillUnmount=function(){u.splice(u.indexOf(n),1),l&&l.call(n);};}),n.children}};return u.Provider.__=u.Consumer.contextType=u}n$1=c$1.slice,l$2={__e:function(n,l){for(var u,i,t;l=l.__;)if((u=l.__c)&&!u.__)try{if((i=u.constructor)&&null!=i.getDerivedStateFromError&&(u.setState(i.getDerivedStateFromError(n)),t=u.__d),null!=u.componentDidCatch&&(u.componentDidCatch(n),t=u.__d),t)return u.__E=u}catch(l){n=l;}throw n}},u$1=0,_.prototype.setState=function(n,l){var u;u=null!=this.__s&&this.__s!==this.state?this.__s:this.__s=a$2({},this.state),"function"==typeof n&&(n=n(a$2({},u),this.props)),n&&a$2(u,n),null!=n&&this.__v&&(l&&this.__h.push(l),m$1(this));},_.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),m$1(this));},_.prototype.render=d$1,t$1=[],o$3="function"==typeof Promise?Promise.prototype.then.bind(Promise.resolve()):setTimeout,g$1.__r=0,f$1=0;
-
-  var o$2=0;function e$2(_,e,n,t,f){var l,s,u={};for(s in e)"ref"==s?l=e[s]:u[s]=e[s];var a={type:_,props:u,key:n,ref:l,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:--o$2,__source:t,__self:f};if("function"==typeof _&&(l=_.defaultProps))for(s in l)void 0===u[s]&&(u[s]=l[s]);return l$2.vnode&&l$2.vnode(a),a}
-
-  var t,u,r,o$1=0,i$1=[],c=l$2.__b,f=l$2.__r,e$1=l$2.diffed,a$1=l$2.__c,v=l$2.unmount;function m(t,r){l$2.__h&&l$2.__h(u,t,o$1||r),o$1=0;var i=u.__H||(u.__H={__:[],__h:[]});return t>=i.__.length&&i.__.push({}),i.__[t]}function l$1(n){return o$1=1,p$1(w$1,n)}function p$1(n,r,o){var i=m(t++,2);return i.t=n,i.__c||(i.__=[o?o(r):w$1(void 0,r),function(n){var t=i.t(i.__[0],n);i.__[0]!==t&&(i.__=[t,i.__[1]],i.__c.setState({}));}],i.__c=u),i.__}function y(r,o){var i=m(t++,3);!l$2.__s&&k(i.__H,o)&&(i.__=r,i.__H=o,u.__H.__h.push(i));}function s(n){return o$1=5,d(function(){return {current:n}},[])}function d(n,u){var r=m(t++,7);return k(r.__H,u)&&(r.__=n(),r.__H=u,r.__h=n),r.__}function A$1(n,t){return o$1=8,d(function(){return n},t)}function F(n){var r=u.context[n.__c],o=m(t++,9);return o.c=n,r?(null==o.__&&(o.__=!0,r.sub(u)),r.props.value):n.__}function x(){i$1.forEach(function(t){if(t.__P)try{t.__H.__h.forEach(g),t.__H.__h.forEach(j$1),t.__H.__h=[];}catch(u){t.__H.__h=[],l$2.__e(u,t.__v);}}),i$1=[];}l$2.__b=function(n){u=null,c&&c(n);},l$2.__r=function(n){f&&f(n),t=0;var r=(u=n.__c).__H;r&&(r.__h.forEach(g),r.__h.forEach(j$1),r.__h=[]);},l$2.diffed=function(t){e$1&&e$1(t);var o=t.__c;o&&o.__H&&o.__H.__h.length&&(1!==i$1.push(o)&&r===l$2.requestAnimationFrame||((r=l$2.requestAnimationFrame)||function(n){var t,u=function(){clearTimeout(r),b&&cancelAnimationFrame(t),setTimeout(n);},r=setTimeout(u,100);b&&(t=requestAnimationFrame(u));})(x)),u=void 0;},l$2.__c=function(t,u){u.some(function(t){try{t.__h.forEach(g),t.__h=t.__h.filter(function(n){return !n.__||j$1(n)});}catch(r){u.some(function(n){n.__h&&(n.__h=[]);}),u=[],l$2.__e(r,t.__v);}}),a$1&&a$1(t,u);},l$2.unmount=function(t){v&&v(t);var u=t.__c;if(u&&u.__H)try{u.__H.__.forEach(g);}catch(t){l$2.__e(t,u.__v);}};var b="function"==typeof requestAnimationFrame;function g(n){var t=u;"function"==typeof n.__c&&n.__c(),u=t;}function j$1(n){var t=u;n.__c=n.__(),u=t;}function k(n,t){return !n||n.length!==t.length||t.some(function(t,u){return t!==n[u]})}function w$1(n,t){return "function"==typeof t?t(n):t}
-
-  function S(n,t){for(var e in t)n[e]=t[e];return n}function C(n,t){for(var e in n)if("__source"!==e&&!(e in t))return !0;for(var r in t)if("__source"!==r&&n[r]!==t[r])return !0;return !1}function E(n){this.props=n;}(E.prototype=new _).isPureReactComponent=!0,E.prototype.shouldComponentUpdate=function(n,t){return C(this.props,n)||C(this.state,t)};var w=l$2.__b;l$2.__b=function(n){n.type&&n.type.__f&&n.ref&&(n.props.ref=n.ref,n.ref=null),w&&w(n);};var A=l$2.__e;l$2.__e=function(n,t,e){if(n.then)for(var r,u=t;u=u.__;)if((r=u.__c)&&r.__c)return null==t.__e&&(t.__e=e.__e,t.__k=e.__k),r.__c(n,t);A(n,t,e);};var O=l$2.unmount;function L(){this.__u=0,this.t=null,this.__b=null;}function U(n){var t=n.__.__c;return t&&t.__e&&t.__e(n)}function M(){this.u=null,this.o=null;}l$2.unmount=function(n){var t=n.__c;t&&t.__R&&t.__R(),t&&!0===n.__h&&(n.type=null),O&&O(n);},(L.prototype=new _).__c=function(n,t){var e=t.__c,r=this;null==r.t&&(r.t=[]),r.t.push(e);var u=U(r.__v),o=!1,i=function(){o||(o=!0,e.__R=null,u?u(l):l());};e.__R=i;var l=function(){if(!--r.__u){if(r.state.__e){var n=r.state.__e;r.__v.__k[0]=function n(t,e,r){return t&&(t.__v=null,t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)}),t.__c&&t.__c.__P===e&&(t.__e&&r.insertBefore(t.__e,t.__d),t.__c.__e=!0,t.__c.__P=r)),t}(n,n.__c.__P,n.__c.__O);}var t;for(r.setState({__e:r.__b=null});t=r.t.pop();)t.forceUpdate();}},f=!0===t.__h;r.__u++||f||r.setState({__e:r.__b=r.__v.__k[0]}),n.then(i,i);},L.prototype.componentWillUnmount=function(){this.t=[];},L.prototype.render=function(n,t){if(this.__b){if(this.__v.__k){var e=document.createElement("div"),r=this.__v.__k[0].__c;this.__v.__k[0]=function n(t,e,r){return t&&(t.__c&&t.__c.__H&&(t.__c.__H.__.forEach(function(n){"function"==typeof n.__c&&n.__c();}),t.__c.__H=null),null!=(t=S({},t)).__c&&(t.__c.__P===r&&(t.__c.__P=e),t.__c=null),t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)})),t}(this.__b,e,r.__O=r.__P);}this.__b=null;}var u=t.__e&&v$1(d$1,null,n.fallback);return u&&(u.__h=null),[v$1(d$1,null,t.__e?null:n.children),u]};var T=function(n,t,e){if(++e[1]===e[0]&&n.o.delete(t),n.props.revealOrder&&("t"!==n.props.revealOrder[0]||!n.o.size))for(e=n.u;e;){for(;e.length>3;)e.pop()();if(e[1]<e[0])break;n.u=e=e[2];}};function D(n){return this.getChildContext=function(){return n.context},n.children}function I(n){var t=this,e=n.i;t.componentWillUnmount=function(){S$1(null,t.l),t.l=null,t.i=null;},t.i&&t.i!==e&&t.componentWillUnmount(),n.__v?(t.l||(t.i=e,t.l={nodeType:1,parentNode:e,childNodes:[],appendChild:function(n){this.childNodes.push(n),t.i.appendChild(n);},insertBefore:function(n,e){this.childNodes.push(n),t.i.appendChild(n);},removeChild:function(n){this.childNodes.splice(this.childNodes.indexOf(n)>>>1,1),t.i.removeChild(n);}}),S$1(v$1(D,{context:t.context},n.__v),t.l)):t.l&&t.componentWillUnmount();}function W(n,t){return v$1(I,{__v:n,i:t})}(M.prototype=new _).__e=function(n){var t=this,e=U(t.__v),r=t.o.get(n);return r[0]++,function(u){var o=function(){t.props.revealOrder?(r.push(u),T(t,n,r)):u();};e?e(o):o();}},M.prototype.render=function(n){this.u=null,this.o=new Map;var t=A$2(n.children);n.revealOrder&&"b"===n.revealOrder[0]&&t.reverse();for(var e=t.length;e--;)this.o.set(t[e],this.u=[1,0,this.u]);return n.children},M.prototype.componentDidUpdate=M.prototype.componentDidMount=function(){var n=this;this.o.forEach(function(t,e){T(n,e,t);});};var j="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.element")||60103,P=/^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|fill|flood|font|glyph(?!R)|horiz|marker(?!H|W|U)|overline|paint|stop|strikethrough|stroke|text(?!L)|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/,V=function(n){return ("undefined"!=typeof Symbol&&"symbol"==typeof Symbol()?/fil|che|rad/i:/fil|che|ra/i).test(n)};_.prototype.isReactComponent={},["componentWillMount","componentWillReceiveProps","componentWillUpdate"].forEach(function(n){Object.defineProperty(_.prototype,n,{configurable:!0,get:function(){return this["UNSAFE_"+n]},set:function(t){Object.defineProperty(this,n,{configurable:!0,writable:!0,value:t});}});});var H=l$2.event;function Z(){}function Y(){return this.cancelBubble}function $(){return this.defaultPrevented}l$2.event=function(n){return H&&(n=H(n)),n.persist=Z,n.isPropagationStopped=Y,n.isDefaultPrevented=$,n.nativeEvent=n};var G={configurable:!0,get:function(){return this.class}},J=l$2.vnode;l$2.vnode=function(n){var t=n.type,e=n.props,r=e;if("string"==typeof t){for(var u in r={},e){var o=e[u];"value"===u&&"defaultValue"in e&&null==o||("defaultValue"===u&&"value"in e&&null==e.value?u="value":"download"===u&&!0===o?o="":/ondoubleclick/i.test(u)?u="ondblclick":/^onchange(textarea|input)/i.test(u+t)&&!V(e.type)?u="oninput":/^on(Ani|Tra|Tou|BeforeInp)/.test(u)?u=u.toLowerCase():P.test(u)?u=u.replace(/[A-Z0-9]/,"-$&").toLowerCase():null===o&&(o=void 0),r[u]=o);}"select"==t&&r.multiple&&Array.isArray(r.value)&&(r.value=A$2(e.children).forEach(function(n){n.props.selected=-1!=r.value.indexOf(n.props.value);})),"select"==t&&null!=r.defaultValue&&(r.value=A$2(e.children).forEach(function(n){n.props.selected=r.multiple?-1!=r.defaultValue.indexOf(n.props.value):r.defaultValue==n.props.value;})),n.props=r;}t&&e.class!=e.className&&(G.enumerable="className"in e,null!=e.className&&(r.class=e.className),Object.defineProperty(r,"className",G)),n.$$typeof=j,J&&J(n);};var K=l$2.__r;l$2.__r=function(n){K&&K(n),n.__c;};
-
-  var HOOKS = [
-      "onChange",
-      "onClose",
-      "onDayCreate",
-      "onDestroy",
-      "onKeyDown",
-      "onMonthChange",
-      "onOpen",
-      "onParseConfig",
-      "onReady",
-      "onValueUpdate",
-      "onYearChange",
-      "onPreCalendarPosition",
-  ];
-  var defaults = {
-      _disable: [],
-      allowInput: false,
-      allowInvalidPreload: false,
-      altFormat: "F j, Y",
-      altInput: false,
-      altInputClass: "form-control input",
-      animate: typeof window === "object" &&
-          window.navigator.userAgent.indexOf("MSIE") === -1,
-      ariaDateFormat: "F j, Y",
-      autoFillDefaultTime: true,
-      clickOpens: true,
-      closeOnSelect: true,
-      conjunction: ", ",
-      dateFormat: "Y-m-d",
-      defaultHour: 12,
-      defaultMinute: 0,
-      defaultSeconds: 0,
-      disable: [],
-      disableMobile: false,
-      enableSeconds: false,
-      enableTime: false,
-      errorHandler: function (err) {
-          return typeof console !== "undefined" && console.warn(err);
-      },
-      getWeek: function (givenDate) {
-          var date = new Date(givenDate.getTime());
-          date.setHours(0, 0, 0, 0);
-          date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
-          var week1 = new Date(date.getFullYear(), 0, 4);
-          return (1 +
-              Math.round(((date.getTime() - week1.getTime()) / 86400000 -
-                  3 +
-                  ((week1.getDay() + 6) % 7)) /
-                  7));
-      },
-      hourIncrement: 1,
-      ignoredFocusElements: [],
-      inline: false,
-      locale: "default",
-      minuteIncrement: 5,
-      mode: "single",
-      monthSelectorType: "dropdown",
-      nextArrow: "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 17 17'><g></g><path d='M13.207 8.472l-7.854 7.854-0.707-0.707 7.146-7.146-7.146-7.148 0.707-0.707 7.854 7.854z' /></svg>",
-      noCalendar: false,
-      now: new Date(),
-      onChange: [],
-      onClose: [],
-      onDayCreate: [],
-      onDestroy: [],
-      onKeyDown: [],
-      onMonthChange: [],
-      onOpen: [],
-      onParseConfig: [],
-      onReady: [],
-      onValueUpdate: [],
-      onYearChange: [],
-      onPreCalendarPosition: [],
-      plugins: [],
-      position: "auto",
-      positionElement: undefined,
-      prevArrow: "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 17 17'><g></g><path d='M5.207 8.471l7.146 7.147-0.707 0.707-7.853-7.854 7.854-7.853 0.707 0.707-7.147 7.146z' /></svg>",
-      shorthandCurrentMonth: false,
-      showMonths: 1,
-      static: false,
-      time_24hr: false,
-      weekNumbers: false,
-      wrap: false,
-  };
-
-  var english = {
-      weekdays: {
-          shorthand: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-          longhand: [
-              "Sunday",
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-          ],
-      },
-      months: {
-          shorthand: [
-              "Jan",
-              "Feb",
-              "Mar",
-              "Apr",
-              "May",
-              "Jun",
-              "Jul",
-              "Aug",
-              "Sep",
-              "Oct",
-              "Nov",
-              "Dec",
-          ],
-          longhand: [
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-          ],
-      },
-      daysInMonth: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
-      firstDayOfWeek: 0,
-      ordinal: function (nth) {
-          var s = nth % 100;
-          if (s > 3 && s < 21)
-              return "th";
-          switch (s % 10) {
-              case 1:
-                  return "st";
-              case 2:
-                  return "nd";
-              case 3:
-                  return "rd";
-              default:
-                  return "th";
-          }
-      },
-      rangeSeparator: " to ",
-      weekAbbreviation: "Wk",
-      scrollTitle: "Scroll to increment",
-      toggleTitle: "Click to toggle",
-      amPM: ["AM", "PM"],
-      yearAriaLabel: "Year",
-      monthAriaLabel: "Month",
-      hourAriaLabel: "Hour",
-      minuteAriaLabel: "Minute",
-      time_24hr: false,
-  };
-
-  var pad = function (number, length) {
-      if (length === void 0) { length = 2; }
-      return ("000" + number).slice(length * -1);
-  };
-  var int = function (bool) { return (bool === true ? 1 : 0); };
-  function debounce(fn, wait) {
-      var t;
-      return function () {
-          var _this = this;
-          var args = arguments;
-          clearTimeout(t);
-          t = setTimeout(function () { return fn.apply(_this, args); }, wait);
-      };
-  }
-  var arrayify = function (obj) {
-      return obj instanceof Array ? obj : [obj];
-  };
-
-  function toggleClass(elem, className, bool) {
-      if (bool === true)
-          return elem.classList.add(className);
-      elem.classList.remove(className);
-  }
-  function createElement(tag, className, content) {
-      var e = window.document.createElement(tag);
-      className = className || "";
-      content = content || "";
-      e.className = className;
-      if (content !== undefined)
-          e.textContent = content;
-      return e;
-  }
-  function clearNode(node) {
-      while (node.firstChild)
-          node.removeChild(node.firstChild);
-  }
-  function findParent(node, condition) {
-      if (condition(node))
-          return node;
-      else if (node.parentNode)
-          return findParent(node.parentNode, condition);
-      return undefined;
-  }
-  function createNumberInput(inputClassName, opts) {
-      var wrapper = createElement("div", "numInputWrapper"), numInput = createElement("input", "numInput " + inputClassName), arrowUp = createElement("span", "arrowUp"), arrowDown = createElement("span", "arrowDown");
-      if (navigator.userAgent.indexOf("MSIE 9.0") === -1) {
-          numInput.type = "number";
-      }
-      else {
-          numInput.type = "text";
-          numInput.pattern = "\\d*";
-      }
-      if (opts !== undefined)
-          for (var key in opts)
-              numInput.setAttribute(key, opts[key]);
-      wrapper.appendChild(numInput);
-      wrapper.appendChild(arrowUp);
-      wrapper.appendChild(arrowDown);
-      return wrapper;
-  }
-  function getEventTarget(event) {
-      try {
-          if (typeof event.composedPath === "function") {
-              var path = event.composedPath();
-              return path[0];
-          }
-          return event.target;
-      }
-      catch (error) {
-          return event.target;
-      }
-  }
-
-  var doNothing = function () { return undefined; };
-  var monthToStr = function (monthNumber, shorthand, locale) { return locale.months[shorthand ? "shorthand" : "longhand"][monthNumber]; };
-  var revFormat = {
-      D: doNothing,
-      F: function (dateObj, monthName, locale) {
-          dateObj.setMonth(locale.months.longhand.indexOf(monthName));
-      },
-      G: function (dateObj, hour) {
-          dateObj.setHours((dateObj.getHours() >= 12 ? 12 : 0) + parseFloat(hour));
-      },
-      H: function (dateObj, hour) {
-          dateObj.setHours(parseFloat(hour));
-      },
-      J: function (dateObj, day) {
-          dateObj.setDate(parseFloat(day));
-      },
-      K: function (dateObj, amPM, locale) {
-          dateObj.setHours((dateObj.getHours() % 12) +
-              12 * int(new RegExp(locale.amPM[1], "i").test(amPM)));
-      },
-      M: function (dateObj, shortMonth, locale) {
-          dateObj.setMonth(locale.months.shorthand.indexOf(shortMonth));
-      },
-      S: function (dateObj, seconds) {
-          dateObj.setSeconds(parseFloat(seconds));
-      },
-      U: function (_, unixSeconds) { return new Date(parseFloat(unixSeconds) * 1000); },
-      W: function (dateObj, weekNum, locale) {
-          var weekNumber = parseInt(weekNum);
-          var date = new Date(dateObj.getFullYear(), 0, 2 + (weekNumber - 1) * 7, 0, 0, 0, 0);
-          date.setDate(date.getDate() - date.getDay() + locale.firstDayOfWeek);
-          return date;
-      },
-      Y: function (dateObj, year) {
-          dateObj.setFullYear(parseFloat(year));
-      },
-      Z: function (_, ISODate) { return new Date(ISODate); },
-      d: function (dateObj, day) {
-          dateObj.setDate(parseFloat(day));
-      },
-      h: function (dateObj, hour) {
-          dateObj.setHours((dateObj.getHours() >= 12 ? 12 : 0) + parseFloat(hour));
-      },
-      i: function (dateObj, minutes) {
-          dateObj.setMinutes(parseFloat(minutes));
-      },
-      j: function (dateObj, day) {
-          dateObj.setDate(parseFloat(day));
-      },
-      l: doNothing,
-      m: function (dateObj, month) {
-          dateObj.setMonth(parseFloat(month) - 1);
-      },
-      n: function (dateObj, month) {
-          dateObj.setMonth(parseFloat(month) - 1);
-      },
-      s: function (dateObj, seconds) {
-          dateObj.setSeconds(parseFloat(seconds));
-      },
-      u: function (_, unixMillSeconds) {
-          return new Date(parseFloat(unixMillSeconds));
-      },
-      w: doNothing,
-      y: function (dateObj, year) {
-          dateObj.setFullYear(2000 + parseFloat(year));
-      },
-  };
-  var tokenRegex = {
-      D: "",
-      F: "",
-      G: "(\\d\\d|\\d)",
-      H: "(\\d\\d|\\d)",
-      J: "(\\d\\d|\\d)\\w+",
-      K: "",
-      M: "",
-      S: "(\\d\\d|\\d)",
-      U: "(.+)",
-      W: "(\\d\\d|\\d)",
-      Y: "(\\d{4})",
-      Z: "(.+)",
-      d: "(\\d\\d|\\d)",
-      h: "(\\d\\d|\\d)",
-      i: "(\\d\\d|\\d)",
-      j: "(\\d\\d|\\d)",
-      l: "",
-      m: "(\\d\\d|\\d)",
-      n: "(\\d\\d|\\d)",
-      s: "(\\d\\d|\\d)",
-      u: "(.+)",
-      w: "(\\d\\d|\\d)",
-      y: "(\\d{2})",
-  };
-  var formats = {
-      Z: function (date) { return date.toISOString(); },
-      D: function (date, locale, options) {
-          return locale.weekdays.shorthand[formats.w(date, locale, options)];
-      },
-      F: function (date, locale, options) {
-          return monthToStr(formats.n(date, locale, options) - 1, false, locale);
-      },
-      G: function (date, locale, options) {
-          return pad(formats.h(date, locale, options));
-      },
-      H: function (date) { return pad(date.getHours()); },
-      J: function (date, locale) {
-          return locale.ordinal !== undefined
-              ? date.getDate() + locale.ordinal(date.getDate())
-              : date.getDate();
-      },
-      K: function (date, locale) { return locale.amPM[int(date.getHours() > 11)]; },
-      M: function (date, locale) {
-          return monthToStr(date.getMonth(), true, locale);
-      },
-      S: function (date) { return pad(date.getSeconds()); },
-      U: function (date) { return date.getTime() / 1000; },
-      W: function (date, _, options) {
-          return options.getWeek(date);
-      },
-      Y: function (date) { return pad(date.getFullYear(), 4); },
-      d: function (date) { return pad(date.getDate()); },
-      h: function (date) { return (date.getHours() % 12 ? date.getHours() % 12 : 12); },
-      i: function (date) { return pad(date.getMinutes()); },
-      j: function (date) { return date.getDate(); },
-      l: function (date, locale) {
-          return locale.weekdays.longhand[date.getDay()];
-      },
-      m: function (date) { return pad(date.getMonth() + 1); },
-      n: function (date) { return date.getMonth() + 1; },
-      s: function (date) { return date.getSeconds(); },
-      u: function (date) { return date.getTime(); },
-      w: function (date) { return date.getDay(); },
-      y: function (date) { return String(date.getFullYear()).substring(2); },
-  };
-
-  var createDateFormatter = function (_a) {
-      var _b = _a.config, config = _b === void 0 ? defaults : _b, _c = _a.l10n, l10n = _c === void 0 ? english : _c, _d = _a.isMobile, isMobile = _d === void 0 ? false : _d;
-      return function (dateObj, frmt, overrideLocale) {
-          var locale = overrideLocale || l10n;
-          if (config.formatDate !== undefined && !isMobile) {
-              return config.formatDate(dateObj, frmt, locale);
-          }
-          return frmt
-              .split("")
-              .map(function (c, i, arr) {
-              return formats[c] && arr[i - 1] !== "\\"
-                  ? formats[c](dateObj, locale, config)
-                  : c !== "\\"
-                      ? c
-                      : "";
-          })
-              .join("");
-      };
-  };
-  var createDateParser = function (_a) {
-      var _b = _a.config, config = _b === void 0 ? defaults : _b, _c = _a.l10n, l10n = _c === void 0 ? english : _c;
-      return function (date, givenFormat, timeless, customLocale) {
-          if (date !== 0 && !date)
-              return undefined;
-          var locale = customLocale || l10n;
-          var parsedDate;
-          var dateOrig = date;
-          if (date instanceof Date)
-              parsedDate = new Date(date.getTime());
-          else if (typeof date !== "string" &&
-              date.toFixed !== undefined)
-              parsedDate = new Date(date);
-          else if (typeof date === "string") {
-              var format = givenFormat || (config || defaults).dateFormat;
-              var datestr = String(date).trim();
-              if (datestr === "today") {
-                  parsedDate = new Date();
-                  timeless = true;
-              }
-              else if (config && config.parseDate) {
-                  parsedDate = config.parseDate(date, format);
-              }
-              else if (/Z$/.test(datestr) ||
-                  /GMT$/.test(datestr)) {
-                  parsedDate = new Date(date);
-              }
-              else {
-                  var matched = void 0, ops = [];
-                  for (var i = 0, matchIndex = 0, regexStr = ""; i < format.length; i++) {
-                      var token = format[i];
-                      var isBackSlash = token === "\\";
-                      var escaped = format[i - 1] === "\\" || isBackSlash;
-                      if (tokenRegex[token] && !escaped) {
-                          regexStr += tokenRegex[token];
-                          var match = new RegExp(regexStr).exec(date);
-                          if (match && (matched = true)) {
-                              ops[token !== "Y" ? "push" : "unshift"]({
-                                  fn: revFormat[token],
-                                  val: match[++matchIndex],
-                              });
-                          }
-                      }
-                      else if (!isBackSlash)
-                          regexStr += ".";
-                  }
-                  parsedDate =
-                      !config || !config.noCalendar
-                          ? new Date(new Date().getFullYear(), 0, 1, 0, 0, 0, 0)
-                          : new Date(new Date().setHours(0, 0, 0, 0));
-                  ops.forEach(function (_a) {
-                      var fn = _a.fn, val = _a.val;
-                      return (parsedDate = fn(parsedDate, val, locale) || parsedDate);
-                  });
-                  parsedDate = matched ? parsedDate : undefined;
-              }
-          }
-          if (!(parsedDate instanceof Date && !isNaN(parsedDate.getTime()))) {
-              config.errorHandler(new Error("Invalid date provided: " + dateOrig));
-              return undefined;
-          }
-          if (timeless === true)
-              parsedDate.setHours(0, 0, 0, 0);
-          return parsedDate;
-      };
-  };
-  function compareDates(date1, date2, timeless) {
-      if (timeless === void 0) { timeless = true; }
-      if (timeless !== false) {
-          return (new Date(date1.getTime()).setHours(0, 0, 0, 0) -
-              new Date(date2.getTime()).setHours(0, 0, 0, 0));
-      }
-      return date1.getTime() - date2.getTime();
-  }
-  var isBetween = function (ts, ts1, ts2) {
-      return ts > Math.min(ts1, ts2) && ts < Math.max(ts1, ts2);
-  };
-  var calculateSecondsSinceMidnight = function (hours, minutes, seconds) {
-      return hours * 3600 + minutes * 60 + seconds;
-  };
-  var parseSeconds = function (secondsSinceMidnight) {
-      var hours = Math.floor(secondsSinceMidnight / 3600), minutes = (secondsSinceMidnight - hours * 3600) / 60;
-      return [hours, minutes, secondsSinceMidnight - hours * 3600 - minutes * 60];
-  };
-  var duration = {
-      DAY: 86400000,
-  };
-  function getDefaultHours(config) {
-      var hours = config.defaultHour;
-      var minutes = config.defaultMinute;
-      var seconds = config.defaultSeconds;
-      if (config.minDate !== undefined) {
-          var minHour = config.minDate.getHours();
-          var minMinutes = config.minDate.getMinutes();
-          var minSeconds = config.minDate.getSeconds();
-          if (hours < minHour) {
-              hours = minHour;
-          }
-          if (hours === minHour && minutes < minMinutes) {
-              minutes = minMinutes;
-          }
-          if (hours === minHour && minutes === minMinutes && seconds < minSeconds)
-              seconds = config.minDate.getSeconds();
-      }
-      if (config.maxDate !== undefined) {
-          var maxHr = config.maxDate.getHours();
-          var maxMinutes = config.maxDate.getMinutes();
-          hours = Math.min(hours, maxHr);
-          if (hours === maxHr)
-              minutes = Math.min(maxMinutes, minutes);
-          if (hours === maxHr && minutes === maxMinutes)
-              seconds = config.maxDate.getSeconds();
-      }
-      return { hours: hours, minutes: minutes, seconds: seconds };
-  }
-
-  if (typeof Object.assign !== "function") {
-      Object.assign = function (target) {
-          var args = [];
-          for (var _i = 1; _i < arguments.length; _i++) {
-              args[_i - 1] = arguments[_i];
-          }
-          if (!target) {
-              throw TypeError("Cannot convert undefined or null to object");
-          }
-          var _loop_1 = function (source) {
-              if (source) {
-                  Object.keys(source).forEach(function (key) { return (target[key] = source[key]); });
-              }
-          };
-          for (var _a = 0, args_1 = args; _a < args_1.length; _a++) {
-              var source = args_1[_a];
-              _loop_1(source);
-          }
-          return target;
-      };
-  }
-
-  var __assign = (undefined && undefined.__assign) || function () {
-      __assign = Object.assign || function(t) {
-          for (var s, i = 1, n = arguments.length; i < n; i++) {
-              s = arguments[i];
-              for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                  t[p] = s[p];
-          }
-          return t;
-      };
-      return __assign.apply(this, arguments);
-  };
-  var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
-      for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-      for (var r = Array(s), k = 0, i = 0; i < il; i++)
-          for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-              r[k] = a[j];
-      return r;
-  };
-  var DEBOUNCED_CHANGE_MS = 300;
-  function FlatpickrInstance(element, instanceConfig) {
-      var self = {
-          config: __assign(__assign({}, defaults), flatpickr.defaultConfig),
-          l10n: english,
-      };
-      self.parseDate = createDateParser({ config: self.config, l10n: self.l10n });
-      self._handlers = [];
-      self.pluginElements = [];
-      self.loadedPlugins = [];
-      self._bind = bind;
-      self._setHoursFromDate = setHoursFromDate;
-      self._positionCalendar = positionCalendar;
-      self.changeMonth = changeMonth;
-      self.changeYear = changeYear;
-      self.clear = clear;
-      self.close = close;
-      self.onMouseOver = onMouseOver;
-      self._createElement = createElement;
-      self.createDay = createDay;
-      self.destroy = destroy;
-      self.isEnabled = isEnabled;
-      self.jumpToDate = jumpToDate;
-      self.updateValue = updateValue;
-      self.open = open;
-      self.redraw = redraw;
-      self.set = set;
-      self.setDate = setDate;
-      self.toggle = toggle;
-      function setupHelperFunctions() {
-          self.utils = {
-              getDaysInMonth: function (month, yr) {
-                  if (month === void 0) { month = self.currentMonth; }
-                  if (yr === void 0) { yr = self.currentYear; }
-                  if (month === 1 && ((yr % 4 === 0 && yr % 100 !== 0) || yr % 400 === 0))
-                      return 29;
-                  return self.l10n.daysInMonth[month];
-              },
-          };
-      }
-      function init() {
-          self.element = self.input = element;
-          self.isOpen = false;
-          parseConfig();
-          setupLocale();
-          setupInputs();
-          setupDates();
-          setupHelperFunctions();
-          if (!self.isMobile)
-              build();
-          bindEvents();
-          if (self.selectedDates.length || self.config.noCalendar) {
-              if (self.config.enableTime) {
-                  setHoursFromDate(self.config.noCalendar ? self.latestSelectedDateObj : undefined);
-              }
-              updateValue(false);
-          }
-          setCalendarWidth();
-          var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-          if (!self.isMobile && isSafari) {
-              positionCalendar();
-          }
-          triggerEvent("onReady");
-      }
-      function getClosestActiveElement() {
-          var _a;
-          return (((_a = self.calendarContainer) === null || _a === void 0 ? void 0 : _a.getRootNode())
-              .activeElement || document.activeElement);
-      }
-      function bindToInstance(fn) {
-          return fn.bind(self);
-      }
-      function setCalendarWidth() {
-          var config = self.config;
-          if (config.weekNumbers === false && config.showMonths === 1) {
-              return;
-          }
-          else if (config.noCalendar !== true) {
-              window.requestAnimationFrame(function () {
-                  if (self.calendarContainer !== undefined) {
-                      self.calendarContainer.style.visibility = "hidden";
-                      self.calendarContainer.style.display = "block";
-                  }
-                  if (self.daysContainer !== undefined) {
-                      var daysWidth = (self.days.offsetWidth + 1) * config.showMonths;
-                      self.daysContainer.style.width = daysWidth + "px";
-                      self.calendarContainer.style.width =
-                          daysWidth +
-                              (self.weekWrapper !== undefined
-                                  ? self.weekWrapper.offsetWidth
-                                  : 0) +
-                              "px";
-                      self.calendarContainer.style.removeProperty("visibility");
-                      self.calendarContainer.style.removeProperty("display");
-                  }
-              });
-          }
-      }
-      function updateTime(e) {
-          if (self.selectedDates.length === 0) {
-              var defaultDate = self.config.minDate === undefined ||
-                  compareDates(new Date(), self.config.minDate) >= 0
-                  ? new Date()
-                  : new Date(self.config.minDate.getTime());
-              var defaults = getDefaultHours(self.config);
-              defaultDate.setHours(defaults.hours, defaults.minutes, defaults.seconds, defaultDate.getMilliseconds());
-              self.selectedDates = [defaultDate];
-              self.latestSelectedDateObj = defaultDate;
-          }
-          if (e !== undefined && e.type !== "blur") {
-              timeWrapper(e);
-          }
-          var prevValue = self._input.value;
-          setHoursFromInputs();
-          updateValue();
-          if (self._input.value !== prevValue) {
-              self._debouncedChange();
-          }
-      }
-      function ampm2military(hour, amPM) {
-          return (hour % 12) + 12 * int(amPM === self.l10n.amPM[1]);
-      }
-      function military2ampm(hour) {
-          switch (hour % 24) {
-              case 0:
-              case 12:
-                  return 12;
-              default:
-                  return hour % 12;
-          }
-      }
-      function setHoursFromInputs() {
-          if (self.hourElement === undefined || self.minuteElement === undefined)
-              return;
-          var hours = (parseInt(self.hourElement.value.slice(-2), 10) || 0) % 24, minutes = (parseInt(self.minuteElement.value, 10) || 0) % 60, seconds = self.secondElement !== undefined
-              ? (parseInt(self.secondElement.value, 10) || 0) % 60
-              : 0;
-          if (self.amPM !== undefined) {
-              hours = ampm2military(hours, self.amPM.textContent);
-          }
-          var limitMinHours = self.config.minTime !== undefined ||
-              (self.config.minDate &&
-                  self.minDateHasTime &&
-                  self.latestSelectedDateObj &&
-                  compareDates(self.latestSelectedDateObj, self.config.minDate, true) ===
-                      0);
-          var limitMaxHours = self.config.maxTime !== undefined ||
-              (self.config.maxDate &&
-                  self.maxDateHasTime &&
-                  self.latestSelectedDateObj &&
-                  compareDates(self.latestSelectedDateObj, self.config.maxDate, true) ===
-                      0);
-          if (self.config.maxTime !== undefined &&
-              self.config.minTime !== undefined &&
-              self.config.minTime > self.config.maxTime) {
-              var minBound = calculateSecondsSinceMidnight(self.config.minTime.getHours(), self.config.minTime.getMinutes(), self.config.minTime.getSeconds());
-              var maxBound = calculateSecondsSinceMidnight(self.config.maxTime.getHours(), self.config.maxTime.getMinutes(), self.config.maxTime.getSeconds());
-              var currentTime = calculateSecondsSinceMidnight(hours, minutes, seconds);
-              if (currentTime > maxBound && currentTime < minBound) {
-                  var result = parseSeconds(minBound);
-                  hours = result[0];
-                  minutes = result[1];
-                  seconds = result[2];
-              }
-          }
-          else {
-              if (limitMaxHours) {
-                  var maxTime = self.config.maxTime !== undefined
-                      ? self.config.maxTime
-                      : self.config.maxDate;
-                  hours = Math.min(hours, maxTime.getHours());
-                  if (hours === maxTime.getHours())
-                      minutes = Math.min(minutes, maxTime.getMinutes());
-                  if (minutes === maxTime.getMinutes())
-                      seconds = Math.min(seconds, maxTime.getSeconds());
-              }
-              if (limitMinHours) {
-                  var minTime = self.config.minTime !== undefined
-                      ? self.config.minTime
-                      : self.config.minDate;
-                  hours = Math.max(hours, minTime.getHours());
-                  if (hours === minTime.getHours() && minutes < minTime.getMinutes())
-                      minutes = minTime.getMinutes();
-                  if (minutes === minTime.getMinutes())
-                      seconds = Math.max(seconds, minTime.getSeconds());
-              }
-          }
-          setHours(hours, minutes, seconds);
-      }
-      function setHoursFromDate(dateObj) {
-          var date = dateObj || self.latestSelectedDateObj;
-          if (date && date instanceof Date) {
-              setHours(date.getHours(), date.getMinutes(), date.getSeconds());
-          }
-      }
-      function setHours(hours, minutes, seconds) {
-          if (self.latestSelectedDateObj !== undefined) {
-              self.latestSelectedDateObj.setHours(hours % 24, minutes, seconds || 0, 0);
-          }
-          if (!self.hourElement || !self.minuteElement || self.isMobile)
-              return;
-          self.hourElement.value = pad(!self.config.time_24hr
-              ? ((12 + hours) % 12) + 12 * int(hours % 12 === 0)
-              : hours);
-          self.minuteElement.value = pad(minutes);
-          if (self.amPM !== undefined)
-              self.amPM.textContent = self.l10n.amPM[int(hours >= 12)];
-          if (self.secondElement !== undefined)
-              self.secondElement.value = pad(seconds);
-      }
-      function onYearInput(event) {
-          var eventTarget = getEventTarget(event);
-          var year = parseInt(eventTarget.value) + (event.delta || 0);
-          if (year / 1000 > 1 ||
-              (event.key === "Enter" && !/[^\d]/.test(year.toString()))) {
-              changeYear(year);
-          }
-      }
-      function bind(element, event, handler, options) {
-          if (event instanceof Array)
-              return event.forEach(function (ev) { return bind(element, ev, handler, options); });
-          if (element instanceof Array)
-              return element.forEach(function (el) { return bind(el, event, handler, options); });
-          element.addEventListener(event, handler, options);
-          self._handlers.push({
-              remove: function () { return element.removeEventListener(event, handler, options); },
-          });
-      }
-      function triggerChange() {
-          triggerEvent("onChange");
-      }
-      function bindEvents() {
-          if (self.config.wrap) {
-              ["open", "close", "toggle", "clear"].forEach(function (evt) {
-                  Array.prototype.forEach.call(self.element.querySelectorAll("[data-" + evt + "]"), function (el) {
-                      return bind(el, "click", self[evt]);
-                  });
-              });
-          }
-          if (self.isMobile) {
-              setupMobile();
-              return;
-          }
-          var debouncedResize = debounce(onResize, 50);
-          self._debouncedChange = debounce(triggerChange, DEBOUNCED_CHANGE_MS);
-          if (self.daysContainer && !/iPhone|iPad|iPod/i.test(navigator.userAgent))
-              bind(self.daysContainer, "mouseover", function (e) {
-                  if (self.config.mode === "range")
-                      onMouseOver(getEventTarget(e));
-              });
-          bind(self._input, "keydown", onKeyDown);
-          if (self.calendarContainer !== undefined) {
-              bind(self.calendarContainer, "keydown", onKeyDown);
-          }
-          if (!self.config.inline && !self.config.static)
-              bind(window, "resize", debouncedResize);
-          if (window.ontouchstart !== undefined)
-              bind(window.document, "touchstart", documentClick);
-          else
-              bind(window.document, "mousedown", documentClick);
-          bind(window.document, "focus", documentClick, { capture: true });
-          if (self.config.clickOpens === true) {
-              bind(self._input, "focus", self.open);
-              bind(self._input, "click", self.open);
-          }
-          if (self.daysContainer !== undefined) {
-              bind(self.monthNav, "click", onMonthNavClick);
-              bind(self.monthNav, ["keyup", "increment"], onYearInput);
-              bind(self.daysContainer, "click", selectDate);
-          }
-          if (self.timeContainer !== undefined &&
-              self.minuteElement !== undefined &&
-              self.hourElement !== undefined) {
-              var selText = function (e) {
-                  return getEventTarget(e).select();
-              };
-              bind(self.timeContainer, ["increment"], updateTime);
-              bind(self.timeContainer, "blur", updateTime, { capture: true });
-              bind(self.timeContainer, "click", timeIncrement);
-              bind([self.hourElement, self.minuteElement], ["focus", "click"], selText);
-              if (self.secondElement !== undefined)
-                  bind(self.secondElement, "focus", function () { return self.secondElement && self.secondElement.select(); });
-              if (self.amPM !== undefined) {
-                  bind(self.amPM, "click", function (e) {
-                      updateTime(e);
-                  });
-              }
-          }
-          if (self.config.allowInput) {
-              bind(self._input, "blur", onBlur);
-          }
-      }
-      function jumpToDate(jumpDate, triggerChange) {
-          var jumpTo = jumpDate !== undefined
-              ? self.parseDate(jumpDate)
-              : self.latestSelectedDateObj ||
-                  (self.config.minDate && self.config.minDate > self.now
-                      ? self.config.minDate
-                      : self.config.maxDate && self.config.maxDate < self.now
-                          ? self.config.maxDate
-                          : self.now);
-          var oldYear = self.currentYear;
-          var oldMonth = self.currentMonth;
-          try {
-              if (jumpTo !== undefined) {
-                  self.currentYear = jumpTo.getFullYear();
-                  self.currentMonth = jumpTo.getMonth();
-              }
-          }
-          catch (e) {
-              e.message = "Invalid date supplied: " + jumpTo;
-              self.config.errorHandler(e);
-          }
-          if (triggerChange && self.currentYear !== oldYear) {
-              triggerEvent("onYearChange");
-              buildMonthSwitch();
-          }
-          if (triggerChange &&
-              (self.currentYear !== oldYear || self.currentMonth !== oldMonth)) {
-              triggerEvent("onMonthChange");
-          }
-          self.redraw();
-      }
-      function timeIncrement(e) {
-          var eventTarget = getEventTarget(e);
-          if (~eventTarget.className.indexOf("arrow"))
-              incrementNumInput(e, eventTarget.classList.contains("arrowUp") ? 1 : -1);
-      }
-      function incrementNumInput(e, delta, inputElem) {
-          var target = e && getEventTarget(e);
-          var input = inputElem ||
-              (target && target.parentNode && target.parentNode.firstChild);
-          var event = createEvent("increment");
-          event.delta = delta;
-          input && input.dispatchEvent(event);
-      }
-      function build() {
-          var fragment = window.document.createDocumentFragment();
-          self.calendarContainer = createElement("div", "flatpickr-calendar");
-          self.calendarContainer.tabIndex = -1;
-          if (!self.config.noCalendar) {
-              fragment.appendChild(buildMonthNav());
-              self.innerContainer = createElement("div", "flatpickr-innerContainer");
-              if (self.config.weekNumbers) {
-                  var _a = buildWeeks(), weekWrapper = _a.weekWrapper, weekNumbers = _a.weekNumbers;
-                  self.innerContainer.appendChild(weekWrapper);
-                  self.weekNumbers = weekNumbers;
-                  self.weekWrapper = weekWrapper;
-              }
-              self.rContainer = createElement("div", "flatpickr-rContainer");
-              self.rContainer.appendChild(buildWeekdays());
-              if (!self.daysContainer) {
-                  self.daysContainer = createElement("div", "flatpickr-days");
-                  self.daysContainer.tabIndex = -1;
-              }
-              buildDays();
-              self.rContainer.appendChild(self.daysContainer);
-              self.innerContainer.appendChild(self.rContainer);
-              fragment.appendChild(self.innerContainer);
-          }
-          if (self.config.enableTime) {
-              fragment.appendChild(buildTime());
-          }
-          toggleClass(self.calendarContainer, "rangeMode", self.config.mode === "range");
-          toggleClass(self.calendarContainer, "animate", self.config.animate === true);
-          toggleClass(self.calendarContainer, "multiMonth", self.config.showMonths > 1);
-          self.calendarContainer.appendChild(fragment);
-          var customAppend = self.config.appendTo !== undefined &&
-              self.config.appendTo.nodeType !== undefined;
-          if (self.config.inline || self.config.static) {
-              self.calendarContainer.classList.add(self.config.inline ? "inline" : "static");
-              if (self.config.inline) {
-                  if (!customAppend && self.element.parentNode)
-                      self.element.parentNode.insertBefore(self.calendarContainer, self._input.nextSibling);
-                  else if (self.config.appendTo !== undefined)
-                      self.config.appendTo.appendChild(self.calendarContainer);
-              }
-              if (self.config.static) {
-                  var wrapper = createElement("div", "flatpickr-wrapper");
-                  if (self.element.parentNode)
-                      self.element.parentNode.insertBefore(wrapper, self.element);
-                  wrapper.appendChild(self.element);
-                  if (self.altInput)
-                      wrapper.appendChild(self.altInput);
-                  wrapper.appendChild(self.calendarContainer);
-              }
-          }
-          if (!self.config.static && !self.config.inline)
-              (self.config.appendTo !== undefined
-                  ? self.config.appendTo
-                  : window.document.body).appendChild(self.calendarContainer);
-      }
-      function createDay(className, date, _dayNumber, i) {
-          var dateIsEnabled = isEnabled(date, true), dayElement = createElement("span", className, date.getDate().toString());
-          dayElement.dateObj = date;
-          dayElement.$i = i;
-          dayElement.setAttribute("aria-label", self.formatDate(date, self.config.ariaDateFormat));
-          if (className.indexOf("hidden") === -1 &&
-              compareDates(date, self.now) === 0) {
-              self.todayDateElem = dayElement;
-              dayElement.classList.add("today");
-              dayElement.setAttribute("aria-current", "date");
-          }
-          if (dateIsEnabled) {
-              dayElement.tabIndex = -1;
-              if (isDateSelected(date)) {
-                  dayElement.classList.add("selected");
-                  self.selectedDateElem = dayElement;
-                  if (self.config.mode === "range") {
-                      toggleClass(dayElement, "startRange", self.selectedDates[0] &&
-                          compareDates(date, self.selectedDates[0], true) === 0);
-                      toggleClass(dayElement, "endRange", self.selectedDates[1] &&
-                          compareDates(date, self.selectedDates[1], true) === 0);
-                      if (className === "nextMonthDay")
-                          dayElement.classList.add("inRange");
-                  }
-              }
-          }
-          else {
-              dayElement.classList.add("flatpickr-disabled");
-          }
-          if (self.config.mode === "range") {
-              if (isDateInRange(date) && !isDateSelected(date))
-                  dayElement.classList.add("inRange");
-          }
-          if (self.weekNumbers &&
-              self.config.showMonths === 1 &&
-              className !== "prevMonthDay" &&
-              i % 7 === 6) {
-              self.weekNumbers.insertAdjacentHTML("beforeend", "<span class='flatpickr-day'>" + self.config.getWeek(date) + "</span>");
-          }
-          triggerEvent("onDayCreate", dayElement);
-          return dayElement;
-      }
-      function focusOnDayElem(targetNode) {
-          targetNode.focus();
-          if (self.config.mode === "range")
-              onMouseOver(targetNode);
-      }
-      function getFirstAvailableDay(delta) {
-          var startMonth = delta > 0 ? 0 : self.config.showMonths - 1;
-          var endMonth = delta > 0 ? self.config.showMonths : -1;
-          for (var m = startMonth; m != endMonth; m += delta) {
-              var month = self.daysContainer.children[m];
-              var startIndex = delta > 0 ? 0 : month.children.length - 1;
-              var endIndex = delta > 0 ? month.children.length : -1;
-              for (var i = startIndex; i != endIndex; i += delta) {
-                  var c = month.children[i];
-                  if (c.className.indexOf("hidden") === -1 && isEnabled(c.dateObj))
-                      return c;
-              }
-          }
-          return undefined;
-      }
-      function getNextAvailableDay(current, delta) {
-          var givenMonth = current.className.indexOf("Month") === -1
-              ? current.dateObj.getMonth()
-              : self.currentMonth;
-          var endMonth = delta > 0 ? self.config.showMonths : -1;
-          var loopDelta = delta > 0 ? 1 : -1;
-          for (var m = givenMonth - self.currentMonth; m != endMonth; m += loopDelta) {
-              var month = self.daysContainer.children[m];
-              var startIndex = givenMonth - self.currentMonth === m
-                  ? current.$i + delta
-                  : delta < 0
-                      ? month.children.length - 1
-                      : 0;
-              var numMonthDays = month.children.length;
-              for (var i = startIndex; i >= 0 && i < numMonthDays && i != (delta > 0 ? numMonthDays : -1); i += loopDelta) {
-                  var c = month.children[i];
-                  if (c.className.indexOf("hidden") === -1 &&
-                      isEnabled(c.dateObj) &&
-                      Math.abs(current.$i - i) >= Math.abs(delta))
-                      return focusOnDayElem(c);
-              }
-          }
-          self.changeMonth(loopDelta);
-          focusOnDay(getFirstAvailableDay(loopDelta), 0);
-          return undefined;
-      }
-      function focusOnDay(current, offset) {
-          var activeElement = getClosestActiveElement();
-          var dayFocused = isInView(activeElement || document.body);
-          var startElem = current !== undefined
-              ? current
-              : dayFocused
-                  ? activeElement
-                  : self.selectedDateElem !== undefined && isInView(self.selectedDateElem)
-                      ? self.selectedDateElem
-                      : self.todayDateElem !== undefined && isInView(self.todayDateElem)
-                          ? self.todayDateElem
-                          : getFirstAvailableDay(offset > 0 ? 1 : -1);
-          if (startElem === undefined) {
-              self._input.focus();
-          }
-          else if (!dayFocused) {
-              focusOnDayElem(startElem);
-          }
-          else {
-              getNextAvailableDay(startElem, offset);
-          }
-      }
-      function buildMonthDays(year, month) {
-          var firstOfMonth = (new Date(year, month, 1).getDay() - self.l10n.firstDayOfWeek + 7) % 7;
-          var prevMonthDays = self.utils.getDaysInMonth((month - 1 + 12) % 12, year);
-          var daysInMonth = self.utils.getDaysInMonth(month, year), days = window.document.createDocumentFragment(), isMultiMonth = self.config.showMonths > 1, prevMonthDayClass = isMultiMonth ? "prevMonthDay hidden" : "prevMonthDay", nextMonthDayClass = isMultiMonth ? "nextMonthDay hidden" : "nextMonthDay";
-          var dayNumber = prevMonthDays + 1 - firstOfMonth, dayIndex = 0;
-          for (; dayNumber <= prevMonthDays; dayNumber++, dayIndex++) {
-              days.appendChild(createDay("flatpickr-day " + prevMonthDayClass, new Date(year, month - 1, dayNumber), dayNumber, dayIndex));
-          }
-          for (dayNumber = 1; dayNumber <= daysInMonth; dayNumber++, dayIndex++) {
-              days.appendChild(createDay("flatpickr-day", new Date(year, month, dayNumber), dayNumber, dayIndex));
-          }
-          for (var dayNum = daysInMonth + 1; dayNum <= 42 - firstOfMonth &&
-              (self.config.showMonths === 1 || dayIndex % 7 !== 0); dayNum++, dayIndex++) {
-              days.appendChild(createDay("flatpickr-day " + nextMonthDayClass, new Date(year, month + 1, dayNum % daysInMonth), dayNum, dayIndex));
-          }
-          var dayContainer = createElement("div", "dayContainer");
-          dayContainer.appendChild(days);
-          return dayContainer;
-      }
-      function buildDays() {
-          if (self.daysContainer === undefined) {
-              return;
-          }
-          clearNode(self.daysContainer);
-          if (self.weekNumbers)
-              clearNode(self.weekNumbers);
-          var frag = document.createDocumentFragment();
-          for (var i = 0; i < self.config.showMonths; i++) {
-              var d = new Date(self.currentYear, self.currentMonth, 1);
-              d.setMonth(self.currentMonth + i);
-              frag.appendChild(buildMonthDays(d.getFullYear(), d.getMonth()));
-          }
-          self.daysContainer.appendChild(frag);
-          self.days = self.daysContainer.firstChild;
-          if (self.config.mode === "range" && self.selectedDates.length === 1) {
-              onMouseOver();
-          }
-      }
-      function buildMonthSwitch() {
-          if (self.config.showMonths > 1 ||
-              self.config.monthSelectorType !== "dropdown")
-              return;
-          var shouldBuildMonth = function (month) {
-              if (self.config.minDate !== undefined &&
-                  self.currentYear === self.config.minDate.getFullYear() &&
-                  month < self.config.minDate.getMonth()) {
-                  return false;
-              }
-              return !(self.config.maxDate !== undefined &&
-                  self.currentYear === self.config.maxDate.getFullYear() &&
-                  month > self.config.maxDate.getMonth());
-          };
-          self.monthsDropdownContainer.tabIndex = -1;
-          self.monthsDropdownContainer.innerHTML = "";
-          for (var i = 0; i < 12; i++) {
-              if (!shouldBuildMonth(i))
-                  continue;
-              var month = createElement("option", "flatpickr-monthDropdown-month");
-              month.value = new Date(self.currentYear, i).getMonth().toString();
-              month.textContent = monthToStr(i, self.config.shorthandCurrentMonth, self.l10n);
-              month.tabIndex = -1;
-              if (self.currentMonth === i) {
-                  month.selected = true;
-              }
-              self.monthsDropdownContainer.appendChild(month);
-          }
-      }
-      function buildMonth() {
-          var container = createElement("div", "flatpickr-month");
-          var monthNavFragment = window.document.createDocumentFragment();
-          var monthElement;
-          if (self.config.showMonths > 1 ||
-              self.config.monthSelectorType === "static") {
-              monthElement = createElement("span", "cur-month");
-          }
-          else {
-              self.monthsDropdownContainer = createElement("select", "flatpickr-monthDropdown-months");
-              self.monthsDropdownContainer.setAttribute("aria-label", self.l10n.monthAriaLabel);
-              bind(self.monthsDropdownContainer, "change", function (e) {
-                  var target = getEventTarget(e);
-                  var selectedMonth = parseInt(target.value, 10);
-                  self.changeMonth(selectedMonth - self.currentMonth);
-                  triggerEvent("onMonthChange");
-              });
-              buildMonthSwitch();
-              monthElement = self.monthsDropdownContainer;
-          }
-          var yearInput = createNumberInput("cur-year", { tabindex: "-1" });
-          var yearElement = yearInput.getElementsByTagName("input")[0];
-          yearElement.setAttribute("aria-label", self.l10n.yearAriaLabel);
-          if (self.config.minDate) {
-              yearElement.setAttribute("min", self.config.minDate.getFullYear().toString());
-          }
-          if (self.config.maxDate) {
-              yearElement.setAttribute("max", self.config.maxDate.getFullYear().toString());
-              yearElement.disabled =
-                  !!self.config.minDate &&
-                      self.config.minDate.getFullYear() === self.config.maxDate.getFullYear();
-          }
-          var currentMonth = createElement("div", "flatpickr-current-month");
-          currentMonth.appendChild(monthElement);
-          currentMonth.appendChild(yearInput);
-          monthNavFragment.appendChild(currentMonth);
-          container.appendChild(monthNavFragment);
-          return {
-              container: container,
-              yearElement: yearElement,
-              monthElement: monthElement,
-          };
-      }
-      function buildMonths() {
-          clearNode(self.monthNav);
-          self.monthNav.appendChild(self.prevMonthNav);
-          if (self.config.showMonths) {
-              self.yearElements = [];
-              self.monthElements = [];
-          }
-          for (var m = self.config.showMonths; m--;) {
-              var month = buildMonth();
-              self.yearElements.push(month.yearElement);
-              self.monthElements.push(month.monthElement);
-              self.monthNav.appendChild(month.container);
-          }
-          self.monthNav.appendChild(self.nextMonthNav);
-      }
-      function buildMonthNav() {
-          self.monthNav = createElement("div", "flatpickr-months");
-          self.yearElements = [];
-          self.monthElements = [];
-          self.prevMonthNav = createElement("span", "flatpickr-prev-month");
-          self.prevMonthNav.innerHTML = self.config.prevArrow;
-          self.nextMonthNav = createElement("span", "flatpickr-next-month");
-          self.nextMonthNav.innerHTML = self.config.nextArrow;
-          buildMonths();
-          Object.defineProperty(self, "_hidePrevMonthArrow", {
-              get: function () { return self.__hidePrevMonthArrow; },
-              set: function (bool) {
-                  if (self.__hidePrevMonthArrow !== bool) {
-                      toggleClass(self.prevMonthNav, "flatpickr-disabled", bool);
-                      self.__hidePrevMonthArrow = bool;
-                  }
-              },
-          });
-          Object.defineProperty(self, "_hideNextMonthArrow", {
-              get: function () { return self.__hideNextMonthArrow; },
-              set: function (bool) {
-                  if (self.__hideNextMonthArrow !== bool) {
-                      toggleClass(self.nextMonthNav, "flatpickr-disabled", bool);
-                      self.__hideNextMonthArrow = bool;
-                  }
-              },
-          });
-          self.currentYearElement = self.yearElements[0];
-          updateNavigationCurrentMonth();
-          return self.monthNav;
-      }
-      function buildTime() {
-          self.calendarContainer.classList.add("hasTime");
-          if (self.config.noCalendar)
-              self.calendarContainer.classList.add("noCalendar");
-          var defaults = getDefaultHours(self.config);
-          self.timeContainer = createElement("div", "flatpickr-time");
-          self.timeContainer.tabIndex = -1;
-          var separator = createElement("span", "flatpickr-time-separator", ":");
-          var hourInput = createNumberInput("flatpickr-hour", {
-              "aria-label": self.l10n.hourAriaLabel,
-          });
-          self.hourElement = hourInput.getElementsByTagName("input")[0];
-          var minuteInput = createNumberInput("flatpickr-minute", {
-              "aria-label": self.l10n.minuteAriaLabel,
-          });
-          self.minuteElement = minuteInput.getElementsByTagName("input")[0];
-          self.hourElement.tabIndex = self.minuteElement.tabIndex = -1;
-          self.hourElement.value = pad(self.latestSelectedDateObj
-              ? self.latestSelectedDateObj.getHours()
-              : self.config.time_24hr
-                  ? defaults.hours
-                  : military2ampm(defaults.hours));
-          self.minuteElement.value = pad(self.latestSelectedDateObj
-              ? self.latestSelectedDateObj.getMinutes()
-              : defaults.minutes);
-          self.hourElement.setAttribute("step", self.config.hourIncrement.toString());
-          self.minuteElement.setAttribute("step", self.config.minuteIncrement.toString());
-          self.hourElement.setAttribute("min", self.config.time_24hr ? "0" : "1");
-          self.hourElement.setAttribute("max", self.config.time_24hr ? "23" : "12");
-          self.hourElement.setAttribute("maxlength", "2");
-          self.minuteElement.setAttribute("min", "0");
-          self.minuteElement.setAttribute("max", "59");
-          self.minuteElement.setAttribute("maxlength", "2");
-          self.timeContainer.appendChild(hourInput);
-          self.timeContainer.appendChild(separator);
-          self.timeContainer.appendChild(minuteInput);
-          if (self.config.time_24hr)
-              self.timeContainer.classList.add("time24hr");
-          if (self.config.enableSeconds) {
-              self.timeContainer.classList.add("hasSeconds");
-              var secondInput = createNumberInput("flatpickr-second");
-              self.secondElement = secondInput.getElementsByTagName("input")[0];
-              self.secondElement.value = pad(self.latestSelectedDateObj
-                  ? self.latestSelectedDateObj.getSeconds()
-                  : defaults.seconds);
-              self.secondElement.setAttribute("step", self.minuteElement.getAttribute("step"));
-              self.secondElement.setAttribute("min", "0");
-              self.secondElement.setAttribute("max", "59");
-              self.secondElement.setAttribute("maxlength", "2");
-              self.timeContainer.appendChild(createElement("span", "flatpickr-time-separator", ":"));
-              self.timeContainer.appendChild(secondInput);
-          }
-          if (!self.config.time_24hr) {
-              self.amPM = createElement("span", "flatpickr-am-pm", self.l10n.amPM[int((self.latestSelectedDateObj
-                  ? self.hourElement.value
-                  : self.config.defaultHour) > 11)]);
-              self.amPM.title = self.l10n.toggleTitle;
-              self.amPM.tabIndex = -1;
-              self.timeContainer.appendChild(self.amPM);
-          }
-          return self.timeContainer;
-      }
-      function buildWeekdays() {
-          if (!self.weekdayContainer)
-              self.weekdayContainer = createElement("div", "flatpickr-weekdays");
-          else
-              clearNode(self.weekdayContainer);
-          for (var i = self.config.showMonths; i--;) {
-              var container = createElement("div", "flatpickr-weekdaycontainer");
-              self.weekdayContainer.appendChild(container);
-          }
-          updateWeekdays();
-          return self.weekdayContainer;
-      }
-      function updateWeekdays() {
-          if (!self.weekdayContainer) {
-              return;
-          }
-          var firstDayOfWeek = self.l10n.firstDayOfWeek;
-          var weekdays = __spreadArrays(self.l10n.weekdays.shorthand);
-          if (firstDayOfWeek > 0 && firstDayOfWeek < weekdays.length) {
-              weekdays = __spreadArrays(weekdays.splice(firstDayOfWeek, weekdays.length), weekdays.splice(0, firstDayOfWeek));
-          }
-          for (var i = self.config.showMonths; i--;) {
-              self.weekdayContainer.children[i].innerHTML = "\n      <span class='flatpickr-weekday'>\n        " + weekdays.join("</span><span class='flatpickr-weekday'>") + "\n      </span>\n      ";
-          }
-      }
-      function buildWeeks() {
-          self.calendarContainer.classList.add("hasWeeks");
-          var weekWrapper = createElement("div", "flatpickr-weekwrapper");
-          weekWrapper.appendChild(createElement("span", "flatpickr-weekday", self.l10n.weekAbbreviation));
-          var weekNumbers = createElement("div", "flatpickr-weeks");
-          weekWrapper.appendChild(weekNumbers);
-          return {
-              weekWrapper: weekWrapper,
-              weekNumbers: weekNumbers,
-          };
-      }
-      function changeMonth(value, isOffset) {
-          if (isOffset === void 0) { isOffset = true; }
-          var delta = isOffset ? value : value - self.currentMonth;
-          if ((delta < 0 && self._hidePrevMonthArrow === true) ||
-              (delta > 0 && self._hideNextMonthArrow === true))
-              return;
-          self.currentMonth += delta;
-          if (self.currentMonth < 0 || self.currentMonth > 11) {
-              self.currentYear += self.currentMonth > 11 ? 1 : -1;
-              self.currentMonth = (self.currentMonth + 12) % 12;
-              triggerEvent("onYearChange");
-              buildMonthSwitch();
-          }
-          buildDays();
-          triggerEvent("onMonthChange");
-          updateNavigationCurrentMonth();
-      }
-      function clear(triggerChangeEvent, toInitial) {
-          if (triggerChangeEvent === void 0) { triggerChangeEvent = true; }
-          if (toInitial === void 0) { toInitial = true; }
-          self.input.value = "";
-          if (self.altInput !== undefined)
-              self.altInput.value = "";
-          if (self.mobileInput !== undefined)
-              self.mobileInput.value = "";
-          self.selectedDates = [];
-          self.latestSelectedDateObj = undefined;
-          if (toInitial === true) {
-              self.currentYear = self._initialDate.getFullYear();
-              self.currentMonth = self._initialDate.getMonth();
-          }
-          if (self.config.enableTime === true) {
-              var _a = getDefaultHours(self.config), hours = _a.hours, minutes = _a.minutes, seconds = _a.seconds;
-              setHours(hours, minutes, seconds);
-          }
-          self.redraw();
-          if (triggerChangeEvent)
-              triggerEvent("onChange");
-      }
-      function close() {
-          self.isOpen = false;
-          if (!self.isMobile) {
-              if (self.calendarContainer !== undefined) {
-                  self.calendarContainer.classList.remove("open");
-              }
-              if (self._input !== undefined) {
-                  self._input.classList.remove("active");
-              }
-          }
-          triggerEvent("onClose");
-      }
-      function destroy() {
-          if (self.config !== undefined)
-              triggerEvent("onDestroy");
-          for (var i = self._handlers.length; i--;) {
-              self._handlers[i].remove();
-          }
-          self._handlers = [];
-          if (self.mobileInput) {
-              if (self.mobileInput.parentNode)
-                  self.mobileInput.parentNode.removeChild(self.mobileInput);
-              self.mobileInput = undefined;
-          }
-          else if (self.calendarContainer && self.calendarContainer.parentNode) {
-              if (self.config.static && self.calendarContainer.parentNode) {
-                  var wrapper = self.calendarContainer.parentNode;
-                  wrapper.lastChild && wrapper.removeChild(wrapper.lastChild);
-                  if (wrapper.parentNode) {
-                      while (wrapper.firstChild)
-                          wrapper.parentNode.insertBefore(wrapper.firstChild, wrapper);
-                      wrapper.parentNode.removeChild(wrapper);
-                  }
-              }
-              else
-                  self.calendarContainer.parentNode.removeChild(self.calendarContainer);
-          }
-          if (self.altInput) {
-              self.input.type = "text";
-              if (self.altInput.parentNode)
-                  self.altInput.parentNode.removeChild(self.altInput);
-              delete self.altInput;
-          }
-          if (self.input) {
-              self.input.type = self.input._type;
-              self.input.classList.remove("flatpickr-input");
-              self.input.removeAttribute("readonly");
-          }
-          [
-              "_showTimeInput",
-              "latestSelectedDateObj",
-              "_hideNextMonthArrow",
-              "_hidePrevMonthArrow",
-              "__hideNextMonthArrow",
-              "__hidePrevMonthArrow",
-              "isMobile",
-              "isOpen",
-              "selectedDateElem",
-              "minDateHasTime",
-              "maxDateHasTime",
-              "days",
-              "daysContainer",
-              "_input",
-              "_positionElement",
-              "innerContainer",
-              "rContainer",
-              "monthNav",
-              "todayDateElem",
-              "calendarContainer",
-              "weekdayContainer",
-              "prevMonthNav",
-              "nextMonthNav",
-              "monthsDropdownContainer",
-              "currentMonthElement",
-              "currentYearElement",
-              "navigationCurrentMonth",
-              "selectedDateElem",
-              "config",
-          ].forEach(function (k) {
-              try {
-                  delete self[k];
-              }
-              catch (_) { }
-          });
-      }
-      function isCalendarElem(elem) {
-          return self.calendarContainer.contains(elem);
-      }
-      function documentClick(e) {
-          if (self.isOpen && !self.config.inline) {
-              var eventTarget_1 = getEventTarget(e);
-              var isCalendarElement = isCalendarElem(eventTarget_1);
-              var isInput = eventTarget_1 === self.input ||
-                  eventTarget_1 === self.altInput ||
-                  self.element.contains(eventTarget_1) ||
-                  (e.path &&
-                      e.path.indexOf &&
-                      (~e.path.indexOf(self.input) ||
-                          ~e.path.indexOf(self.altInput)));
-              var lostFocus = !isInput &&
-                  !isCalendarElement &&
-                  !isCalendarElem(e.relatedTarget);
-              var isIgnored = !self.config.ignoredFocusElements.some(function (elem) {
-                  return elem.contains(eventTarget_1);
-              });
-              if (lostFocus && isIgnored) {
-                  if (self.config.allowInput) {
-                      self.setDate(self._input.value, false, self.config.altInput
-                          ? self.config.altFormat
-                          : self.config.dateFormat);
-                  }
-                  if (self.timeContainer !== undefined &&
-                      self.minuteElement !== undefined &&
-                      self.hourElement !== undefined &&
-                      self.input.value !== "" &&
-                      self.input.value !== undefined) {
-                      updateTime();
-                  }
-                  self.close();
-                  if (self.config &&
-                      self.config.mode === "range" &&
-                      self.selectedDates.length === 1)
-                      self.clear(false);
-              }
-          }
-      }
-      function changeYear(newYear) {
-          if (!newYear ||
-              (self.config.minDate && newYear < self.config.minDate.getFullYear()) ||
-              (self.config.maxDate && newYear > self.config.maxDate.getFullYear()))
-              return;
-          var newYearNum = newYear, isNewYear = self.currentYear !== newYearNum;
-          self.currentYear = newYearNum || self.currentYear;
-          if (self.config.maxDate &&
-              self.currentYear === self.config.maxDate.getFullYear()) {
-              self.currentMonth = Math.min(self.config.maxDate.getMonth(), self.currentMonth);
-          }
-          else if (self.config.minDate &&
-              self.currentYear === self.config.minDate.getFullYear()) {
-              self.currentMonth = Math.max(self.config.minDate.getMonth(), self.currentMonth);
-          }
-          if (isNewYear) {
-              self.redraw();
-              triggerEvent("onYearChange");
-              buildMonthSwitch();
-          }
-      }
-      function isEnabled(date, timeless) {
-          var _a;
-          if (timeless === void 0) { timeless = true; }
-          var dateToCheck = self.parseDate(date, undefined, timeless);
-          if ((self.config.minDate &&
-              dateToCheck &&
-              compareDates(dateToCheck, self.config.minDate, timeless !== undefined ? timeless : !self.minDateHasTime) < 0) ||
-              (self.config.maxDate &&
-                  dateToCheck &&
-                  compareDates(dateToCheck, self.config.maxDate, timeless !== undefined ? timeless : !self.maxDateHasTime) > 0))
-              return false;
-          if (!self.config.enable && self.config.disable.length === 0)
-              return true;
-          if (dateToCheck === undefined)
-              return false;
-          var bool = !!self.config.enable, array = (_a = self.config.enable) !== null && _a !== void 0 ? _a : self.config.disable;
-          for (var i = 0, d = void 0; i < array.length; i++) {
-              d = array[i];
-              if (typeof d === "function" &&
-                  d(dateToCheck))
-                  return bool;
-              else if (d instanceof Date &&
-                  dateToCheck !== undefined &&
-                  d.getTime() === dateToCheck.getTime())
-                  return bool;
-              else if (typeof d === "string") {
-                  var parsed = self.parseDate(d, undefined, true);
-                  return parsed && parsed.getTime() === dateToCheck.getTime()
-                      ? bool
-                      : !bool;
-              }
-              else if (typeof d === "object" &&
-                  dateToCheck !== undefined &&
-                  d.from &&
-                  d.to &&
-                  dateToCheck.getTime() >= d.from.getTime() &&
-                  dateToCheck.getTime() <= d.to.getTime())
-                  return bool;
-          }
-          return !bool;
-      }
-      function isInView(elem) {
-          if (self.daysContainer !== undefined)
-              return (elem.className.indexOf("hidden") === -1 &&
-                  elem.className.indexOf("flatpickr-disabled") === -1 &&
-                  self.daysContainer.contains(elem));
-          return false;
-      }
-      function onBlur(e) {
-          var isInput = e.target === self._input;
-          var valueChanged = self._input.value.trimEnd() !== getDateStr();
-          if (isInput &&
-              valueChanged &&
-              !(e.relatedTarget && isCalendarElem(e.relatedTarget))) {
-              self.setDate(self._input.value, true, e.target === self.altInput
-                  ? self.config.altFormat
-                  : self.config.dateFormat);
-          }
-      }
-      function onKeyDown(e) {
-          var eventTarget = getEventTarget(e);
-          var isInput = self.config.wrap
-              ? element.contains(eventTarget)
-              : eventTarget === self._input;
-          var allowInput = self.config.allowInput;
-          var allowKeydown = self.isOpen && (!allowInput || !isInput);
-          var allowInlineKeydown = self.config.inline && isInput && !allowInput;
-          if (e.keyCode === 13 && isInput) {
-              if (allowInput) {
-                  self.setDate(self._input.value, true, eventTarget === self.altInput
-                      ? self.config.altFormat
-                      : self.config.dateFormat);
-                  self.close();
-                  return eventTarget.blur();
-              }
-              else {
-                  self.open();
-              }
-          }
-          else if (isCalendarElem(eventTarget) ||
-              allowKeydown ||
-              allowInlineKeydown) {
-              var isTimeObj = !!self.timeContainer &&
-                  self.timeContainer.contains(eventTarget);
-              switch (e.keyCode) {
-                  case 13:
-                      if (isTimeObj) {
-                          e.preventDefault();
-                          updateTime();
-                          focusAndClose();
-                      }
-                      else
-                          selectDate(e);
-                      break;
-                  case 27:
-                      e.preventDefault();
-                      focusAndClose();
-                      break;
-                  case 8:
-                  case 46:
-                      if (isInput && !self.config.allowInput) {
-                          e.preventDefault();
-                          self.clear();
-                      }
-                      break;
-                  case 37:
-                  case 39:
-                      if (!isTimeObj && !isInput) {
-                          e.preventDefault();
-                          var activeElement = getClosestActiveElement();
-                          if (self.daysContainer !== undefined &&
-                              (allowInput === false ||
-                                  (activeElement && isInView(activeElement)))) {
-                              var delta_1 = e.keyCode === 39 ? 1 : -1;
-                              if (!e.ctrlKey)
-                                  focusOnDay(undefined, delta_1);
-                              else {
-                                  e.stopPropagation();
-                                  changeMonth(delta_1);
-                                  focusOnDay(getFirstAvailableDay(1), 0);
-                              }
-                          }
-                      }
-                      else if (self.hourElement)
-                          self.hourElement.focus();
-                      break;
-                  case 38:
-                  case 40:
-                      e.preventDefault();
-                      var delta = e.keyCode === 40 ? 1 : -1;
-                      if ((self.daysContainer &&
-                          eventTarget.$i !== undefined) ||
-                          eventTarget === self.input ||
-                          eventTarget === self.altInput) {
-                          if (e.ctrlKey) {
-                              e.stopPropagation();
-                              changeYear(self.currentYear - delta);
-                              focusOnDay(getFirstAvailableDay(1), 0);
-                          }
-                          else if (!isTimeObj)
-                              focusOnDay(undefined, delta * 7);
-                      }
-                      else if (eventTarget === self.currentYearElement) {
-                          changeYear(self.currentYear - delta);
-                      }
-                      else if (self.config.enableTime) {
-                          if (!isTimeObj && self.hourElement)
-                              self.hourElement.focus();
-                          updateTime(e);
-                          self._debouncedChange();
-                      }
-                      break;
-                  case 9:
-                      if (isTimeObj) {
-                          var elems = [
-                              self.hourElement,
-                              self.minuteElement,
-                              self.secondElement,
-                              self.amPM,
-                          ]
-                              .concat(self.pluginElements)
-                              .filter(function (x) { return x; });
-                          var i = elems.indexOf(eventTarget);
-                          if (i !== -1) {
-                              var target = elems[i + (e.shiftKey ? -1 : 1)];
-                              e.preventDefault();
-                              (target || self._input).focus();
-                          }
-                      }
-                      else if (!self.config.noCalendar &&
-                          self.daysContainer &&
-                          self.daysContainer.contains(eventTarget) &&
-                          e.shiftKey) {
-                          e.preventDefault();
-                          self._input.focus();
-                      }
-                      break;
-              }
-          }
-          if (self.amPM !== undefined && eventTarget === self.amPM) {
-              switch (e.key) {
-                  case self.l10n.amPM[0].charAt(0):
-                  case self.l10n.amPM[0].charAt(0).toLowerCase():
-                      self.amPM.textContent = self.l10n.amPM[0];
-                      setHoursFromInputs();
-                      updateValue();
-                      break;
-                  case self.l10n.amPM[1].charAt(0):
-                  case self.l10n.amPM[1].charAt(0).toLowerCase():
-                      self.amPM.textContent = self.l10n.amPM[1];
-                      setHoursFromInputs();
-                      updateValue();
-                      break;
-              }
-          }
-          if (isInput || isCalendarElem(eventTarget)) {
-              triggerEvent("onKeyDown", e);
-          }
-      }
-      function onMouseOver(elem, cellClass) {
-          if (cellClass === void 0) { cellClass = "flatpickr-day"; }
-          if (self.selectedDates.length !== 1 ||
-              (elem &&
-                  (!elem.classList.contains(cellClass) ||
-                      elem.classList.contains("flatpickr-disabled"))))
-              return;
-          var hoverDate = elem
-              ? elem.dateObj.getTime()
-              : self.days.firstElementChild.dateObj.getTime(), initialDate = self.parseDate(self.selectedDates[0], undefined, true).getTime(), rangeStartDate = Math.min(hoverDate, self.selectedDates[0].getTime()), rangeEndDate = Math.max(hoverDate, self.selectedDates[0].getTime());
-          var containsDisabled = false;
-          var minRange = 0, maxRange = 0;
-          for (var t = rangeStartDate; t < rangeEndDate; t += duration.DAY) {
-              if (!isEnabled(new Date(t), true)) {
-                  containsDisabled =
-                      containsDisabled || (t > rangeStartDate && t < rangeEndDate);
-                  if (t < initialDate && (!minRange || t > minRange))
-                      minRange = t;
-                  else if (t > initialDate && (!maxRange || t < maxRange))
-                      maxRange = t;
-              }
-          }
-          var hoverableCells = Array.from(self.rContainer.querySelectorAll("*:nth-child(-n+" + self.config.showMonths + ") > ." + cellClass));
-          hoverableCells.forEach(function (dayElem) {
-              var date = dayElem.dateObj;
-              var timestamp = date.getTime();
-              var outOfRange = (minRange > 0 && timestamp < minRange) ||
-                  (maxRange > 0 && timestamp > maxRange);
-              if (outOfRange) {
-                  dayElem.classList.add("notAllowed");
-                  ["inRange", "startRange", "endRange"].forEach(function (c) {
-                      dayElem.classList.remove(c);
-                  });
-                  return;
-              }
-              else if (containsDisabled && !outOfRange)
-                  return;
-              ["startRange", "inRange", "endRange", "notAllowed"].forEach(function (c) {
-                  dayElem.classList.remove(c);
-              });
-              if (elem !== undefined) {
-                  elem.classList.add(hoverDate <= self.selectedDates[0].getTime()
-                      ? "startRange"
-                      : "endRange");
-                  if (initialDate < hoverDate && timestamp === initialDate)
-                      dayElem.classList.add("startRange");
-                  else if (initialDate > hoverDate && timestamp === initialDate)
-                      dayElem.classList.add("endRange");
-                  if (timestamp >= minRange &&
-                      (maxRange === 0 || timestamp <= maxRange) &&
-                      isBetween(timestamp, initialDate, hoverDate))
-                      dayElem.classList.add("inRange");
-              }
-          });
-      }
-      function onResize() {
-          if (self.isOpen && !self.config.static && !self.config.inline)
-              positionCalendar();
-      }
-      function open(e, positionElement) {
-          if (positionElement === void 0) { positionElement = self._positionElement; }
-          if (self.isMobile === true) {
-              if (e) {
-                  e.preventDefault();
-                  var eventTarget = getEventTarget(e);
-                  if (eventTarget) {
-                      eventTarget.blur();
-                  }
-              }
-              if (self.mobileInput !== undefined) {
-                  self.mobileInput.focus();
-                  self.mobileInput.click();
-              }
-              triggerEvent("onOpen");
-              return;
-          }
-          else if (self._input.disabled || self.config.inline) {
-              return;
-          }
-          var wasOpen = self.isOpen;
-          self.isOpen = true;
-          if (!wasOpen) {
-              self.calendarContainer.classList.add("open");
-              self._input.classList.add("active");
-              triggerEvent("onOpen");
-              positionCalendar(positionElement);
-          }
-          if (self.config.enableTime === true && self.config.noCalendar === true) {
-              if (self.config.allowInput === false &&
-                  (e === undefined ||
-                      !self.timeContainer.contains(e.relatedTarget))) {
-                  setTimeout(function () { return self.hourElement.select(); }, 50);
-              }
-          }
-      }
-      function minMaxDateSetter(type) {
-          return function (date) {
-              var dateObj = (self.config["_" + type + "Date"] = self.parseDate(date, self.config.dateFormat));
-              var inverseDateObj = self.config["_" + (type === "min" ? "max" : "min") + "Date"];
-              if (dateObj !== undefined) {
-                  self[type === "min" ? "minDateHasTime" : "maxDateHasTime"] =
-                      dateObj.getHours() > 0 ||
-                          dateObj.getMinutes() > 0 ||
-                          dateObj.getSeconds() > 0;
-              }
-              if (self.selectedDates) {
-                  self.selectedDates = self.selectedDates.filter(function (d) { return isEnabled(d); });
-                  if (!self.selectedDates.length && type === "min")
-                      setHoursFromDate(dateObj);
-                  updateValue();
-              }
-              if (self.daysContainer) {
-                  redraw();
-                  if (dateObj !== undefined)
-                      self.currentYearElement[type] = dateObj.getFullYear().toString();
-                  else
-                      self.currentYearElement.removeAttribute(type);
-                  self.currentYearElement.disabled =
-                      !!inverseDateObj &&
-                          dateObj !== undefined &&
-                          inverseDateObj.getFullYear() === dateObj.getFullYear();
-              }
-          };
-      }
-      function parseConfig() {
-          var boolOpts = [
-              "wrap",
-              "weekNumbers",
-              "allowInput",
-              "allowInvalidPreload",
-              "clickOpens",
-              "time_24hr",
-              "enableTime",
-              "noCalendar",
-              "altInput",
-              "shorthandCurrentMonth",
-              "inline",
-              "static",
-              "enableSeconds",
-              "disableMobile",
-          ];
-          var userConfig = __assign(__assign({}, JSON.parse(JSON.stringify(element.dataset || {}))), instanceConfig);
-          var formats = {};
-          self.config.parseDate = userConfig.parseDate;
-          self.config.formatDate = userConfig.formatDate;
-          Object.defineProperty(self.config, "enable", {
-              get: function () { return self.config._enable; },
-              set: function (dates) {
-                  self.config._enable = parseDateRules(dates);
-              },
-          });
-          Object.defineProperty(self.config, "disable", {
-              get: function () { return self.config._disable; },
-              set: function (dates) {
-                  self.config._disable = parseDateRules(dates);
-              },
-          });
-          var timeMode = userConfig.mode === "time";
-          if (!userConfig.dateFormat && (userConfig.enableTime || timeMode)) {
-              var defaultDateFormat = flatpickr.defaultConfig.dateFormat || defaults.dateFormat;
-              formats.dateFormat =
-                  userConfig.noCalendar || timeMode
-                      ? "H:i" + (userConfig.enableSeconds ? ":S" : "")
-                      : defaultDateFormat + " H:i" + (userConfig.enableSeconds ? ":S" : "");
-          }
-          if (userConfig.altInput &&
-              (userConfig.enableTime || timeMode) &&
-              !userConfig.altFormat) {
-              var defaultAltFormat = flatpickr.defaultConfig.altFormat || defaults.altFormat;
-              formats.altFormat =
-                  userConfig.noCalendar || timeMode
-                      ? "h:i" + (userConfig.enableSeconds ? ":S K" : " K")
-                      : defaultAltFormat + (" h:i" + (userConfig.enableSeconds ? ":S" : "") + " K");
-          }
-          Object.defineProperty(self.config, "minDate", {
-              get: function () { return self.config._minDate; },
-              set: minMaxDateSetter("min"),
-          });
-          Object.defineProperty(self.config, "maxDate", {
-              get: function () { return self.config._maxDate; },
-              set: minMaxDateSetter("max"),
-          });
-          var minMaxTimeSetter = function (type) { return function (val) {
-              self.config[type === "min" ? "_minTime" : "_maxTime"] = self.parseDate(val, "H:i:S");
-          }; };
-          Object.defineProperty(self.config, "minTime", {
-              get: function () { return self.config._minTime; },
-              set: minMaxTimeSetter("min"),
-          });
-          Object.defineProperty(self.config, "maxTime", {
-              get: function () { return self.config._maxTime; },
-              set: minMaxTimeSetter("max"),
-          });
-          if (userConfig.mode === "time") {
-              self.config.noCalendar = true;
-              self.config.enableTime = true;
-          }
-          Object.assign(self.config, formats, userConfig);
-          for (var i = 0; i < boolOpts.length; i++)
-              self.config[boolOpts[i]] =
-                  self.config[boolOpts[i]] === true ||
-                      self.config[boolOpts[i]] === "true";
-          HOOKS.filter(function (hook) { return self.config[hook] !== undefined; }).forEach(function (hook) {
-              self.config[hook] = arrayify(self.config[hook] || []).map(bindToInstance);
-          });
-          self.isMobile =
-              !self.config.disableMobile &&
-                  !self.config.inline &&
-                  self.config.mode === "single" &&
-                  !self.config.disable.length &&
-                  !self.config.enable &&
-                  !self.config.weekNumbers &&
-                  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-          for (var i = 0; i < self.config.plugins.length; i++) {
-              var pluginConf = self.config.plugins[i](self) || {};
-              for (var key in pluginConf) {
-                  if (HOOKS.indexOf(key) > -1) {
-                      self.config[key] = arrayify(pluginConf[key])
-                          .map(bindToInstance)
-                          .concat(self.config[key]);
-                  }
-                  else if (typeof userConfig[key] === "undefined")
-                      self.config[key] = pluginConf[key];
-              }
-          }
-          if (!userConfig.altInputClass) {
-              self.config.altInputClass =
-                  getInputElem().className + " " + self.config.altInputClass;
-          }
-          triggerEvent("onParseConfig");
-      }
-      function getInputElem() {
-          return self.config.wrap
-              ? element.querySelector("[data-input]")
-              : element;
-      }
-      function setupLocale() {
-          if (typeof self.config.locale !== "object" &&
-              typeof flatpickr.l10ns[self.config.locale] === "undefined")
-              self.config.errorHandler(new Error("flatpickr: invalid locale " + self.config.locale));
-          self.l10n = __assign(__assign({}, flatpickr.l10ns.default), (typeof self.config.locale === "object"
-              ? self.config.locale
-              : self.config.locale !== "default"
-                  ? flatpickr.l10ns[self.config.locale]
-                  : undefined));
-          tokenRegex.D = "(" + self.l10n.weekdays.shorthand.join("|") + ")";
-          tokenRegex.l = "(" + self.l10n.weekdays.longhand.join("|") + ")";
-          tokenRegex.M = "(" + self.l10n.months.shorthand.join("|") + ")";
-          tokenRegex.F = "(" + self.l10n.months.longhand.join("|") + ")";
-          tokenRegex.K = "(" + self.l10n.amPM[0] + "|" + self.l10n.amPM[1] + "|" + self.l10n.amPM[0].toLowerCase() + "|" + self.l10n.amPM[1].toLowerCase() + ")";
-          var userConfig = __assign(__assign({}, instanceConfig), JSON.parse(JSON.stringify(element.dataset || {})));
-          if (userConfig.time_24hr === undefined &&
-              flatpickr.defaultConfig.time_24hr === undefined) {
-              self.config.time_24hr = self.l10n.time_24hr;
-          }
-          self.formatDate = createDateFormatter(self);
-          self.parseDate = createDateParser({ config: self.config, l10n: self.l10n });
-      }
-      function positionCalendar(customPositionElement) {
-          if (typeof self.config.position === "function") {
-              return void self.config.position(self, customPositionElement);
-          }
-          if (self.calendarContainer === undefined)
-              return;
-          triggerEvent("onPreCalendarPosition");
-          var positionElement = customPositionElement || self._positionElement;
-          var calendarHeight = Array.prototype.reduce.call(self.calendarContainer.children, (function (acc, child) { return acc + child.offsetHeight; }), 0), calendarWidth = self.calendarContainer.offsetWidth, configPos = self.config.position.split(" "), configPosVertical = configPos[0], configPosHorizontal = configPos.length > 1 ? configPos[1] : null, inputBounds = positionElement.getBoundingClientRect(), distanceFromBottom = window.innerHeight - inputBounds.bottom, showOnTop = configPosVertical === "above" ||
-              (configPosVertical !== "below" &&
-                  distanceFromBottom < calendarHeight &&
-                  inputBounds.top > calendarHeight);
-          var top = window.pageYOffset +
-              inputBounds.top +
-              (!showOnTop ? positionElement.offsetHeight + 2 : -calendarHeight - 2);
-          toggleClass(self.calendarContainer, "arrowTop", !showOnTop);
-          toggleClass(self.calendarContainer, "arrowBottom", showOnTop);
-          if (self.config.inline)
-              return;
-          var left = window.pageXOffset + inputBounds.left;
-          var isCenter = false;
-          var isRight = false;
-          if (configPosHorizontal === "center") {
-              left -= (calendarWidth - inputBounds.width) / 2;
-              isCenter = true;
-          }
-          else if (configPosHorizontal === "right") {
-              left -= calendarWidth - inputBounds.width;
-              isRight = true;
-          }
-          toggleClass(self.calendarContainer, "arrowLeft", !isCenter && !isRight);
-          toggleClass(self.calendarContainer, "arrowCenter", isCenter);
-          toggleClass(self.calendarContainer, "arrowRight", isRight);
-          var right = window.document.body.offsetWidth -
-              (window.pageXOffset + inputBounds.right);
-          var rightMost = left + calendarWidth > window.document.body.offsetWidth;
-          var centerMost = right + calendarWidth > window.document.body.offsetWidth;
-          toggleClass(self.calendarContainer, "rightMost", rightMost);
-          if (self.config.static)
-              return;
-          self.calendarContainer.style.top = top + "px";
-          if (!rightMost) {
-              self.calendarContainer.style.left = left + "px";
-              self.calendarContainer.style.right = "auto";
-          }
-          else if (!centerMost) {
-              self.calendarContainer.style.left = "auto";
-              self.calendarContainer.style.right = right + "px";
-          }
-          else {
-              var doc = getDocumentStyleSheet();
-              if (doc === undefined)
-                  return;
-              var bodyWidth = window.document.body.offsetWidth;
-              var centerLeft = Math.max(0, bodyWidth / 2 - calendarWidth / 2);
-              var centerBefore = ".flatpickr-calendar.centerMost:before";
-              var centerAfter = ".flatpickr-calendar.centerMost:after";
-              var centerIndex = doc.cssRules.length;
-              var centerStyle = "{left:" + inputBounds.left + "px;right:auto;}";
-              toggleClass(self.calendarContainer, "rightMost", false);
-              toggleClass(self.calendarContainer, "centerMost", true);
-              doc.insertRule(centerBefore + "," + centerAfter + centerStyle, centerIndex);
-              self.calendarContainer.style.left = centerLeft + "px";
-              self.calendarContainer.style.right = "auto";
-          }
-      }
-      function getDocumentStyleSheet() {
-          var editableSheet = null;
-          for (var i = 0; i < document.styleSheets.length; i++) {
-              var sheet = document.styleSheets[i];
-              if (!sheet.cssRules)
-                  continue;
-              try {
-                  sheet.cssRules;
-              }
-              catch (err) {
-                  continue;
-              }
-              editableSheet = sheet;
-              break;
-          }
-          return editableSheet != null ? editableSheet : createStyleSheet();
-      }
-      function createStyleSheet() {
-          var style = document.createElement("style");
-          document.head.appendChild(style);
-          return style.sheet;
-      }
-      function redraw() {
-          if (self.config.noCalendar || self.isMobile)
-              return;
-          buildMonthSwitch();
-          updateNavigationCurrentMonth();
-          buildDays();
-      }
-      function focusAndClose() {
-          self._input.focus();
-          if (window.navigator.userAgent.indexOf("MSIE") !== -1 ||
-              navigator.msMaxTouchPoints !== undefined) {
-              setTimeout(self.close, 0);
-          }
-          else {
-              self.close();
-          }
-      }
-      function selectDate(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var isSelectable = function (day) {
-              return day.classList &&
-                  day.classList.contains("flatpickr-day") &&
-                  !day.classList.contains("flatpickr-disabled") &&
-                  !day.classList.contains("notAllowed");
-          };
-          var t = findParent(getEventTarget(e), isSelectable);
-          if (t === undefined)
-              return;
-          var target = t;
-          var selectedDate = (self.latestSelectedDateObj = new Date(target.dateObj.getTime()));
-          var shouldChangeMonth = (selectedDate.getMonth() < self.currentMonth ||
-              selectedDate.getMonth() >
-                  self.currentMonth + self.config.showMonths - 1) &&
-              self.config.mode !== "range";
-          self.selectedDateElem = target;
-          if (self.config.mode === "single")
-              self.selectedDates = [selectedDate];
-          else if (self.config.mode === "multiple") {
-              var selectedIndex = isDateSelected(selectedDate);
-              if (selectedIndex)
-                  self.selectedDates.splice(parseInt(selectedIndex), 1);
-              else
-                  self.selectedDates.push(selectedDate);
-          }
-          else if (self.config.mode === "range") {
-              if (self.selectedDates.length === 2) {
-                  self.clear(false, false);
-              }
-              self.latestSelectedDateObj = selectedDate;
-              self.selectedDates.push(selectedDate);
-              if (compareDates(selectedDate, self.selectedDates[0], true) !== 0)
-                  self.selectedDates.sort(function (a, b) { return a.getTime() - b.getTime(); });
-          }
-          setHoursFromInputs();
-          if (shouldChangeMonth) {
-              var isNewYear = self.currentYear !== selectedDate.getFullYear();
-              self.currentYear = selectedDate.getFullYear();
-              self.currentMonth = selectedDate.getMonth();
-              if (isNewYear) {
-                  triggerEvent("onYearChange");
-                  buildMonthSwitch();
-              }
-              triggerEvent("onMonthChange");
-          }
-          updateNavigationCurrentMonth();
-          buildDays();
-          updateValue();
-          if (!shouldChangeMonth &&
-              self.config.mode !== "range" &&
-              self.config.showMonths === 1)
-              focusOnDayElem(target);
-          else if (self.selectedDateElem !== undefined &&
-              self.hourElement === undefined) {
-              self.selectedDateElem && self.selectedDateElem.focus();
-          }
-          if (self.hourElement !== undefined)
-              self.hourElement !== undefined && self.hourElement.focus();
-          if (self.config.closeOnSelect) {
-              var single = self.config.mode === "single" && !self.config.enableTime;
-              var range = self.config.mode === "range" &&
-                  self.selectedDates.length === 2 &&
-                  !self.config.enableTime;
-              if (single || range) {
-                  focusAndClose();
-              }
-          }
-          triggerChange();
-      }
-      var CALLBACKS = {
-          locale: [setupLocale, updateWeekdays],
-          showMonths: [buildMonths, setCalendarWidth, buildWeekdays],
-          minDate: [jumpToDate],
-          maxDate: [jumpToDate],
-          positionElement: [updatePositionElement],
-          clickOpens: [
-              function () {
-                  if (self.config.clickOpens === true) {
-                      bind(self._input, "focus", self.open);
-                      bind(self._input, "click", self.open);
-                  }
-                  else {
-                      self._input.removeEventListener("focus", self.open);
-                      self._input.removeEventListener("click", self.open);
-                  }
-              },
-          ],
-      };
-      function set(option, value) {
-          if (option !== null && typeof option === "object") {
-              Object.assign(self.config, option);
-              for (var key in option) {
-                  if (CALLBACKS[key] !== undefined)
-                      CALLBACKS[key].forEach(function (x) { return x(); });
-              }
-          }
-          else {
-              self.config[option] = value;
-              if (CALLBACKS[option] !== undefined)
-                  CALLBACKS[option].forEach(function (x) { return x(); });
-              else if (HOOKS.indexOf(option) > -1)
-                  self.config[option] = arrayify(value);
-          }
-          self.redraw();
-          updateValue(true);
-      }
-      function setSelectedDate(inputDate, format) {
-          var dates = [];
-          if (inputDate instanceof Array)
-              dates = inputDate.map(function (d) { return self.parseDate(d, format); });
-          else if (inputDate instanceof Date || typeof inputDate === "number")
-              dates = [self.parseDate(inputDate, format)];
-          else if (typeof inputDate === "string") {
-              switch (self.config.mode) {
-                  case "single":
-                  case "time":
-                      dates = [self.parseDate(inputDate, format)];
-                      break;
-                  case "multiple":
-                      dates = inputDate
-                          .split(self.config.conjunction)
-                          .map(function (date) { return self.parseDate(date, format); });
-                      break;
-                  case "range":
-                      dates = inputDate
-                          .split(self.l10n.rangeSeparator)
-                          .map(function (date) { return self.parseDate(date, format); });
-                      break;
-              }
-          }
-          else
-              self.config.errorHandler(new Error("Invalid date supplied: " + JSON.stringify(inputDate)));
-          self.selectedDates = (self.config.allowInvalidPreload
-              ? dates
-              : dates.filter(function (d) { return d instanceof Date && isEnabled(d, false); }));
-          if (self.config.mode === "range")
-              self.selectedDates.sort(function (a, b) { return a.getTime() - b.getTime(); });
-      }
-      function setDate(date, triggerChange, format) {
-          if (triggerChange === void 0) { triggerChange = false; }
-          if (format === void 0) { format = self.config.dateFormat; }
-          if ((date !== 0 && !date) || (date instanceof Array && date.length === 0))
-              return self.clear(triggerChange);
-          setSelectedDate(date, format);
-          self.latestSelectedDateObj =
-              self.selectedDates[self.selectedDates.length - 1];
-          self.redraw();
-          jumpToDate(undefined, triggerChange);
-          setHoursFromDate();
-          if (self.selectedDates.length === 0) {
-              self.clear(false);
-          }
-          updateValue(triggerChange);
-          if (triggerChange)
-              triggerEvent("onChange");
-      }
-      function parseDateRules(arr) {
-          return arr
-              .slice()
-              .map(function (rule) {
-              if (typeof rule === "string" ||
-                  typeof rule === "number" ||
-                  rule instanceof Date) {
-                  return self.parseDate(rule, undefined, true);
-              }
-              else if (rule &&
-                  typeof rule === "object" &&
-                  rule.from &&
-                  rule.to)
-                  return {
-                      from: self.parseDate(rule.from, undefined),
-                      to: self.parseDate(rule.to, undefined),
-                  };
-              return rule;
-          })
-              .filter(function (x) { return x; });
-      }
-      function setupDates() {
-          self.selectedDates = [];
-          self.now = self.parseDate(self.config.now) || new Date();
-          var preloadedDate = self.config.defaultDate ||
-              ((self.input.nodeName === "INPUT" ||
-                  self.input.nodeName === "TEXTAREA") &&
-                  self.input.placeholder &&
-                  self.input.value === self.input.placeholder
-                  ? null
-                  : self.input.value);
-          if (preloadedDate)
-              setSelectedDate(preloadedDate, self.config.dateFormat);
-          self._initialDate =
-              self.selectedDates.length > 0
-                  ? self.selectedDates[0]
-                  : self.config.minDate &&
-                      self.config.minDate.getTime() > self.now.getTime()
-                      ? self.config.minDate
-                      : self.config.maxDate &&
-                          self.config.maxDate.getTime() < self.now.getTime()
-                          ? self.config.maxDate
-                          : self.now;
-          self.currentYear = self._initialDate.getFullYear();
-          self.currentMonth = self._initialDate.getMonth();
-          if (self.selectedDates.length > 0)
-              self.latestSelectedDateObj = self.selectedDates[0];
-          if (self.config.minTime !== undefined)
-              self.config.minTime = self.parseDate(self.config.minTime, "H:i");
-          if (self.config.maxTime !== undefined)
-              self.config.maxTime = self.parseDate(self.config.maxTime, "H:i");
-          self.minDateHasTime =
-              !!self.config.minDate &&
-                  (self.config.minDate.getHours() > 0 ||
-                      self.config.minDate.getMinutes() > 0 ||
-                      self.config.minDate.getSeconds() > 0);
-          self.maxDateHasTime =
-              !!self.config.maxDate &&
-                  (self.config.maxDate.getHours() > 0 ||
-                      self.config.maxDate.getMinutes() > 0 ||
-                      self.config.maxDate.getSeconds() > 0);
-      }
-      function setupInputs() {
-          self.input = getInputElem();
-          if (!self.input) {
-              self.config.errorHandler(new Error("Invalid input element specified"));
-              return;
-          }
-          self.input._type = self.input.type;
-          self.input.type = "text";
-          self.input.classList.add("flatpickr-input");
-          self._input = self.input;
-          if (self.config.altInput) {
-              self.altInput = createElement(self.input.nodeName, self.config.altInputClass);
-              self._input = self.altInput;
-              self.altInput.placeholder = self.input.placeholder;
-              self.altInput.disabled = self.input.disabled;
-              self.altInput.required = self.input.required;
-              self.altInput.tabIndex = self.input.tabIndex;
-              self.altInput.type = "text";
-              self.input.setAttribute("type", "hidden");
-              if (!self.config.static && self.input.parentNode)
-                  self.input.parentNode.insertBefore(self.altInput, self.input.nextSibling);
-          }
-          if (!self.config.allowInput)
-              self._input.setAttribute("readonly", "readonly");
-          updatePositionElement();
-      }
-      function updatePositionElement() {
-          self._positionElement = self.config.positionElement || self._input;
-      }
-      function setupMobile() {
-          var inputType = self.config.enableTime
-              ? self.config.noCalendar
-                  ? "time"
-                  : "datetime-local"
-              : "date";
-          self.mobileInput = createElement("input", self.input.className + " flatpickr-mobile");
-          self.mobileInput.tabIndex = 1;
-          self.mobileInput.type = inputType;
-          self.mobileInput.disabled = self.input.disabled;
-          self.mobileInput.required = self.input.required;
-          self.mobileInput.placeholder = self.input.placeholder;
-          self.mobileFormatStr =
-              inputType === "datetime-local"
-                  ? "Y-m-d\\TH:i:S"
-                  : inputType === "date"
-                      ? "Y-m-d"
-                      : "H:i:S";
-          if (self.selectedDates.length > 0) {
-              self.mobileInput.defaultValue = self.mobileInput.value = self.formatDate(self.selectedDates[0], self.mobileFormatStr);
-          }
-          if (self.config.minDate)
-              self.mobileInput.min = self.formatDate(self.config.minDate, "Y-m-d");
-          if (self.config.maxDate)
-              self.mobileInput.max = self.formatDate(self.config.maxDate, "Y-m-d");
-          if (self.input.getAttribute("step"))
-              self.mobileInput.step = String(self.input.getAttribute("step"));
-          self.input.type = "hidden";
-          if (self.altInput !== undefined)
-              self.altInput.type = "hidden";
-          try {
-              if (self.input.parentNode)
-                  self.input.parentNode.insertBefore(self.mobileInput, self.input.nextSibling);
-          }
-          catch (_a) { }
-          bind(self.mobileInput, "change", function (e) {
-              self.setDate(getEventTarget(e).value, false, self.mobileFormatStr);
-              triggerEvent("onChange");
-              triggerEvent("onClose");
-          });
-      }
-      function toggle(e) {
-          if (self.isOpen === true)
-              return self.close();
-          self.open(e);
-      }
-      function triggerEvent(event, data) {
-          if (self.config === undefined)
-              return;
-          var hooks = self.config[event];
-          if (hooks !== undefined && hooks.length > 0) {
-              for (var i = 0; hooks[i] && i < hooks.length; i++)
-                  hooks[i](self.selectedDates, self.input.value, self, data);
-          }
-          if (event === "onChange") {
-              self.input.dispatchEvent(createEvent("change"));
-              self.input.dispatchEvent(createEvent("input"));
-          }
-      }
-      function createEvent(name) {
-          var e = document.createEvent("Event");
-          e.initEvent(name, true, true);
-          return e;
-      }
-      function isDateSelected(date) {
-          for (var i = 0; i < self.selectedDates.length; i++) {
-              var selectedDate = self.selectedDates[i];
-              if (selectedDate instanceof Date &&
-                  compareDates(selectedDate, date) === 0)
-                  return "" + i;
-          }
-          return false;
-      }
-      function isDateInRange(date) {
-          if (self.config.mode !== "range" || self.selectedDates.length < 2)
-              return false;
-          return (compareDates(date, self.selectedDates[0]) >= 0 &&
-              compareDates(date, self.selectedDates[1]) <= 0);
-      }
-      function updateNavigationCurrentMonth() {
-          if (self.config.noCalendar || self.isMobile || !self.monthNav)
-              return;
-          self.yearElements.forEach(function (yearElement, i) {
-              var d = new Date(self.currentYear, self.currentMonth, 1);
-              d.setMonth(self.currentMonth + i);
-              if (self.config.showMonths > 1 ||
-                  self.config.monthSelectorType === "static") {
-                  self.monthElements[i].textContent =
-                      monthToStr(d.getMonth(), self.config.shorthandCurrentMonth, self.l10n) + " ";
-              }
-              else {
-                  self.monthsDropdownContainer.value = d.getMonth().toString();
-              }
-              yearElement.value = d.getFullYear().toString();
-          });
-          self._hidePrevMonthArrow =
-              self.config.minDate !== undefined &&
-                  (self.currentYear === self.config.minDate.getFullYear()
-                      ? self.currentMonth <= self.config.minDate.getMonth()
-                      : self.currentYear < self.config.minDate.getFullYear());
-          self._hideNextMonthArrow =
-              self.config.maxDate !== undefined &&
-                  (self.currentYear === self.config.maxDate.getFullYear()
-                      ? self.currentMonth + 1 > self.config.maxDate.getMonth()
-                      : self.currentYear > self.config.maxDate.getFullYear());
-      }
-      function getDateStr(specificFormat) {
-          var format = specificFormat ||
-              (self.config.altInput ? self.config.altFormat : self.config.dateFormat);
-          return self.selectedDates
-              .map(function (dObj) { return self.formatDate(dObj, format); })
-              .filter(function (d, i, arr) {
-              return self.config.mode !== "range" ||
-                  self.config.enableTime ||
-                  arr.indexOf(d) === i;
-          })
-              .join(self.config.mode !== "range"
-              ? self.config.conjunction
-              : self.l10n.rangeSeparator);
-      }
-      function updateValue(triggerChange) {
-          if (triggerChange === void 0) { triggerChange = true; }
-          if (self.mobileInput !== undefined && self.mobileFormatStr) {
-              self.mobileInput.value =
-                  self.latestSelectedDateObj !== undefined
-                      ? self.formatDate(self.latestSelectedDateObj, self.mobileFormatStr)
-                      : "";
-          }
-          self.input.value = getDateStr(self.config.dateFormat);
-          if (self.altInput !== undefined) {
-              self.altInput.value = getDateStr(self.config.altFormat);
-          }
-          if (triggerChange !== false)
-              triggerEvent("onValueUpdate");
-      }
-      function onMonthNavClick(e) {
-          var eventTarget = getEventTarget(e);
-          var isPrevMonth = self.prevMonthNav.contains(eventTarget);
-          var isNextMonth = self.nextMonthNav.contains(eventTarget);
-          if (isPrevMonth || isNextMonth) {
-              changeMonth(isPrevMonth ? -1 : 1);
-          }
-          else if (self.yearElements.indexOf(eventTarget) >= 0) {
-              eventTarget.select();
-          }
-          else if (eventTarget.classList.contains("arrowUp")) {
-              self.changeYear(self.currentYear + 1);
-          }
-          else if (eventTarget.classList.contains("arrowDown")) {
-              self.changeYear(self.currentYear - 1);
-          }
-      }
-      function timeWrapper(e) {
-          e.preventDefault();
-          var isKeyDown = e.type === "keydown", eventTarget = getEventTarget(e), input = eventTarget;
-          if (self.amPM !== undefined && eventTarget === self.amPM) {
-              self.amPM.textContent =
-                  self.l10n.amPM[int(self.amPM.textContent === self.l10n.amPM[0])];
-          }
-          var min = parseFloat(input.getAttribute("min")), max = parseFloat(input.getAttribute("max")), step = parseFloat(input.getAttribute("step")), curValue = parseInt(input.value, 10), delta = e.delta ||
-              (isKeyDown ? (e.which === 38 ? 1 : -1) : 0);
-          var newValue = curValue + step * delta;
-          if (typeof input.value !== "undefined" && input.value.length === 2) {
-              var isHourElem = input === self.hourElement, isMinuteElem = input === self.minuteElement;
-              if (newValue < min) {
-                  newValue =
-                      max +
-                          newValue +
-                          int(!isHourElem) +
-                          (int(isHourElem) && int(!self.amPM));
-                  if (isMinuteElem)
-                      incrementNumInput(undefined, -1, self.hourElement);
-              }
-              else if (newValue > max) {
-                  newValue =
-                      input === self.hourElement ? newValue - max - int(!self.amPM) : min;
-                  if (isMinuteElem)
-                      incrementNumInput(undefined, 1, self.hourElement);
-              }
-              if (self.amPM &&
-                  isHourElem &&
-                  (step === 1
-                      ? newValue + curValue === 23
-                      : Math.abs(newValue - curValue) > step)) {
-                  self.amPM.textContent =
-                      self.l10n.amPM[int(self.amPM.textContent === self.l10n.amPM[0])];
-              }
-              input.value = pad(newValue);
-          }
-      }
-      init();
-      return self;
-  }
-  function _flatpickr(nodeList, config) {
-      var nodes = Array.prototype.slice
-          .call(nodeList)
-          .filter(function (x) { return x instanceof HTMLElement; });
-      var instances = [];
-      for (var i = 0; i < nodes.length; i++) {
-          var node = nodes[i];
-          try {
-              if (node.getAttribute("data-fp-omit") !== null)
-                  continue;
-              if (node._flatpickr !== undefined) {
-                  node._flatpickr.destroy();
-                  node._flatpickr = undefined;
-              }
-              node._flatpickr = FlatpickrInstance(node, config || {});
-              instances.push(node._flatpickr);
-          }
-          catch (e) {
-              console.error(e);
-          }
-      }
-      return instances.length === 1 ? instances[0] : instances;
-  }
-  if (typeof HTMLElement !== "undefined" &&
-      typeof HTMLCollection !== "undefined" &&
-      typeof NodeList !== "undefined") {
-      HTMLCollection.prototype.flatpickr = NodeList.prototype.flatpickr = function (config) {
-          return _flatpickr(this, config);
-      };
-      HTMLElement.prototype.flatpickr = function (config) {
-          return _flatpickr([this], config);
-      };
-  }
-  var flatpickr = function (selector, config) {
-      if (typeof selector === "string") {
-          return _flatpickr(window.document.querySelectorAll(selector), config);
-      }
-      else if (selector instanceof Node) {
-          return _flatpickr([selector], config);
-      }
-      else {
-          return _flatpickr(selector, config);
-      }
-  };
-  flatpickr.defaultConfig = {};
-  flatpickr.l10ns = {
-      en: __assign({}, english),
-      default: __assign({}, english),
-  };
-  flatpickr.localize = function (l10n) {
-      flatpickr.l10ns.default = __assign(__assign({}, flatpickr.l10ns.default), l10n);
-  };
-  flatpickr.setDefaults = function (config) {
-      flatpickr.defaultConfig = __assign(__assign({}, flatpickr.defaultConfig), config);
-  };
-  flatpickr.parseDate = createDateParser({});
-  flatpickr.formatDate = createDateFormatter({});
-  flatpickr.compareDates = compareDates;
-  if (typeof jQuery !== "undefined" && typeof jQuery.fn !== "undefined") {
-      jQuery.fn.flatpickr = function (config) {
-          return _flatpickr(this, config);
-      };
-  }
-  Date.prototype.fp_incr = function (days) {
-      return new Date(this.getFullYear(), this.getMonth(), this.getDate() + (typeof days === "string" ? parseInt(days, 10) : days));
-  };
-  if (typeof window !== "undefined") {
-      window.flatpickr = flatpickr;
-  }
-
-  var e,o={};function n(r,t,e){if(3===r.nodeType){var o="textContent"in r?r.textContent:r.nodeValue||"";if(!1!==n.options.trim){var a=0===t||t===e.length-1;if((!(o=o.match(/^[\s\n]+$/g)&&"all"!==n.options.trim?" ":o.replace(/(^[\s\n]+|[\s\n]+$)/g,"all"===n.options.trim||a?"":" "))||" "===o)&&e.length>1&&a)return null}return o}if(1!==r.nodeType)return null;var p=String(r.nodeName).toLowerCase();if("script"===p&&!n.options.allowScripts)return null;var l,s,u=n.h(p,function(r){var t=r&&r.length;if(!t)return null;for(var e={},o=0;o<t;o++){var a=r[o],i=a.name,p=a.value;"on"===i.substring(0,2)&&n.options.allowEvents&&(p=new Function(p)),e[i]=p;}return e}(r.attributes),(s=(l=r.childNodes)&&Array.prototype.map.call(l,n).filter(i))&&s.length?s:null);return n.visitor&&n.visitor(u),u}var a,i=function(r){return r},p={};function l(r){var t=(r.type||"").toLowerCase(),e=l.map;e&&e.hasOwnProperty(t)?(r.type=e[t],r.props=Object.keys(r.props||{}).reduce(function(t,e){var o;return t[(o=e,o.replace(/-(.)/g,function(r,t){return t.toUpperCase()}))]=r.props[e],t},{})):r.type=t.replace(/[^a-z0-9-]/i,"");}var Markup = (function(t){function i(){t.apply(this,arguments);}return t&&(i.__proto__=t),(i.prototype=Object.create(t&&t.prototype)).constructor=i,i.setReviver=function(r){a=r;},i.prototype.shouldComponentUpdate=function(r){var t=this.props;return r.wrap!==t.wrap||r.type!==t.type||r.markup!==t.markup},i.prototype.setComponents=function(r){if(this.map={},r)for(var t in r)if(r.hasOwnProperty(t)){var e=t.replace(/([A-Z]+)([A-Z][a-z0-9])|([a-z0-9]+)([A-Z])/g,"$1$3-$2$4").toLowerCase();this.map[e]=r[t];}},i.prototype.render=function(t){var i=t.wrap;void 0===i&&(i=!0);var s,u=t.type,c=t.markup,m=t.components,v=t.reviver,f=t.onError,d=t["allow-scripts"],h=t["allow-events"],y=t.trim,w=function(r,t){var e={};for(var o in r)Object.prototype.hasOwnProperty.call(r,o)&&-1===t.indexOf(o)&&(e[o]=r[o]);return e}(t,["wrap","type","markup","components","reviver","onError","allow-scripts","allow-events","trim"]),C=v||this.reviver||this.constructor.prototype.reviver||a||v$1;this.setComponents(m);var g={allowScripts:d,allowEvents:h,trim:y};try{s=function(r,t,a,i,s){var u=function(r,t){var o,n,a,i,p="html"===t?"text/html":"application/xml";"html"===t?(i="body",a="<!DOCTYPE html>\n<html><body>"+r+"</body></html>"):(i="xml",a='<?xml version="1.0" encoding="UTF-8"?>\n<xml>'+r+"</xml>");try{o=(new DOMParser).parseFromString(a,p);}catch(r){n=r;}if(o||"html"!==t||((o=e||(e=function(){if(document.implementation&&document.implementation.createHTMLDocument)return document.implementation.createHTMLDocument("");var r=document.createElement("iframe");return r.style.cssText="position:absolute; left:0; top:-999em; width:1px; height:1px; overflow:hidden;",r.setAttribute("sandbox","allow-forms"),document.body.appendChild(r),r.contentWindow.document}())).open(),o.write(a),o.close()),o){var l=o.getElementsByTagName(i)[0],s=l.firstChild;return r&&!s&&(l.error="Document parse failed."),s&&"parsererror"===String(s.nodeName).toLowerCase()&&(s.removeChild(s.firstChild),s.removeChild(s.lastChild),l.error=s.textContent||s.nodeValue||n||"Unknown error",l.removeChild(s)),l}}(r,t);if(u&&u.error)throw new Error(u.error);var c=u&&u.body||u;l.map=i||p;var m=c&&function(r,t,e,a){return n.visitor=t,n.h=e,n.options=a||o,n(r)}(c,l,a,s);return l.map=null,m&&m.props&&m.props.children||null}(c,u,C,this.map,g);}catch(r){f?f({error:r}):"undefined"!=typeof console&&console.error&&console.error("preact-markup: "+r);}if(!1===i)return s||null;var x=w.hasOwnProperty("className")?"className":"class",b=w[x];return b?b.splice?b.splice(0,0,"markup"):"string"==typeof b?w[x]+=" markup":"object"==typeof b&&(b.markup=!0):w[x]="markup",C("div",w,s||null)},i}(_));
-
-  const CLASS_PATTERN = /^class[ {]/;
-
-
-  /**
-   * @param {function} fn
-   *
-   * @return {boolean}
-   */
-  function isClass(fn) {
-    return CLASS_PATTERN.test(fn.toString());
-  }
-
-  /**
-   * @param {any} obj
-   *
-   * @return {boolean}
-   */
-  function isArray(obj) {
-    return Array.isArray(obj);
-  }
-
-  /**
-   * @param {any} obj
-   * @param {string} prop
-   *
-   * @return {boolean}
-   */
-  function hasOwnProp(obj, prop) {
-    return Object.prototype.hasOwnProperty.call(obj, prop);
-  }
-
-  /**
-   * @typedef {import('./index').InjectAnnotated } InjectAnnotated
-   */
-
-  /**
-   * @template T
-   *
-   * @params {[...string[], T] | ...string[], T} args
-   *
-   * @return {T & InjectAnnotated}
-   */
-  function annotate(...args) {
-
-    if (args.length === 1 && isArray(args[0])) {
-      args = args[0];
-    }
-
-    args = [ ...args ];
-
-    const fn = args.pop();
-
-    fn.$inject = args;
-
-    return fn;
-  }
-
-
-  // Current limitations:
-  // - can't put into "function arg" comments
-  // function /* (no parenthesis like this) */ (){}
-  // function abc( /* xx (no parenthesis like this) */ a, b) {}
-  //
-  // Just put the comment before function or inside:
-  // /* (((this is fine))) */ function(a, b) {}
-  // function abc(a) { /* (((this is fine))) */}
-  //
-  // - can't reliably auto-annotate constructor; we'll match the
-  // first constructor(...) pattern found which may be the one
-  // of a nested class, too.
-
-  const CONSTRUCTOR_ARGS = /constructor\s*[^(]*\(\s*([^)]*)\)/m;
-  const FN_ARGS = /^(?:async\s+)?(?:function\s*[^(]*)?(?:\(\s*([^)]*)\)|(\w+))/m;
-  const FN_ARG = /\/\*([^*]*)\*\//m;
-
-  /**
-   * @param {unknown} fn
-   *
-   * @return {string[]}
-   */
-  function parseAnnotations(fn) {
-
-    if (typeof fn !== 'function') {
-      throw new Error(`Cannot annotate "${fn}". Expected a function!`);
-    }
-
-    const match = fn.toString().match(isClass(fn) ? CONSTRUCTOR_ARGS : FN_ARGS);
-
-    // may parse class without constructor
-    if (!match) {
-      return [];
-    }
-
-    const args = match[1] || match[2];
-
-    return args && args.split(',').map(arg => {
-      const argMatch = arg.match(FN_ARG);
-      return (argMatch && argMatch[1] || arg).trim();
-    }) || [];
-  }
-
-  /**
-   * @typedef { import('./index').ModuleDeclaration } ModuleDeclaration
-   * @typedef { import('./index').ModuleDefinition } ModuleDefinition
-   * @typedef { import('./index').InjectorContext } InjectorContext
-   */
-
-  /**
-   * Create a new injector with the given modules.
-   *
-   * @param {ModuleDefinition[]} modules
-   * @param {InjectorContext} [parent]
-   */
-  function Injector(modules, parent) {
-    parent = parent || {
-      get: function(name, strict) {
-        currentlyResolving.push(name);
-
-        if (strict === false) {
-          return null;
-        } else {
-          throw error(`No provider for "${ name }"!`);
-        }
-      }
-    };
-
-    const currentlyResolving = [];
-    const providers = this._providers = Object.create(parent._providers || null);
-    const instances = this._instances = Object.create(null);
-
-    const self = instances.injector = this;
-
-    const error = function(msg) {
-      const stack = currentlyResolving.join(' -> ');
-      currentlyResolving.length = 0;
-      return new Error(stack ? `${ msg } (Resolving: ${ stack })` : msg);
-    };
-
-    /**
-     * Return a named service.
-     *
-     * @param {string} name
-     * @param {boolean} [strict=true] if false, resolve missing services to null
-     *
-     * @return {any}
-     */
-    function get(name, strict) {
-      if (!providers[name] && name.indexOf('.') !== -1) {
-        const parts = name.split('.');
-        let pivot = get(parts.shift());
-
-        while (parts.length) {
-          pivot = pivot[parts.shift()];
-        }
-
-        return pivot;
-      }
-
-      if (hasOwnProp(instances, name)) {
-        return instances[name];
-      }
-
-      if (hasOwnProp(providers, name)) {
-        if (currentlyResolving.indexOf(name) !== -1) {
-          currentlyResolving.push(name);
-          throw error('Cannot resolve circular dependency!');
-        }
-
-        currentlyResolving.push(name);
-        instances[name] = providers[name][0](providers[name][1]);
-        currentlyResolving.pop();
-
-        return instances[name];
-      }
-
-      return parent.get(name, strict);
-    }
-
-    function fnDef(fn, locals) {
-
-      if (typeof locals === 'undefined') {
-        locals = {};
-      }
-
-      if (typeof fn !== 'function') {
-        if (isArray(fn)) {
-          fn = annotate(fn.slice());
-        } else {
-          throw error(`Cannot invoke "${ fn }". Expected a function!`);
-        }
-      }
-
-      const inject = fn.$inject || parseAnnotations(fn);
-      const dependencies = inject.map(dep => {
-        if (hasOwnProp(locals, dep)) {
-          return locals[dep];
-        } else {
-          return get(dep);
-        }
-      });
-
-      return {
-        fn: fn,
-        dependencies: dependencies
-      };
-    }
-
-    function instantiate(Type) {
-      const {
-        fn,
-        dependencies
-      } = fnDef(Type);
-
-      // instantiate var args constructor
-      const Constructor = Function.prototype.bind.apply(fn, [ null ].concat(dependencies));
-
-      return new Constructor();
-    }
-
-    function invoke(func, context, locals) {
-      const {
-        fn,
-        dependencies
-      } = fnDef(func, locals);
-
-      return fn.apply(context, dependencies);
-    }
-
-    /**
-     * @param {Injector} childInjector
-     *
-     * @return {Function}
-     */
-    function createPrivateInjectorFactory(childInjector) {
-      return annotate(key => childInjector.get(key));
-    }
-
-    /**
-     * @param {ModuleDefinition[]} modules
-     * @param {string[]} [forceNewInstances]
-     *
-     * @return {Injector}
-     */
-    function createChild(modules, forceNewInstances) {
-      if (forceNewInstances && forceNewInstances.length) {
-        const fromParentModule = Object.create(null);
-        const matchedScopes = Object.create(null);
-
-        const privateInjectorsCache = [];
-        const privateChildInjectors = [];
-        const privateChildFactories = [];
-
-        let provider;
-        let cacheIdx;
-        let privateChildInjector;
-        let privateChildInjectorFactory;
-
-        for (let name in providers) {
-          provider = providers[name];
-
-          if (forceNewInstances.indexOf(name) !== -1) {
-            if (provider[2] === 'private') {
-              cacheIdx = privateInjectorsCache.indexOf(provider[3]);
-              if (cacheIdx === -1) {
-                privateChildInjector = provider[3].createChild([], forceNewInstances);
-                privateChildInjectorFactory = createPrivateInjectorFactory(privateChildInjector);
-                privateInjectorsCache.push(provider[3]);
-                privateChildInjectors.push(privateChildInjector);
-                privateChildFactories.push(privateChildInjectorFactory);
-                fromParentModule[name] = [ privateChildInjectorFactory, name, 'private', privateChildInjector ];
-              } else {
-                fromParentModule[name] = [ privateChildFactories[cacheIdx], name, 'private', privateChildInjectors[cacheIdx] ];
-              }
-            } else {
-              fromParentModule[name] = [ provider[2], provider[1] ];
-            }
-            matchedScopes[name] = true;
-          }
-
-          if ((provider[2] === 'factory' || provider[2] === 'type') && provider[1].$scope) {
-            /* jshint -W083 */
-            forceNewInstances.forEach(scope => {
-              if (provider[1].$scope.indexOf(scope) !== -1) {
-                fromParentModule[name] = [ provider[2], provider[1] ];
-                matchedScopes[scope] = true;
-              }
-            });
-          }
-        }
-
-        forceNewInstances.forEach(scope => {
-          if (!matchedScopes[scope]) {
-            throw new Error('No provider for "' + scope + '". Cannot use provider from the parent!');
-          }
-        });
-
-        modules.unshift(fromParentModule);
-      }
-
-      return new Injector(modules, self);
-    }
-
-    const factoryMap = {
-      factory: invoke,
-      type: instantiate,
-      value: function(value) {
-        return value;
-      }
-    };
-
-    /**
-     * @param {ModuleDefinition} moduleDefinition
-     * @param {Injector} injector
-     */
-    function createInitializer(moduleDefinition, injector) {
-
-      const initializers = moduleDefinition.__init__ || [];
-
-      return function() {
-        initializers.forEach(initializer => {
-
-          // eagerly resolve component (fn or string)
-          if (typeof initializer === 'string') {
-            injector.get(initializer);
-          } else {
-            injector.invoke(initializer);
-          }
-        });
-      };
-    }
-
-    /**
-     * @param {ModuleDefinition} moduleDefinition
-     */
-    function loadModule(moduleDefinition) {
-
-      const moduleExports = moduleDefinition.__exports__;
-
-      // private module
-      if (moduleExports) {
-        const nestedModules = moduleDefinition.__modules__;
-
-        const clonedModule = Object.keys(moduleDefinition).reduce((clonedModule, key) => {
-
-          if (key !== '__exports__' && key !== '__modules__' && key !== '__init__' && key !== '__depends__') {
-            clonedModule[key] = moduleDefinition[key];
-          }
-
-          return clonedModule;
-        }, Object.create(null));
-
-        const childModules = (nestedModules || []).concat(clonedModule);
-
-        const privateInjector = createChild(childModules);
-        const getFromPrivateInjector = annotate(function(key) {
-          return privateInjector.get(key);
-        });
-
-        moduleExports.forEach(function(key) {
-          providers[key] = [ getFromPrivateInjector, key, 'private', privateInjector ];
-        });
-
-        // ensure child injector initializes
-        const initializers = (moduleDefinition.__init__ || []).slice();
-
-        initializers.unshift(function() {
-          privateInjector.init();
-        });
-
-        moduleDefinition = Object.assign({}, moduleDefinition, {
-          __init__: initializers
-        });
-
-        return createInitializer(moduleDefinition, privateInjector);
-      }
-
-      // normal module
-      Object.keys(moduleDefinition).forEach(function(key) {
-
-        if (key === '__init__' || key === '__depends__') {
-          return;
-        }
-
-        if (moduleDefinition[key][2] === 'private') {
-          providers[key] = moduleDefinition[key];
-          return;
-        }
-
-        const type = moduleDefinition[key][0];
-        const value = moduleDefinition[key][1];
-
-        providers[key] = [ factoryMap[type], arrayUnwrap(type, value), type ];
-      });
-
-      return createInitializer(moduleDefinition, self);
-    }
-
-    /**
-     * @param {ModuleDefinition[]} moduleDefinitions
-     * @param {ModuleDefinition} moduleDefinition
-     *
-     * @return {ModuleDefinition[]}
-     */
-    function resolveDependencies(moduleDefinitions, moduleDefinition) {
-
-      if (moduleDefinitions.indexOf(moduleDefinition) !== -1) {
-        return moduleDefinitions;
-      }
-
-      moduleDefinitions = (moduleDefinition.__depends__ || []).reduce(resolveDependencies, moduleDefinitions);
-
-      if (moduleDefinitions.indexOf(moduleDefinition) !== -1) {
-        return moduleDefinitions;
-      }
-
-      return moduleDefinitions.concat(moduleDefinition);
-    }
-
-    /**
-     * @param {ModuleDefinition[]} moduleDefinitions
-     *
-     * @return { () => void } initializerFn
-     */
-    function bootstrap(moduleDefinitions) {
-
-      const initializers = moduleDefinitions
-        .reduce(resolveDependencies, [])
-        .map(loadModule);
-
-      let initialized = false;
-
-      return function() {
-
-        if (initialized) {
-          return;
-        }
-
-        initialized = true;
-
-        initializers.forEach(initializer => initializer());
-      };
-    }
-
-    // public API
-    this.get = get;
-    this.invoke = invoke;
-    this.instantiate = instantiate;
-    this.createChild = createChild;
-
-    // setup
-    this.init = bootstrap(modules);
-  }
-
-
-  // helpers ///////////////
-
-  function arrayUnwrap(type, value) {
-    if (type !== 'value' && isArray(value)) {
-      value = annotate(value.slice());
-    }
-
-    return value;
-  }
-
-  const getFlavouredFeelVariableNames = (feelString, feelFlavour, options = {}) => {
+  const getFlavouredFeelVariableNames = (feelString, feelFlavour = 'expression', options = {}) => {
     const {
       depth = 0,
       specialDepthAccessors = {}
     } = options;
     if (!['expression', 'unaryTest'].includes(feelFlavour)) return [];
-    const tree = feelFlavour === 'expression' ? parseExpressions$1(feelString) : parseUnaryTests$1(feelString);
+    const tree = feelFlavour === 'expression' ? parseExpression(feelString) : parseUnaryTests(feelString);
     const simpleExpressionTree = _buildSimpleFeelStructureTree(tree, feelString);
-    return function _unfoldVariables(node) {
+    const variables = function _unfoldVariables(node) {
       if (node.name === 'PathExpression') {
         if (Object.keys(specialDepthAccessors).length === 0) {
           return depth === 0 ? [_getVariableNameAtPathIndex(node, 0)] : [];
@@ -42087,12 +40112,16 @@
 
       // for any other kind of node, traverse its children and flatten the result
       if (node.children) {
-        return node.children.reduce((acc, child) => {
+        const variables = node.children.reduce((acc, child) => {
           return acc.concat(_unfoldVariables(child));
         }, []);
+
+        // if we are within a filter context, we need to remove the item variable as it is used for iteration there
+        return node.name === 'FilterContext' ? variables.filter(name => name !== 'item') : variables;
       }
       return [];
     }(simpleExpressionTree);
+    return [...new Set(variables)];
   };
 
   /**
@@ -42212,7 +40241,45 @@
         parent.children.push(result);
       }
     });
-    return stack[0].children[0];
+    return _extractFilterExpressions(stack[0].children[0]);
+  };
+
+  /**
+   * Restructure the tree in such a way to bring filters (which create new contexts) to the root of the tree.
+   * This is done to simplify the extraction of variables and match the context hierarchy.
+   */
+  const _extractFilterExpressions = tree => {
+    const flattenedExpressionTree = {
+      name: 'Root',
+      children: [tree]
+    };
+    const iterate = node => {
+      if (node.children) {
+        for (let x = 0; x < node.children.length; x++) {
+          if (node.children[x].name === 'FilterExpression') {
+            const filterTarget = node.children[x].children[0];
+            const filterExpression = node.children[x].children[2];
+
+            // bypass the filter expression
+            node.children[x] = filterTarget;
+            const taggedFilterExpression = {
+              name: 'FilterContext',
+              children: [filterExpression]
+            };
+
+            // append the filter expression to the root
+            flattenedExpressionTree.children.push(taggedFilterExpression);
+
+            // recursively iterate the expression
+            iterate(filterExpression);
+          } else {
+            iterate(node.children[x]);
+          }
+        }
+      }
+    };
+    iterate(tree);
+    return flattenedExpressionTree;
   };
 
   class FeelExpressionLanguage {
@@ -42228,7 +40295,7 @@
      *
      */
     isExpression(value) {
-      return isString$3(value) && value.startsWith('=');
+      return isString$2(value) && value.startsWith('=');
     }
 
     /**
@@ -42265,11 +40332,11 @@
       if (!expression) {
         return null;
       }
-      if (!isString$3(expression) || !expression.startsWith('=')) {
+      if (!isString$2(expression) || !expression.startsWith('=')) {
         return null;
       }
       try {
-        const result = evaluate$2(expression.slice(1), data);
+        const result = evaluate$1(expression.slice(1), data);
         return result;
       } catch (error) {
         this._eventBus.fire('error', {
@@ -42292,7 +40359,7 @@
      *
      */
     isTemplate(value) {
-      return isString$3(value) && (value.startsWith('=') || /{{.*?}}/.test(value));
+      return isString$2(value) && (value.startsWith('=') || /{{.*?}}/.test(value));
     }
 
     /**
@@ -42443,7 +40510,7 @@
       if (!condition) {
         return null;
       }
-      if (!isString$3(condition) || !condition.startsWith('=')) {
+      if (!isString$2(condition) || !condition.startsWith('=')) {
         return null;
       }
       try {
@@ -42499,10 +40566,10 @@
   };
 
   // bootstrap showdown to support github flavored markdown
-  showdownExports.setFlavor('github');
+  showdown.setFlavor('github');
   class MarkdownRenderer {
     constructor() {
-      this._converter = new showdownExports.Converter();
+      this._converter = new showdown.Converter();
     }
 
     /**
@@ -42521,6 +40588,671 @@
   var MarkdownModule = {
     __init__: ['markdownRenderer'],
     markdownRenderer: ['type', MarkdownRenderer]
+  };
+
+  /**
+   * @typedef {import('didi').Injector} Injector
+   *
+   * @typedef {import('../core/Types').ElementLike} ElementLike
+   *
+   * @typedef {import('../core/EventBus').default} EventBus
+   * @typedef {import('./CommandHandler').default} CommandHandler
+   *
+   * @typedef { any } CommandContext
+   * @typedef { {
+   *   new (...args: any[]) : CommandHandler
+   * } } CommandHandlerConstructor
+   * @typedef { {
+   *   [key: string]: CommandHandler;
+   * } } CommandHandlerMap
+   * @typedef { {
+   *   command: string;
+   *   context: any;
+   *   id?: any;
+   * } } CommandStackAction
+   * @typedef { {
+   *   actions: CommandStackAction[];
+   *   dirty: ElementLike[];
+   *   trigger: 'execute' | 'undo' | 'redo' | 'clear' | null;
+   *   atomic?: boolean;
+   * } } CurrentExecution
+   */
+
+  /**
+   * A service that offers un- and redoable execution of commands.
+   *
+   * The command stack is responsible for executing modeling actions
+   * in a un- and redoable manner. To do this it delegates the actual
+   * command execution to {@link CommandHandler}s.
+   *
+   * Command handlers provide {@link CommandHandler#execute(ctx)} and
+   * {@link CommandHandler#revert(ctx)} methods to un- and redo a command
+   * identified by a command context.
+   *
+   *
+   * ## Life-Cycle events
+   *
+   * In the process the command stack fires a number of life-cycle events
+   * that other components to participate in the command execution.
+   *
+   *    * preExecute
+   *    * preExecuted
+   *    * execute
+   *    * executed
+   *    * postExecute
+   *    * postExecuted
+   *    * revert
+   *    * reverted
+   *
+   * A special event is used for validating, whether a command can be
+   * performed prior to its execution.
+   *
+   *    * canExecute
+   *
+   * Each of the events is fired as `commandStack.{eventName}` and
+   * `commandStack.{commandName}.{eventName}`, respectively. This gives
+   * components fine grained control on where to hook into.
+   *
+   * The event object fired transports `command`, the name of the
+   * command and `context`, the command context.
+   *
+   *
+   * ## Creating Command Handlers
+   *
+   * Command handlers should provide the {@link CommandHandler#execute(ctx)}
+   * and {@link CommandHandler#revert(ctx)} methods to implement
+   * redoing and undoing of a command.
+   *
+   * A command handler _must_ ensure undo is performed properly in order
+   * not to break the undo chain. It must also return the shapes that
+   * got changed during the `execute` and `revert` operations.
+   *
+   * Command handlers may execute other modeling operations (and thus
+   * commands) in their `preExecute(d)` and `postExecute(d)` phases. The command
+   * stack will properly group all commands together into a logical unit
+   * that may be re- and undone atomically.
+   *
+   * Command handlers must not execute other commands from within their
+   * core implementation (`execute`, `revert`).
+   *
+   *
+   * ## Change Tracking
+   *
+   * During the execution of the CommandStack it will keep track of all
+   * elements that have been touched during the command's execution.
+   *
+   * At the end of the CommandStack execution it will notify interested
+   * components via an 'elements.changed' event with all the dirty
+   * elements.
+   *
+   * The event can be picked up by components that are interested in the fact
+   * that elements have been changed. One use case for this is updating
+   * their graphical representation after moving / resizing or deletion.
+   *
+   * @see CommandHandler
+   *
+   * @param {EventBus} eventBus
+   * @param {Injector} injector
+   */
+  function CommandStack(eventBus, injector) {
+    /**
+     * A map of all registered command handlers.
+     *
+     * @type {CommandHandlerMap}
+     */
+    this._handlerMap = {};
+
+    /**
+     * A stack containing all re/undoable actions on the diagram
+     *
+     * @type {CommandStackAction[]}
+     */
+    this._stack = [];
+
+    /**
+     * The current index on the stack
+     *
+     * @type {number}
+     */
+    this._stackIdx = -1;
+
+    /**
+     * Current active commandStack execution
+     *
+     * @type {CurrentExecution}
+     */
+    this._currentExecution = {
+      actions: [],
+      dirty: [],
+      trigger: null
+    };
+
+    /**
+     * @type {Injector}
+     */
+    this._injector = injector;
+
+    /**
+     * @type EventBus
+     */
+    this._eventBus = eventBus;
+
+    /**
+     * @type { number }
+     */
+    this._uid = 1;
+    eventBus.on(['diagram.destroy', 'diagram.clear'], function () {
+      this.clear(false);
+    }, this);
+  }
+  CommandStack.$inject = ['eventBus', 'injector'];
+
+  /**
+   * Execute a command.
+   *
+   * @param {string} command The command to execute.
+   * @param {CommandContext} context The context with which to execute the command.
+   */
+  CommandStack.prototype.execute = function (command, context) {
+    if (!command) {
+      throw new Error('command required');
+    }
+    this._currentExecution.trigger = 'execute';
+    const action = {
+      command: command,
+      context: context
+    };
+    this._pushAction(action);
+    this._internalExecute(action);
+    this._popAction();
+  };
+
+  /**
+   * Check whether a command can be executed.
+   *
+   * Implementors may hook into the mechanism on two ways:
+   *
+   *   * in event listeners:
+   *
+   *     Users may prevent the execution via an event listener.
+   *     It must prevent the default action for `commandStack.(<command>.)canExecute` events.
+   *
+   *   * in command handlers:
+   *
+   *     If the method {@link CommandHandler#canExecute} is implemented in a handler
+   *     it will be called to figure out whether the execution is allowed.
+   *
+   * @param {string} command The command to execute.
+   * @param {CommandContext} context The context with which to execute the command.
+   *
+   * @return {boolean} Whether the command can be executed with the given context.
+   */
+  CommandStack.prototype.canExecute = function (command, context) {
+    const action = {
+      command: command,
+      context: context
+    };
+    const handler = this._getHandler(command);
+    let result = this._fire(command, 'canExecute', action);
+
+    // handler#canExecute will only be called if no listener
+    // decided on a result already
+    if (result === undefined) {
+      if (!handler) {
+        return false;
+      }
+      if (handler.canExecute) {
+        result = handler.canExecute(context);
+      }
+    }
+    return result;
+  };
+
+  /**
+   * Clear the command stack, erasing all undo / redo history.
+   *
+   * @param {boolean} [emit=true] Whether to fire an event. Defaults to `true`.
+   */
+  CommandStack.prototype.clear = function (emit) {
+    this._stack.length = 0;
+    this._stackIdx = -1;
+    if (emit !== false) {
+      this._fire('changed', {
+        trigger: 'clear'
+      });
+    }
+  };
+
+  /**
+   * Undo last command(s)
+   */
+  CommandStack.prototype.undo = function () {
+    let action = this._getUndoAction(),
+      next;
+    if (action) {
+      this._currentExecution.trigger = 'undo';
+      this._pushAction(action);
+      while (action) {
+        this._internalUndo(action);
+        next = this._getUndoAction();
+        if (!next || next.id !== action.id) {
+          break;
+        }
+        action = next;
+      }
+      this._popAction();
+    }
+  };
+
+  /**
+   * Redo last command(s)
+   */
+  CommandStack.prototype.redo = function () {
+    let action = this._getRedoAction(),
+      next;
+    if (action) {
+      this._currentExecution.trigger = 'redo';
+      this._pushAction(action);
+      while (action) {
+        this._internalExecute(action, true);
+        next = this._getRedoAction();
+        if (!next || next.id !== action.id) {
+          break;
+        }
+        action = next;
+      }
+      this._popAction();
+    }
+  };
+
+  /**
+   * Register a handler instance with the command stack.
+   *
+   * @param {string} command Command to be executed.
+   * @param {CommandHandler} handler Handler to execute the command.
+   */
+  CommandStack.prototype.register = function (command, handler) {
+    this._setHandler(command, handler);
+  };
+
+  /**
+   * Register a handler type with the command stack  by instantiating it and
+   * injecting its dependencies.
+   *
+   * @param {string} command Command to be executed.
+   * @param {CommandHandlerConstructor} handlerCls Constructor to instantiate a {@link CommandHandler}.
+   */
+  CommandStack.prototype.registerHandler = function (command, handlerCls) {
+    if (!command || !handlerCls) {
+      throw new Error('command and handlerCls must be defined');
+    }
+    const handler = this._injector.instantiate(handlerCls);
+    this.register(command, handler);
+  };
+
+  /**
+   * @return {boolean}
+   */
+  CommandStack.prototype.canUndo = function () {
+    return !!this._getUndoAction();
+  };
+
+  /**
+   * @return {boolean}
+   */
+  CommandStack.prototype.canRedo = function () {
+    return !!this._getRedoAction();
+  };
+
+  // stack access  //////////////////////
+
+  CommandStack.prototype._getRedoAction = function () {
+    return this._stack[this._stackIdx + 1];
+  };
+  CommandStack.prototype._getUndoAction = function () {
+    return this._stack[this._stackIdx];
+  };
+
+  // internal functionality //////////////////////
+
+  CommandStack.prototype._internalUndo = function (action) {
+    const command = action.command,
+      context = action.context;
+    const handler = this._getHandler(command);
+
+    // guard against illegal nested command stack invocations
+    this._atomicDo(() => {
+      this._fire(command, 'revert', action);
+      if (handler.revert) {
+        this._markDirty(handler.revert(context));
+      }
+      this._revertedAction(action);
+      this._fire(command, 'reverted', action);
+    });
+  };
+  CommandStack.prototype._fire = function (command, qualifier, event) {
+    if (arguments.length < 3) {
+      event = qualifier;
+      qualifier = null;
+    }
+    const names = qualifier ? [command + '.' + qualifier, qualifier] : [command];
+    let result;
+    event = this._eventBus.createEvent(event);
+    for (const name of names) {
+      result = this._eventBus.fire('commandStack.' + name, event);
+      if (event.cancelBubble) {
+        break;
+      }
+    }
+    return result;
+  };
+  CommandStack.prototype._createId = function () {
+    return this._uid++;
+  };
+  CommandStack.prototype._atomicDo = function (fn) {
+    const execution = this._currentExecution;
+    execution.atomic = true;
+    try {
+      fn();
+    } finally {
+      execution.atomic = false;
+    }
+  };
+  CommandStack.prototype._internalExecute = function (action, redo) {
+    const command = action.command,
+      context = action.context;
+    const handler = this._getHandler(command);
+    if (!handler) {
+      throw new Error('no command handler registered for <' + command + '>');
+    }
+    this._pushAction(action);
+    if (!redo) {
+      this._fire(command, 'preExecute', action);
+      if (handler.preExecute) {
+        handler.preExecute(context);
+      }
+      this._fire(command, 'preExecuted', action);
+    }
+
+    // guard against illegal nested command stack invocations
+    this._atomicDo(() => {
+      this._fire(command, 'execute', action);
+      if (handler.execute) {
+        // actual execute + mark return results as dirty
+        this._markDirty(handler.execute(context));
+      }
+
+      // log to stack
+      this._executedAction(action, redo);
+      this._fire(command, 'executed', action);
+    });
+    if (!redo) {
+      this._fire(command, 'postExecute', action);
+      if (handler.postExecute) {
+        handler.postExecute(context);
+      }
+      this._fire(command, 'postExecuted', action);
+    }
+    this._popAction();
+  };
+  CommandStack.prototype._pushAction = function (action) {
+    const execution = this._currentExecution,
+      actions = execution.actions;
+    const baseAction = actions[0];
+    if (execution.atomic) {
+      throw new Error('illegal invocation in <execute> or <revert> phase (action: ' + action.command + ')');
+    }
+    if (!action.id) {
+      action.id = baseAction && baseAction.id || this._createId();
+    }
+    actions.push(action);
+  };
+  CommandStack.prototype._popAction = function () {
+    const execution = this._currentExecution,
+      trigger = execution.trigger,
+      actions = execution.actions,
+      dirty = execution.dirty;
+    actions.pop();
+    if (!actions.length) {
+      this._eventBus.fire('elements.changed', {
+        elements: uniqueBy('id', dirty.reverse())
+      });
+      dirty.length = 0;
+      this._fire('changed', {
+        trigger: trigger
+      });
+      execution.trigger = null;
+    }
+  };
+  CommandStack.prototype._markDirty = function (elements) {
+    const execution = this._currentExecution;
+    if (!elements) {
+      return;
+    }
+    elements = isArray$2(elements) ? elements : [elements];
+    execution.dirty = execution.dirty.concat(elements);
+  };
+  CommandStack.prototype._executedAction = function (action, redo) {
+    const stackIdx = ++this._stackIdx;
+    if (!redo) {
+      this._stack.splice(stackIdx, this._stack.length, action);
+    }
+  };
+  CommandStack.prototype._revertedAction = function (action) {
+    this._stackIdx--;
+  };
+  CommandStack.prototype._getHandler = function (command) {
+    return this._handlerMap[command];
+  };
+  CommandStack.prototype._setHandler = function (command, handler) {
+    if (!command || !handler) {
+      throw new Error('command and handler required');
+    }
+    if (this._handlerMap[command]) {
+      throw new Error('overriding handler for command <' + command + '>');
+    }
+    this._handlerMap[command] = handler;
+  };
+
+  /**
+   * @type { import('didi').ModuleDeclaration }
+   */
+  var commandModule = {
+    commandStack: ['type', CommandStack]
+  };
+
+  // config  ///////////////////
+
+  const MINUTES_IN_DAY = 60 * 24;
+  const DATETIME_SUBTYPES = {
+    DATE: 'date',
+    TIME: 'time',
+    DATETIME: 'datetime'
+  };
+  const TIME_SERIALISING_FORMATS = {
+    UTC_OFFSET: 'utc_offset',
+    UTC_NORMALIZED: 'utc_normalized',
+    NO_TIMEZONE: 'no_timezone'
+  };
+  const DATETIME_SUBTYPE_PATH = ['subtype'];
+  const DATE_LABEL_PATH = ['dateLabel'];
+
+  function createInjector(bootstrapModules) {
+    const injector = new Injector(bootstrapModules);
+    injector.init();
+    return injector;
+  }
+
+  /**
+   * @param {string?} prefix
+   *
+   * @returns Element
+   */
+  function createFormContainer(prefix = 'fjs') {
+    const container = document.createElement('div');
+    container.classList.add(`${prefix}-container`);
+    return container;
+  }
+
+  const EXPRESSION_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'conditional.hide', 'description', 'label', 'source', 'readonly', 'text', 'validate.min', 'validate.max', 'validate.minLength', 'validate.maxLength', 'valuesExpression'];
+  const TEMPLATE_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'description', 'label', 'source', 'text'];
+  function findErrors(errors, path) {
+    return errors[pathStringify(path)];
+  }
+  function pathStringify(path) {
+    if (!path) {
+      return '';
+    }
+    return path.join('.');
+  }
+  const indices = {};
+  function generateIndexForType(type) {
+    if (type in indices) {
+      indices[type]++;
+    } else {
+      indices[type] = 1;
+    }
+    return indices[type];
+  }
+  function generateIdForType(type) {
+    return `${type}${generateIndexForType(type)}`;
+  }
+
+  /**
+   * @template T
+   * @param {T} data
+   * @param {(this: any, key: string, value: any) => any} [replacer]
+   * @return {T}
+   */
+  function clone(data, replacer) {
+    return JSON.parse(JSON.stringify(data, replacer));
+  }
+
+  /**
+   * Parse the schema for input variables a form might make use of
+   *
+   * @param {any} schema
+   *
+   * @return {string[]}
+   */
+  function getSchemaVariables(schema, options = {}) {
+    const {
+      expressionLanguage = new FeelExpressionLanguage(null),
+      templating = new FeelersTemplating(),
+      inputs = true,
+      outputs = true
+    } = options;
+    if (!schema.components) {
+      return [];
+    }
+    const variables = schema.components.reduce((variables, component) => {
+      const {
+        key,
+        valuesKey,
+        type
+      } = component;
+      if (['button'].includes(type)) {
+        return variables;
+      }
+
+      // collect bi-directional variables
+      if (inputs || outputs) {
+        if (key) {
+          variables = [...variables, key];
+        }
+      }
+
+      // collect input-only variables
+      if (inputs) {
+        if (valuesKey) {
+          variables = [...variables, valuesKey];
+        }
+        EXPRESSION_PROPERTIES.forEach(prop => {
+          const property = get(component, prop.split('.'));
+          if (property && expressionLanguage.isExpression(property)) {
+            const expressionVariables = expressionLanguage.getVariableNames(property, {
+              type: 'expression'
+            });
+            variables = [...variables, ...expressionVariables];
+          }
+        });
+        TEMPLATE_PROPERTIES.forEach(prop => {
+          const property = get(component, prop.split('.'));
+          if (property && !expressionLanguage.isExpression(property) && templating.isTemplate(property)) {
+            const templateVariables = templating.getVariableNames(property);
+            variables = [...variables, ...templateVariables];
+          }
+        });
+      }
+      return variables.filter(variable => variable !== undefined || variable !== null);
+    }, []);
+
+    // remove duplicates
+    return Array.from(new Set(variables));
+  }
+
+  class UpdateFieldValidationHandler {
+    constructor(form, validator) {
+      this._form = form;
+      this._validator = validator;
+    }
+    execute(context) {
+      const {
+        field,
+        value
+      } = context;
+      const {
+        _path
+      } = field;
+      const {
+        errors
+      } = this._form._getState();
+      context.oldErrors = clone(errors);
+      const fieldErrors = this._validator.validateField(field, value);
+      const updatedErrors = set(errors, [pathStringify(_path)], fieldErrors.length ? fieldErrors : undefined);
+      this._form._setState({
+        errors: updatedErrors
+      });
+    }
+    revert(context) {
+      this._form._setState({
+        errors: context.oldErrors
+      });
+    }
+  }
+  UpdateFieldValidationHandler.$inject = ['form', 'validator'];
+
+  class ViewerCommands {
+    constructor(commandStack, eventBus) {
+      this._commandStack = commandStack;
+      eventBus.on('form.init', () => {
+        this.registerHandlers();
+      });
+    }
+    registerHandlers() {
+      Object.entries(this.getHandlers()).forEach(([id, handler]) => {
+        this._commandStack.registerHandler(id, handler);
+      });
+    }
+    getHandlers() {
+      return {
+        'formField.validation.update': UpdateFieldValidationHandler
+      };
+    }
+    updateFieldValidation(field, value) {
+      const context = {
+        field,
+        value
+      };
+      this._commandStack.execute('formField.validation.update', context);
+    }
+  }
+  ViewerCommands.$inject = ['commandStack', 'eventBus'];
+
+  var ViewerCommandsModule = {
+    __depends__: [commandModule],
+    __init__: ['viewerCommands'],
+    viewerCommands: ['type', ViewerCommands]
   };
 
   var FN_REF = '__fn';
@@ -42665,13 +41397,13 @@
    * @param {any} [that] callback context
    */
   EventBus.prototype.on = function (events, priority, callback, that) {
-    events = isArray$3(events) ? events : [events];
+    events = isArray$2(events) ? events : [events];
     if (isFunction(priority)) {
       that = callback;
       callback = priority;
       priority = DEFAULT_PRIORITY;
     }
-    if (!isNumber$3(priority)) {
+    if (!isNumber$2(priority)) {
       throw new Error('priority must be a number');
     }
     var actualCallback = callback;
@@ -42710,7 +41442,7 @@
       callback = priority;
       priority = DEFAULT_PRIORITY;
     }
-    if (!isNumber$3(priority)) {
+    if (!isNumber$2(priority)) {
       throw new Error('priority must be a number');
     }
     function wrappedCallback() {
@@ -42736,7 +41468,7 @@
    * @param {EventBusEventCallback} [callback]
    */
   EventBus.prototype.off = function (events, callback) {
-    events = isArray$3(events) ? events : [events];
+    events = isArray$2(events) ? events : [events];
     var self = this;
     events.forEach(function (event) {
       self._removeListener(event, callback);
@@ -43351,123 +42083,7 @@
    * @returns {Array<FormRow>}
    */
   function allRows(formRows) {
-    return flatten$3(formRows.map(c => c.rows));
-  }
-
-  // config  ///////////////////
-
-  const MINUTES_IN_DAY = 60 * 24;
-  const DATETIME_SUBTYPES = {
-    DATE: 'date',
-    TIME: 'time',
-    DATETIME: 'datetime'
-  };
-  const TIME_SERIALISING_FORMATS = {
-    UTC_OFFSET: 'utc_offset',
-    UTC_NORMALIZED: 'utc_normalized',
-    NO_TIMEZONE: 'no_timezone'
-  };
-  const DATETIME_SUBTYPE_PATH = ['subtype'];
-  const DATE_LABEL_PATH = ['dateLabel'];
-
-  function createInjector(bootstrapModules) {
-    const injector = new Injector(bootstrapModules);
-    injector.init();
-    return injector;
-  }
-
-  /**
-   * @param {string?} prefix
-   *
-   * @returns Element
-   */
-  function createFormContainer(prefix = 'fjs') {
-    const container = document.createElement('div');
-    container.classList.add(`${prefix}-container`);
-    return container;
-  }
-
-  const EXPRESSION_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'conditional.hide', 'description', 'label', 'source', 'readonly', 'text', 'validate.min', 'validate.max', 'validate.minLength', 'validate.maxLength', 'valuesExpression'];
-  const TEMPLATE_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'description', 'label', 'source', 'text'];
-  function findErrors(errors, path) {
-    return errors[pathStringify(path)];
-  }
-  function pathStringify(path) {
-    if (!path) {
-      return '';
-    }
-    return path.join('.');
-  }
-  const indices = {};
-  function generateIndexForType(type) {
-    if (type in indices) {
-      indices[type]++;
-    } else {
-      indices[type] = 1;
-    }
-    return indices[type];
-  }
-  function generateIdForType(type) {
-    return `${type}${generateIndexForType(type)}`;
-  }
-
-  /**
-   * @template T
-   * @param {T} data
-   * @param {(this: any, key: string, value: any) => any} [replacer]
-   * @return {T}
-   */
-  function clone(data, replacer) {
-    return JSON.parse(JSON.stringify(data, replacer));
-  }
-
-  /**
-   * Parse the schema for input variables a form might make use of
-   *
-   * @param {any} schema
-   *
-   * @return {string[]}
-   */
-  function getSchemaVariables(schema, expressionLanguage = new FeelExpressionLanguage(null), templating = new FeelersTemplating()) {
-    if (!schema.components) {
-      return [];
-    }
-    const variables = schema.components.reduce((variables, component) => {
-      const {
-        key,
-        valuesKey,
-        type
-      } = component;
-      if (['button'].includes(type)) {
-        return variables;
-      }
-      if (key) {
-        variables = [...variables, key];
-      }
-      if (valuesKey) {
-        variables = [...variables, valuesKey];
-      }
-      EXPRESSION_PROPERTIES.forEach(prop => {
-        const property = get(component, prop.split('.'));
-        if (property && expressionLanguage.isExpression(property)) {
-          const expressionVariables = expressionLanguage.getVariableNames(property, {
-            type: 'expression'
-          });
-          variables = [...variables, ...expressionVariables];
-        }
-      });
-      TEMPLATE_PROPERTIES.forEach(prop => {
-        const property = get(component, prop.split('.'));
-        if (property && !expressionLanguage.isExpression(property) && templating.isTemplate(property)) {
-          const templateVariables = templating.getVariableNames(property);
-          variables = [...variables, ...templateVariables];
-        }
-      });
-      return variables;
-    }, []);
-
-    // remove duplicates
-    return Array.from(new Set(variables));
+    return flatten$2(formRows.map(c => c.rows));
   }
 
   class Importer {
@@ -43644,7 +42260,7 @@
     return `fjs-form-${id}`;
   }
 
-  const type$b = 'button';
+  const type$c = 'button';
   function Button(props) {
     const {
       disabled,
@@ -43654,7 +42270,7 @@
       action = 'submit'
     } = field;
     return e$2("div", {
-      class: formFieldClasses(type$b),
+      class: formFieldClasses(type$c),
       children: e$2("button", {
         class: "fjs-button",
         type: action,
@@ -43664,7 +42280,7 @@
     });
   }
   Button.config = {
-    type: type$b,
+    type: type$c,
     keyed: true,
     label: 'Button',
     group: 'action',
@@ -43924,11 +42540,12 @@
     });
   }
 
-  const type$a = 'checkbox';
+  const type$b = 'checkbox';
   function Checkbox(props) {
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       readonly,
       value = false
@@ -43955,7 +42572,7 @@
     } = F(FormContext$1);
     const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
-      class: classNames(formFieldClasses(type$a, {
+      class: classNames(formFieldClasses(type$b, {
         errors,
         disabled,
         readonly
@@ -43974,6 +42591,7 @@
           id: prefixId(id, formId),
           type: "checkbox",
           onChange: onChange,
+          onBlur: onBlur,
           "aria-describedby": errorMessageId
         })
       }), e$2(Description, {
@@ -43985,7 +42603,7 @@
     });
   }
   Checkbox.config = {
-    type: type$a,
+    type: type$b,
     keyed: true,
     label: 'Checkbox',
     group: 'selection',
@@ -44156,7 +42774,7 @@
       const digits = workingString.match(/\d+/g);
       const displayHour = parseInt(digits && digits[0]);
       const minute = parseInt(digits && digits[1]) || 0;
-      const isValidDisplayHour = isNumber$3(displayHour) && displayHour >= 1 && displayHour <= 12;
+      const isValidDisplayHour = isNumber$2(displayHour) && displayHour >= 1 && displayHour <= 12;
       const isValidMinute = minute >= 0 && minute <= 59;
       if (!isValidDisplayHour || !isValidMinute) return null;
       const hour = displayHour % 12 + (isPM ? 12 : 0);
@@ -44165,8 +42783,8 @@
       const digits = workingString.match(/\d+/g);
       const hour = parseInt(digits && digits[0]);
       const minute = parseInt(digits && digits[1]);
-      const isValidHour = isNumber$3(hour) && hour >= 0 && hour <= 23;
-      const isValidMinute = isNumber$3(minute) && minute >= 0 && minute <= 59;
+      const isValidHour = isNumber$2(hour) && hour >= 0 && hour <= 23;
+      const isValidMinute = isNumber$2(minute) && minute >= 0 && minute <= 59;
       if (!isValidHour || !isValidMinute) return null;
       return hour * 60 + minute;
     }
@@ -44328,11 +42946,12 @@
     }
   }
 
-  const type$9 = 'checklist';
+  const type$a = 'checklist';
   function Checklist(props) {
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       readonly,
       value = []
@@ -44343,6 +42962,7 @@
       label,
       validate = {}
     } = field;
+    const outerDivRef = s();
     const {
       required
     } = validate;
@@ -44358,6 +42978,12 @@
         value: newValue
       });
     };
+    const onCheckboxBlur = e => {
+      if (outerDivRef.current.contains(e.relatedTarget)) {
+        return;
+      }
+      onBlur();
+    };
     const {
       state: loadState,
       values: options
@@ -44367,11 +42993,12 @@
     } = F(FormContext$1);
     const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
-      class: classNames(formFieldClasses(type$9, {
+      class: classNames(formFieldClasses(type$a, {
         errors,
         disabled,
         readonly
       })),
+      ref: outerDivRef,
       children: [e$2(Label, {
         label: label,
         required: required
@@ -44391,6 +43018,7 @@
             id: prefixId(`${id}-${index}`, formId),
             type: "checkbox",
             onClick: () => toggleCheckbox(v.value),
+            onBlur: onCheckboxBlur,
             "aria-describedby": errorMessageId
           })
         }, `${id}-${index}`);
@@ -44403,7 +43031,7 @@
     });
   }
   Checklist.config = {
-    type: type$9,
+    type: type$a,
     keyed: true,
     label: 'Checklist',
     group: 'selection',
@@ -44433,8 +43061,10 @@
       onChange
     } = props;
     const formFields = useService('formFields'),
+      viewerCommands = useService('viewerCommands', false),
       form = useService('form');
     const {
+      initialData,
       data,
       errors,
       properties
@@ -44448,12 +43078,23 @@
     if (!FormFieldComponent) {
       throw new Error(`cannot render field <${field.type}>`);
     }
+    const initialValue = d(() => get(initialData, field._path), [initialData, field._path]);
     const value = get(data, field._path);
     const fieldErrors = findErrors(errors, field._path);
     const readonly = useReadonly(field, properties);
 
     // add precedence: global readonly > form field disabled
     const disabled = !properties.readOnly && (properties.disabled || field.disabled || false);
+    const onBlur = A$1(() => {
+      if (viewerCommands) {
+        viewerCommands.updateFieldValidation(field, value);
+      }
+    }, [viewerCommands, field, value]);
+    y(() => {
+      if (viewerCommands && initialValue) {
+        viewerCommands.updateFieldValidation(field, initialValue);
+      }
+    }, [viewerCommands, field, initialValue]);
     const hidden = useCondition(field.conditional && field.conditional.hide || null);
     if (hidden) {
       return e$2(Empty, {});
@@ -44469,6 +43110,7 @@
           disabled: disabled,
           errors: fieldErrors,
           onChange: disabled || readonly ? noop$1 : onChange,
+          onBlur: disabled || readonly ? noop$1 : onBlur,
           readonly: readonly,
           value: value
         })
@@ -44531,16 +43173,16 @@
     })
   };
 
-  var _path$g;
-  function _extends$j() { _extends$j = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$j.apply(this, arguments); }
+  var _path$h;
+  function _extends$k() { _extends$k = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$k.apply(this, arguments); }
   var SvgCalendar = function SvgCalendar(props) {
-    return /*#__PURE__*/v$1("svg", _extends$j({
+    return /*#__PURE__*/v$1("svg", _extends$k({
       xmlns: "http://www.w3.org/2000/svg",
       width: 14,
       height: 15,
       fill: "none",
       viewBox: "0 0 28 30"
-    }, props), _path$g || (_path$g = /*#__PURE__*/v$1("path", {
+    }, props), _path$h || (_path$h = /*#__PURE__*/v$1("path", {
       fill: "currentColor",
       fillRule: "evenodd",
       d: "M19 2H9V0H7v2H2a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-5V0h-2v2ZM7 7V4H2v5h24V4h-5v3h-2V4H9v3H7Zm-5 4v17h24V11H2Z",
@@ -44572,14 +43214,14 @@
       children: [pre && e$2("span", {
         class: "fjs-input-adornment border-right border-radius-left",
         onClick: onAdornmentClick,
-        children: [" ", isString$3(pre) ? e$2("span", {
+        children: [" ", isString$2(pre) ? e$2("span", {
           class: "fjs-input-adornment-text",
           children: pre
         }) : pre, " "]
       }), children, post && e$2("span", {
         class: "fjs-input-adornment border-left border-radius-right",
         onClick: onAdornmentClick,
-        children: [" ", isString$3(post) ? e$2("span", {
+        children: [" ", isString$2(post) ? e$2("span", {
           class: "fjs-input-adornment-text",
           children: post
         }) : post, " "]
@@ -44592,6 +43234,7 @@
       id,
       label,
       collapseLabelOnEmpty,
+      onDateTimeBlur,
       formId,
       required,
       disabled,
@@ -44686,7 +43329,8 @@
       if (!isInputDirty || e.relatedTarget && e.relatedTarget.classList.contains('flatpickr-day')) return;
       dateInputRef.current.dispatchEvent(ENTER_KEYDOWN_EVENT);
       setIsInputDirty(false);
-    }, [isInputDirty]);
+      onDateTimeBlur(e);
+    }, [isInputDirty, onDateTimeBlur]);
     const fullId = `${prefixId(id, formId)}--date`;
     return e$2("div", {
       class: "fjs-datetime-subsection",
@@ -44728,19 +43372,19 @@
     });
   }
 
-  var _path$f, _path2$3;
-  function _extends$i() { _extends$i = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$i.apply(this, arguments); }
+  var _path$g, _path2$4;
+  function _extends$j() { _extends$j = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$j.apply(this, arguments); }
   var SvgClock = function SvgClock(props) {
-    return /*#__PURE__*/v$1("svg", _extends$i({
+    return /*#__PURE__*/v$1("svg", _extends$j({
       xmlns: "http://www.w3.org/2000/svg",
       width: 16,
       height: 16,
       fill: "none",
       viewBox: "0 0 28 29"
-    }, props), _path$f || (_path$f = /*#__PURE__*/v$1("path", {
+    }, props), _path$g || (_path$g = /*#__PURE__*/v$1("path", {
       fill: "currentColor",
       d: "M13 14.41 18.59 20 20 18.59l-5-5.01V5h-2v9.41Z"
-    })), _path2$3 || (_path2$3 = /*#__PURE__*/v$1("path", {
+    })), _path2$4 || (_path2$4 = /*#__PURE__*/v$1("path", {
       fill: "currentColor",
       fillRule: "evenodd",
       d: "M6.222 25.64A14 14 0 1 0 21.778 2.36 14 14 0 0 0 6.222 25.64ZM7.333 4.023a12 12 0 1 1 13.334 19.955A12 12 0 0 1 7.333 4.022Z",
@@ -44849,6 +43493,7 @@
       id,
       label,
       collapseLabelOnEmpty,
+      onDateTimeBlur,
       formId,
       required,
       disabled,
@@ -44893,7 +43538,7 @@
       const minutes = parseInputTime(localRawValue);
 
       // If raw string couldn't be parsed, clean everything up
-      if (!isNumber$3(minutes)) {
+      if (!isNumber$2(minutes)) {
         setRawValue('');
         setTime(null);
         return;
@@ -44948,6 +43593,7 @@
     const onInputBlur = e => {
       setDropdownIsOpen(false);
       propagateRawToMinute();
+      onDateTimeBlur(e);
     };
     const onDropdownValueSelected = value => {
       setDropdownIsOpen(false);
@@ -45003,11 +43649,12 @@
     });
   }
 
-  const type$8 = 'datetime';
+  const type$9 = 'datetime';
   function Datetime(props) {
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       onChange,
       readonly,
@@ -45031,6 +43678,7 @@
     const {
       formId
     } = F(FormContext$1);
+    const dateTimeGroupRef = s();
     const getNullDateTime = () => ({
       date: new Date(Date.parse(null)),
       time: null
@@ -45041,6 +43689,12 @@
     const isValidTime = time => !isNaN(parseInt(time));
     const useDatePicker = d(() => subtype === DATETIME_SUBTYPES.DATE || subtype === DATETIME_SUBTYPES.DATETIME, [subtype]);
     const useTimePicker = d(() => subtype === DATETIME_SUBTYPES.TIME || subtype === DATETIME_SUBTYPES.DATETIME, [subtype]);
+    const onDateTimeBlur = A$1(e => {
+      if (e.relatedTarget && dateTimeGroupRef.current.contains(e.relatedTarget)) {
+        return;
+      }
+      onBlur();
+    }, [onBlur]);
     y(() => {
       let {
         date,
@@ -45132,6 +43786,7 @@
       id,
       label: dateLabel,
       collapseLabelOnEmpty: !timeLabel,
+      onDateTimeBlur,
       formId,
       required,
       disabled,
@@ -45145,6 +43800,7 @@
       id,
       label: timeLabel,
       collapseLabelOnEmpty: !dateLabel,
+      onDateTimeBlur,
       formId,
       required,
       disabled,
@@ -45156,13 +43812,14 @@
       'aria-describedby': errorMessageId
     };
     return e$2("div", {
-      class: formFieldClasses(type$8, {
+      class: formFieldClasses(type$9, {
         errors: allErrors,
         disabled,
         readonly
       }),
       children: [e$2("div", {
         class: classNames('fjs-vertical-group'),
+        ref: dateTimeGroupRef,
         children: [useDatePicker && e$2(Datepicker, {
           ...datePickerProps
         }), useTimePicker && useDatePicker && e$2("div", {
@@ -45179,7 +43836,7 @@
     });
   }
   Datetime.config = {
-    type: type$8,
+    type: type$9,
     keyed: true,
     label: 'Date time',
     group: 'basic-input',
@@ -45448,9 +44105,9 @@
     return true;
   }
 
-  function _extends$h() { _extends$h = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$h.apply(this, arguments); }
+  function _extends$i() { _extends$i = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$i.apply(this, arguments); }
   var SvgImagePlaceholder = function SvgImagePlaceholder(props) {
-    return /*#__PURE__*/v$1("svg", _extends$h({
+    return /*#__PURE__*/v$1("svg", _extends$i({
       xmlns: "http://www.w3.org/2000/svg",
       xmlSpace: "preserve",
       width: 64,
@@ -45489,7 +44146,7 @@
   };
   var ImagePlaceholder = SvgImagePlaceholder;
 
-  const type$7 = 'image';
+  const type$8 = 'image';
   function Image(props) {
     const {
       field
@@ -45510,7 +44167,7 @@
       formId
     } = F(FormContext$1);
     return e$2("div", {
-      class: formFieldClasses(type$7),
+      class: formFieldClasses(type$8),
       children: e$2("div", {
         class: "fjs-image-container",
         children: [safeSource && e$2("img", {
@@ -45528,7 +44185,7 @@
     });
   }
   Image.config = {
-    type: type$7,
+    type: type$8,
     keyed: false,
     label: 'Image view',
     group: 'presentation',
@@ -45555,14 +44212,14 @@
     });
   }
 
-  var _path$e;
-  function _extends$g() { _extends$g = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$g.apply(this, arguments); }
+  var _path$f;
+  function _extends$h() { _extends$h = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$h.apply(this, arguments); }
   var SvgAngelDown = function SvgAngelDown(props) {
-    return /*#__PURE__*/v$1("svg", _extends$g({
+    return /*#__PURE__*/v$1("svg", _extends$h({
       xmlns: "http://www.w3.org/2000/svg",
       width: 8,
       height: 8
-    }, props), _path$e || (_path$e = /*#__PURE__*/v$1("path", {
+    }, props), _path$f || (_path$f = /*#__PURE__*/v$1("path", {
       fill: "currentColor",
       fillRule: "evenodd",
       stroke: "currentColor",
@@ -45573,14 +44230,14 @@
   };
   var AngelDownIcon = SvgAngelDown;
 
-  var _path$d;
-  function _extends$f() { _extends$f = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$f.apply(this, arguments); }
+  var _path$e;
+  function _extends$g() { _extends$g = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$g.apply(this, arguments); }
   var SvgAngelUp = function SvgAngelUp(props) {
-    return /*#__PURE__*/v$1("svg", _extends$f({
+    return /*#__PURE__*/v$1("svg", _extends$g({
       xmlns: "http://www.w3.org/2000/svg",
       width: 8,
       height: 8
-    }, props), _path$d || (_path$d = /*#__PURE__*/v$1("path", {
+    }, props), _path$e || (_path$e = /*#__PURE__*/v$1("path", {
       fill: "currentColor",
       fillRule: "evenodd",
       stroke: "currentColor",
@@ -45591,11 +44248,12 @@
   };
   var AngelUpIcon = SvgAngelUp;
 
-  const type$6 = 'number';
+  const type$7 = 'number';
   function Numberfield(props) {
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       value,
       readonly,
@@ -45728,7 +44386,7 @@
     } = F(FormContext$1);
     const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
-      class: formFieldClasses(type$6, {
+      class: formFieldClasses(type$7, {
         errors,
         disabled,
         readonly
@@ -45756,7 +44414,8 @@
             readOnly: readonly,
             id: prefixId(id, formId),
             onKeyDown: onKeyDown,
-            onKeyPress: onKeyPress
+            onKeyPress: onKeyPress,
+            onBlur: onBlur
 
             // @ts-ignore
             ,
@@ -45799,7 +44458,7 @@
     });
   }
   Numberfield.config = {
-    type: type$6,
+    type: type$7,
     keyed: true,
     label: 'Number',
     group: 'basic-input',
@@ -45822,11 +44481,12 @@
     })
   };
 
-  const type$5 = 'radio';
+  const type$6 = 'radio';
   function Radio(props) {
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       readonly,
       value
@@ -45837,6 +44497,7 @@
       label,
       validate = {}
     } = field;
+    const outerDivRef = s();
     const {
       required
     } = validate;
@@ -45845,6 +44506,12 @@
         field,
         value: v
       });
+    };
+    const onRadioBlur = e => {
+      if (outerDivRef.current.contains(e.relatedTarget)) {
+        return;
+      }
+      onBlur();
     };
     const {
       state: loadState,
@@ -45855,11 +44522,12 @@
     } = F(FormContext$1);
     const errorMessageId = errors.length === 0 ? undefined : `${prefixId(id, formId)}-error-message`;
     return e$2("div", {
-      class: formFieldClasses(type$5, {
+      class: formFieldClasses(type$6, {
         errors,
         disabled,
         readonly
       }),
+      ref: outerDivRef,
       children: [e$2(Label, {
         label: label,
         required: required
@@ -45879,6 +44547,7 @@
             id: prefixId(`${id}-${index}`, formId),
             type: "radio",
             onClick: () => onChange(option.value),
+            onBlur: onRadioBlur,
             "aria-describedby": errorMessageId
           })
         }, `${id}-${index}`);
@@ -45891,7 +44560,7 @@
     });
   }
   Radio.config = {
-    type: type$5,
+    type: type$6,
     keyed: true,
     label: 'Radio',
     group: 'selection',
@@ -45914,14 +44583,14 @@
     }
   };
 
-  var _path$c;
-  function _extends$e() { _extends$e = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$e.apply(this, arguments); }
+  var _path$d;
+  function _extends$f() { _extends$f = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$f.apply(this, arguments); }
   var SvgXMark = function SvgXMark(props) {
-    return /*#__PURE__*/v$1("svg", _extends$e({
+    return /*#__PURE__*/v$1("svg", _extends$f({
       xmlns: "http://www.w3.org/2000/svg",
       width: 8,
       height: 8
-    }, props), _path$c || (_path$c = /*#__PURE__*/v$1("path", {
+    }, props), _path$d || (_path$d = /*#__PURE__*/v$1("path", {
       fill: "currentColor",
       fillRule: "evenodd",
       stroke: "currentColor",
@@ -45937,6 +44606,7 @@
       id,
       disabled,
       errors,
+      onBlur,
       field,
       readonly,
       value
@@ -46056,6 +44726,7 @@
           onBlur: () => {
             setIsDropdownExpanded(false);
             setFilter(valueLabel);
+            onBlur();
           },
           "aria-describedby": props['aria-describedby']
         }), displayState.displayCross && e$2("span", {
@@ -46090,6 +44761,7 @@
       id,
       disabled,
       errors,
+      onBlur,
       field,
       readonly,
       value
@@ -46144,7 +44816,10 @@
           'hasErrors': errors.length
         }),
         onFocus: () => setIsDropdownExpanded(true),
-        onBlur: () => setIsDropdownExpanded(false),
+        onBlur: () => {
+          setIsDropdownExpanded(false);
+          onBlur();
+        },
         onMouseDown: onMouseDown,
         children: [e$2("div", {
           class: classNames('fjs-select-display', {
@@ -46186,11 +44861,12 @@
     });
   }
 
-  const type$4 = 'select';
+  const type$5 = 'select';
   function Select(props) {
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       onChange,
       readonly,
@@ -46214,14 +44890,15 @@
       id,
       disabled,
       errors,
+      onBlur,
       field,
       value,
       onChange,
       readonly,
       'aria-describedby': errorMessageId
-    }), [disabled, errors, field, id, value, onChange, readonly, errorMessageId]);
+    }), [disabled, errors, field, id, value, onChange, onBlur, readonly, errorMessageId]);
     return e$2("div", {
-      class: formFieldClasses(type$4, {
+      class: formFieldClasses(type$5, {
         errors,
         disabled,
         readonly
@@ -46249,7 +44926,7 @@
     });
   }
   Select.config = {
-    type: type$4,
+    type: type$5,
     keyed: true,
     label: 'Select',
     group: 'selection',
@@ -46272,11 +44949,38 @@
     }
   };
 
+  const type$4 = 'spacer';
+  function Spacer(props) {
+    const {
+      field
+    } = props;
+    const {
+      height = 60
+    } = field;
+    return e$2("div", {
+      class: formFieldClasses(type$4),
+      style: {
+        height: height
+      }
+    });
+  }
+  Spacer.config = {
+    type: type$4,
+    keyed: false,
+    label: 'Spacer',
+    group: 'presentation',
+    create: (options = {}) => ({
+      height: 60,
+      ...options
+    })
+  };
+
   const type$3 = 'taglist';
   function Taglist(props) {
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       readonly,
       value: values = []
@@ -46369,9 +45073,10 @@
           break;
       }
     };
-    const onBlur = () => {
+    const onComponentBlur = () => {
       setIsDropdownExpanded(false);
       setFilter('');
+      onBlur();
     };
     const onTagRemoveClick = (event, value) => {
       const {
@@ -46442,9 +45147,7 @@
           onKeyDown: onInputKeyDown,
           onMouseDown: () => setIsEscapeClose(false),
           onFocus: () => !readonly && setIsDropdownExpanded(true),
-          onBlur: () => {
-            !readonly && onBlur();
-          },
+          onBlur: () => !readonly && onComponentBlur(),
           "aria-describedby": errorMessageId
         })]
       }), e$2("div", {
@@ -46577,6 +45280,7 @@
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       readonly,
       value = ''
@@ -46628,6 +45332,7 @@
           readOnly: readonly,
           id: prefixId(id, formId),
           onInput: onChange,
+          onBlur: onBlur,
           type: "text",
           value: value,
           "aria-describedby": errorMessageId
@@ -46649,7 +45354,7 @@
     sanitizeValue: ({
       value
     }) => {
-      if (isArray$3(value) || isObject(value)) {
+      if (isArray$2(value) || isObject(value)) {
         return '';
       }
 
@@ -46669,6 +45374,7 @@
     const {
       disabled,
       errors = [],
+      onBlur,
       field,
       readonly,
       value = ''
@@ -46691,22 +45397,12 @@
         value: target.value
       });
     };
-    const autoSizeTextarea = A$1(textarea => {
-      // Ensures the textarea shrinks back, and improves resizing behavior consistency
-      textarea.style.height = '0px';
-      const computed = window.getComputedStyle(textarea);
-      const calculatedHeight = parseInt(computed.getPropertyValue('border-top-width')) + parseInt(computed.getPropertyValue('padding-top')) + textarea.scrollHeight + parseInt(computed.getPropertyValue('padding-bottom')) + parseInt(computed.getPropertyValue('border-bottom-width'));
-      const minHeight = 75;
-      const maxHeight = 350;
-      const displayHeight = Math.max(Math.min(calculatedHeight, maxHeight), minHeight);
-      textarea.style.height = `${displayHeight}px`;
-
-      // Overflow is hidden by default to hide scrollbar flickering
-      textarea.style.overflow = calculatedHeight > maxHeight ? 'visible' : 'hidden';
-    }, []);
+    h(() => {
+      autoSizeTextarea(textareaRef.current);
+    }, [value]);
     y(() => {
       autoSizeTextarea(textareaRef.current);
-    }, [autoSizeTextarea, value]);
+    }, []);
     const {
       formId
     } = F(FormContext$1);
@@ -46727,6 +45423,7 @@
         readonly: readonly,
         id: prefixId(id, formId),
         onInput: onInput,
+        onBlur: onBlur,
         value: value,
         ref: textareaRef,
         "aria-describedby": errorMessageId
@@ -46746,13 +45443,31 @@
     emptyValue: '',
     sanitizeValue: ({
       value
-    }) => isArray$3(value) || isObject(value) ? '' : String(value),
+    }) => isArray$2(value) || isObject(value) ? '' : String(value),
     create: (options = {}) => ({
       ...options
     })
   };
+  const autoSizeTextarea = textarea => {
+    // Ensures the textarea shrinks back, and improves resizing behavior consistency
+    textarea.style.height = '0px';
+    const computed = window.getComputedStyle(textarea);
+    const heightFromLines = () => {
+      const lineHeight = parseInt(computed.getPropertyValue('line-height').replace('px', '')) || 0;
+      const lines = textarea.value ? textarea.value.toString().split('\n').length : 0;
+      return lines * lineHeight;
+    };
+    const calculatedHeight = parseInt(computed.getPropertyValue('border-top-width')) + parseInt(computed.getPropertyValue('padding-top')) + (textarea.scrollHeight || heightFromLines()) + parseInt(computed.getPropertyValue('padding-bottom')) + parseInt(computed.getPropertyValue('border-bottom-width'));
+    const minHeight = 75;
+    const maxHeight = 350;
+    const displayHeight = Math.max(Math.min(calculatedHeight || 0, maxHeight), minHeight);
+    textarea.style.height = `${displayHeight}px`;
 
-  const formFields = [Button, Checkbox, Checklist, Default, Image, Numberfield, Datetime, Radio, Select, Taglist, Text, Textfield, Textarea];
+    // Overflow is hidden by default to hide scrollbar flickering
+    textarea.style.overflow = calculatedHeight > maxHeight ? 'visible' : 'hidden';
+  };
+
+  const formFields = [Button, Checkbox, Checklist, Default, Image, Numberfield, Datetime, Radio, Select, Spacer, Taglist, Text, Textfield, Textarea];
 
   class FormFields {
     constructor() {
@@ -47035,7 +45750,7 @@
         throw new Error('parentNode required');
       }
       this.detach();
-      if (isString$3(parentNode)) {
+      if (isString$2(parentNode)) {
         parentNode = document.querySelector(parentNode);
       }
       const container = this._container;
@@ -47163,7 +45878,7 @@
     * @internal
     */
     _getModules() {
-      return [ExpressionLanguageModule, MarkdownModule];
+      return [ExpressionLanguageModule, MarkdownModule, ViewerCommandsModule];
     }
 
     /**
@@ -47208,7 +45923,7 @@
     }
   }
 
-  const schemaVersion = 9;
+  const schemaVersion = 10;
 
   /**
    * @typedef { import('./types').CreateFormOptions } CreateFormOptions
