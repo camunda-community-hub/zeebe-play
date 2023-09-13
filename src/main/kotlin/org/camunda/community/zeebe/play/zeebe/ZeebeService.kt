@@ -13,4 +13,6 @@ interface ZeebeService {
 
     fun increaseTime(duration: Duration): Long
 
+    fun isRunning(): Boolean
+
 }

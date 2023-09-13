@@ -32,18 +32,24 @@ open class EmbeddedZeebeConfig {
         return engine.createClient()
     }
 
-    class EmbeddedZeebeService(val engine: ZeebeEngine): ZeebeService {
+    class EmbeddedZeebeService(val engine: ZeebeEngine) : ZeebeService {
 
         private val logger = LoggerFactory.getLogger(EmbeddedZeebeService::class.java)
+
+        private var isRunning = false
 
         override fun start() {
             logger.info("Start embedded Zeebe engine at '{}'", engine.getGatewayAddress())
             engine.start()
+
+            isRunning = true
         }
 
         override fun stop() {
             logger.info("Stop embedded Zeebe engine")
             engine.stop()
+
+            isRunning = false
         }
 
         override fun getCurrentTime(): Instant {
@@ -53,6 +59,10 @@ open class EmbeddedZeebeConfig {
         override fun increaseTime(duration: Duration): Long {
             engine.clock().increaseTime(timeToAdd = duration)
             return getCurrentTime().toEpochMilli()
+        }
+
+        override fun isRunning(): Boolean {
+            return isRunning
         }
     }
 

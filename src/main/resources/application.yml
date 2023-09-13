@@ -15,7 +15,7 @@ zeebe:
 
     worker:
       hazelcast:
-        connection: localhost:5701
+        connection: 127.0.0.1:5701
         connectionTimeout: PT1M
         ringbuffer: zeebe
         connectionInitialBackoff: PT15S
@@ -24,6 +24,9 @@ zeebe:
 
   clock:
     endpoint: 127.0.0.1:9600/actuator/clock
+
+  health:
+    endpoint: 127.0.0.1:9600/actuator/health
 
   connectors:
     # connector mode options: 'active' (as job workers) / 'passive' (trigger manually in process)
@@ -59,3 +62,28 @@ spring:
     # enable GraphiQL inspection tool by default
     graphiql:
       enabled: true
+
+management:
+
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics
+
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState, zeebeEngineReadinessIndicator, hazelcastReadinessIndicator
+
+
