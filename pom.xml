@@ -1,568 +1,573 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>zeebe-play</artifactId>
-  <version>1.9.2-SNAPSHOT</version>
+    <artifactId>zeebe-play</artifactId>
+    <version>1.9.2-SNAPSHOT</version>
 
-  <prerequisites>
-    <maven>${maven.version}</maven>
-  </prerequisites>
+    <prerequisites>
+        <maven>${maven.version}</maven>
+    </prerequisites>
 
-  <parent>
-    <groupId>org.camunda.community</groupId>
-    <artifactId>community-hub-release-parent</artifactId>
-    <version>1.4.3</version>
-    <relativePath />
-  </parent>
+    <parent>
+        <groupId>org.camunda.community</groupId>
+        <artifactId>community-hub-release-parent</artifactId>
+        <version>1.4.3</version>
+        <relativePath/>
+    </parent>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <maven.version>3.0</maven.version>
-    <zeeqs.version>2.9.0</zeeqs.version>
-    <eze.version>1.2.0</eze.version>
-    <hazelcast.version>1.4.0</hazelcast.version>
-    <camunda-connector-bundle.version>0.21.3</camunda-connector-bundle.version>
+        <maven.version>3.0</maven.version>
+        <zeeqs.version>2.9.0</zeeqs.version>
+        <eze.version>1.2.0</eze.version>
+        <hazelcast.version>1.4.0</hazelcast.version>
+        <camunda-connector-bundle.version>0.21.3</camunda-connector-bundle.version>
 
-    <kotlin.version>1.9.10</kotlin.version>
-    <spring.boot.version>2.7.15</spring.boot.version>
+        <kotlin.version>1.9.10</kotlin.version>
+        <spring.boot.version>2.7.15</spring.boot.version>
 
-    <!-- release parent settings -->
-    <version.java>17</version.java>
-    <!-- disable jdk8 javadoc checks on release build -->
-    <additionalparam>-Xdoclint:none</additionalparam>
+        <!-- release parent settings -->
+        <version.java>17</version.java>
+        <!-- disable jdk8 javadoc checks on release build -->
+        <additionalparam>-Xdoclint:none</additionalparam>
 
-    <!-- skip enforcer for now because of too many errors -->
-    <skip.enforcer-plugin>true</skip.enforcer-plugin>
+        <!-- skip enforcer for now because of too many errors -->
+        <skip.enforcer-plugin>true</skip.enforcer-plugin>
 
-    <nexus.snapshot.repository>
-      https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/
-    </nexus.snapshot.repository>
-    <nexus.release.repository>https://artifacts.camunda.com/artifactory/zeebe-io/
-    </nexus.release.repository>
+        <nexus.snapshot.repository>
+            https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/
+        </nexus.snapshot.repository>
+        <nexus.release.repository>https://artifacts.camunda.com/artifactory/zeebe-io/
+        </nexus.release.repository>
 
-  </properties>
+    </properties>
 
-  <dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>io.zeebe.zeeqs</groupId>
+                <artifactId>graphql-api</artifactId>
+                <version>${zeeqs.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.zeebe.zeeqs</groupId>
+                <artifactId>hazelcast-importer</artifactId>
+                <version>${zeeqs.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.zeebe.zeeqs</groupId>
+                <artifactId>data</artifactId>
+                <version>${zeeqs.version}</version>
+                <exclusions>
+                    <!-- use the model API from EZE to avoid version conflicts -->
+                    <exclusion>
+                        <groupId>io.camunda</groupId>
+                        <artifactId>zeebe-bpmn-model</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>io.camunda.connector</groupId>
+                <artifactId>spring-boot-starter-camunda-connectors</artifactId>
+                <version>${camunda-connector-bundle.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.camunda.connector</groupId>
+                <artifactId>connector-runtime-bundle</artifactId>
+                <version>${camunda-connector-bundle.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.camunda.community</groupId>
+                <artifactId>eze</artifactId>
+                <version>${eze.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.zeebe.hazelcast</groupId>
+                <artifactId>zeebe-hazelcast-exporter</artifactId>
+                <version>${hazelcast.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-test</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-stdlib</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-stdlib-jdk8</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-stdlib-common</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-reflect</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.6.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>8.0.32</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility-kotlin</artifactId>
+                <version>4.2.0</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
 
-      <dependency>
-        <groupId>io.zeebe.zeeqs</groupId>
-        <artifactId>graphql-api</artifactId>
-        <version>${zeeqs.version}</version>
-      </dependency>
+        <!-- ZeeQS dependencies -->
 
-      <dependency>
-        <groupId>io.zeebe.zeeqs</groupId>
-        <artifactId>hazelcast-importer</artifactId>
-        <version>${zeeqs.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>io.zeebe.zeeqs</groupId>
+            <artifactId>graphql-api</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>io.zeebe.zeeqs</groupId>
-        <artifactId>data</artifactId>
-        <version>${zeeqs.version}</version>
-        <exclusions>
-          <!-- use the model API from EZE to avoid version conflicts -->
-          <exclusion>
-            <groupId>io.camunda</groupId>
-            <artifactId>zeebe-bpmn-model</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
+        <dependency>
+            <groupId>io.zeebe.zeeqs</groupId>
+            <artifactId>hazelcast-importer</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>io.camunda.connector</groupId>
-        <artifactId>spring-boot-starter-camunda-connectors</artifactId>
-        <version>${camunda-connector-bundle.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>io.zeebe.zeeqs</groupId>
+            <artifactId>data</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>io.camunda.connector</groupId>
-        <artifactId>connector-runtime-bundle</artifactId>
-        <version>${camunda-connector-bundle.version}</version>
-      </dependency>
+        <!-- Kotlin dependencies -->
 
-      <dependency>
-        <groupId>org.camunda.community</groupId>
-        <artifactId>eze</artifactId>
-        <version>${eze.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>io.zeebe.hazelcast</groupId>
-        <artifactId>zeebe-hazelcast-exporter</artifactId>
-        <version>${hazelcast.version}</version>
-      </dependency>
+        <!-- Spring dependencies -->
 
-      <dependency>
-        <groupId>org.jetbrains.kotlin</groupId>
-        <artifactId>kotlin-test</artifactId>
-        <version>${kotlin.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring.boot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>org.jetbrains.kotlin</groupId>
-        <artifactId>kotlin-stdlib</artifactId>
-        <version>${kotlin.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>org.jetbrains.kotlin</groupId>
-        <artifactId>kotlin-stdlib-jdk8</artifactId>
-        <version>${kotlin.version}</version>
-      </dependency>
+        <!-- JSON serialization -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>org.jetbrains.kotlin</groupId>
-        <artifactId>kotlin-stdlib-common</artifactId>
-        <version>${kotlin.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>org.jetbrains.kotlin</groupId>
-        <artifactId>kotlin-reflect</artifactId>
-        <version>${kotlin.version}</version>
-      </dependency>
+        <!-- Zeebe dependencies -->
 
-      <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-        <version>42.6.0</version>
-      </dependency>
+        <dependency>
+            <groupId>io.camunda.connector</groupId>
+            <artifactId>spring-boot-starter-camunda-connectors</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>mysql</groupId>
-        <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.32</version>
-      </dependency>
+        <dependency>
+            <groupId>io.camunda.connector</groupId>
+            <artifactId>connector-runtime-bundle</artifactId>
+        </dependency>
 
-      <dependency>
-        <groupId>org.awaitility</groupId>
-        <artifactId>awaitility-kotlin</artifactId>
-        <version>4.2.0</version>
-      </dependency>
+        <dependency>
+            <groupId>org.camunda.community</groupId>
+            <artifactId>eze</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.zeebe.hazelcast</groupId>
+            <artifactId>zeebe-hazelcast-exporter</artifactId>
+        </dependency>
+
+        <!-- Database drivers -->
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <!-- test dependencies -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.graphql</groupId>
+            <artifactId>spring-graphql-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility-kotlin</artifactId>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
-  </dependencyManagement>
 
-  <dependencies>
+    <build>
+        <sourceDirectory>src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
 
-    <!-- ZeeQS dependencies -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.12.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>3.4.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.13</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.3.0</version>
+                    <configuration>
+                        <useDefaultManifestFile>false</useDefaultManifestFile>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-sources-plugin</artifactId>
+                    <version>3.2.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 
-    <dependency>
-      <groupId>io.zeebe.zeeqs</groupId>
-      <artifactId>graphql-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>io.zeebe.zeeqs</groupId>
-      <artifactId>hazelcast-importer</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>io.zeebe.zeeqs</groupId>
-      <artifactId>data</artifactId>
-    </dependency>
-
-    <!-- Kotlin dependencies -->
-
-    <dependency>
-      <groupId>org.jetbrains.kotlin</groupId>
-      <artifactId>kotlin-stdlib-jdk8</artifactId>
-    </dependency>
-
-    <!-- Spring dependencies -->
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-thymeleaf</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-
-    <!-- JSON serialization -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-kotlin</artifactId>
-    </dependency>
-
-    <!-- Zeebe dependencies -->
-
-    <dependency>
-      <groupId>io.camunda.connector</groupId>
-      <artifactId>spring-boot-starter-camunda-connectors</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>io.camunda.connector</groupId>
-      <artifactId>connector-runtime-bundle</artifactId>
-     </dependency>
-
-    <dependency>
-      <groupId>org.camunda.community</groupId>
-      <artifactId>eze</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>log4j-slf4j-impl</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>io.zeebe.hazelcast</groupId>
-      <artifactId>zeebe-hazelcast-exporter</artifactId>
-    </dependency>
-
-    <!-- Database drivers -->
-
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-    </dependency>
-
-    <!-- test dependencies -->
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.graphql</groupId>
-      <artifactId>spring-graphql-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webflux</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility-kotlin</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-  </dependencies>
-
-  <build>
-    <sourceDirectory>src/main/kotlin</sourceDirectory>
-    <testSourceDirectory>src/test/kotlin</testSourceDirectory>
-
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-site-plugin</artifactId>
-          <version>3.12.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-project-info-reports-plugin</artifactId>
-          <version>3.4.5</version>
-        </plugin>
-        <plugin>
-          <groupId>org.sonatype.plugins</groupId>
-          <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>1.6.13</version>
-        </plugin>
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>3.3.0</version>
-          <configuration>
-            <useDefaultManifestFile>false</useDefaultManifestFile>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
-    <plugins>
-      <plugin>
-        <groupId>org.jetbrains.kotlin</groupId>
-        <artifactId>kotlin-maven-plugin</artifactId>
-        <version>${kotlin.version}</version>
-        <configuration>
-          <args>
-            <arg>-Xjsr305=strict</arg>
-          </args>
-          <compilerPlugins>
-            <plugin>spring</plugin>
-            <plugin>jpa</plugin>
-          </compilerPlugins>
-          <jvmTarget>${version.java}</jvmTarget>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-maven-allopen</artifactId>
-            <version>${kotlin.version}</version>
-          </dependency>
-          <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-maven-noarg</artifactId>
-            <version>${kotlin.version}</version>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <id>compile</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>test-compile</id>
-            <phase>test-compile</phase>
-            <goals>
-              <goal>test-compile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${spring.boot.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>3.3.2</version>
-        <executions>
-          <execution>
-            <phase>deploy</phase>
-            <goals>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <to>
-            <image>ghcr.io/camunda-community-hub/zeebe-play</image>
-            <tags>${project.version}</tags>
-          </to>
-          <container>
-            <ports>
-              <port>8080</port>
-              <port>26500</port>
-            </ports>
-          </container>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.5.0</version>
-        <configuration>
-          <source>${version.java}</source>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>empty-javadoc-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>javadoc</classifier>
-              <classesDirectory>${basedir}/javadoc</classesDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Surefire plugin -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.1.2</version>
-      </plugin>
-
-      <!-- Google code format plugin -->
-      <plugin>
-        <groupId>com.spotify.fmt</groupId>
-        <artifactId>fmt-maven-plugin</artifactId>
-        <version>2.20</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>format</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.4.1</version>
-        <configuration>
-          <rules>
-            <dependencyConvergence />
-          </rules>
-          <skip>${skip.enforcer-plugin}</skip>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!--
-        Write the current version into a file. This file is read to show the current version of the
-        application in the UI. The common way with the manifest file doesn't work because of Jib.
-       -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>3.3.1</version>
-        <executions>
-          <execution>
-            <id>copy-version-file</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${build.outputDirectory}</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${basedir}/src/main/resources/</directory>
-                  <includes>
-                    <include>version.txt</include>
-                  </includes>
-                  <filtering>true</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-    </plugins>
-
-  </build>
-
-  <profiles>
-    <profile>
-      <id>community-action-maven-release</id>
-      <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>3.1.0</version>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <!-- Prevent gpg from using pinentry programs -->
-              <gpgArguments>
-                <arg>--pinentry-mode</arg>
-                <arg>loopback</arg>
-              </gpgArguments>
-            </configuration>
-          </plugin>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <configuration>
+                    <args>
+                        <arg>-Xjsr305=strict</arg>
+                    </args>
+                    <compilerPlugins>
+                        <plugin>spring</plugin>
+                        <plugin>jpa</plugin>
+                    </compilerPlugins>
+                    <jvmTarget>${version.java}</jvmTarget>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.3.2</version>
+                <executions>
+                    <execution>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <to>
+                        <image>ghcr.io/camunda-community-hub/zeebe-play</image>
+                        <tags>${project.version}</tags>
+                    </to>
+                    <container>
+                        <ports>
+                            <port>8080</port>
+                            <port>26500</port>
+                        </ports>
+                    </container>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <source>${version.java}</source>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>empty-javadoc-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>javadoc</classifier>
+                            <classesDirectory>${basedir}/javadoc</classesDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Surefire plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
+
+            <!-- Google code format plugin -->
+            <plugin>
+                <groupId>com.spotify.fmt</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
+                <version>2.20</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <rules>
+                        <dependencyConvergence/>
+                    </rules>
+                    <skip>${skip.enforcer-plugin}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+              Write the current version into a file. This file is read to show the current version of the
+              application in the UI. The common way with the manifest file doesn't work because of Jib.
+             -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-version-file</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${build.outputDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/resources/</directory>
+                                    <includes>
+                                        <include>version.txt</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
-      </build>
-    </profile>
-  </profiles>
 
-  <repositories>
-    <repository>
-      <id>zeebe</id>
-      <name>Zeebe Repository</name>
-      <url>https://artifacts.camunda.com/artifactory/zeebe-io/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
+    </build>
 
-    <repository>
-      <id>zeebe-snapshots</id>
-      <name>Zeebe Snapshot Repository</name>
-      <url>https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
+    <profiles>
+        <profile>
+            <id>community-action-maven-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- Prevent gpg from using pinentry programs -->
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
-  <scm>
-    <url>https://github.com/camunda-community-hub/zeebe-play</url>
-    <connection>scm:git:git@github.com:camunda-community-hub/zeebe-play.git</connection>
-    <developerConnection>scm:git:git@github.com:camunda-community-hub/zeebe-play.git
-    </developerConnection>
-    <tag>HEAD</tag>
-  </scm>
+    <repositories>
+        <repository>
+            <id>zeebe</id>
+            <name>Zeebe Repository</name>
+            <url>https://artifacts.camunda.com/artifactory/zeebe-io/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>zeebe-snapshots</id>
+            <name>Zeebe Snapshot Repository</name>
+            <url>https://artifacts.camunda.com/artifactory/zeebe-io-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <scm>
+        <url>https://github.com/camunda-community-hub/zeebe-play</url>
+        <connection>scm:git:git@github.com:camunda-community-hub/zeebe-play.git</connection>
+        <developerConnection>scm:git:git@github.com:camunda-community-hub/zeebe-play.git
+        </developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
 </project>
