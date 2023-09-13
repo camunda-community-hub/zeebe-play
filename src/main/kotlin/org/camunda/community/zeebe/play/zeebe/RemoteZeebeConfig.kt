@@ -26,9 +26,15 @@ open class RemoteZeebeConfig {
     @Value(value = "\${zeebe.clock.endpoint}")
     private lateinit var zeebeClockEndpoint: String
 
+    @Value(value = "\${zeebe.health.endpoint}")
+    private lateinit var zeebeHealthEndpoint: String
+
     @Bean
     open fun remoteZeebeService(): ZeebeService {
-        return RemoteZeebeService(zeebeClockEndpoint)
+        return RemoteZeebeService(
+            clockEndpoint = zeebeClockEndpoint,
+            healthEndpoint = zeebeHealthEndpoint
+        )
     }
 
     @Bean
@@ -38,7 +44,10 @@ open class RemoteZeebeConfig {
         return ZeebeClient.newClient(config)
     }
 
-    class RemoteZeebeService(val clockEndpoint: String) : ZeebeService {
+    class RemoteZeebeService(
+        val clockEndpoint: String,
+        val healthEndpoint: String
+    ) : ZeebeService {
 
         private val httpClient = HttpClient.newHttpClient()
 
@@ -54,7 +63,7 @@ open class RemoteZeebeConfig {
         }
 
         override fun getCurrentTime(): Instant {
-            val clockResponse = sendRequest(
+            val clockResponse = sendClockRequest(
                 request = HttpRequest.newBuilder()
                     .uri(URI.create("http://$clockEndpoint"))
                     .header("Content-Type", "application/json")
@@ -69,7 +78,7 @@ open class RemoteZeebeConfig {
             val requestBody =
                 HttpRequest.BodyPublishers.ofString("""{ "offsetMilli": $offsetMilli }""")
 
-            val clockResponse = sendRequest(
+            val clockResponse = sendClockRequest(
                 request = HttpRequest.newBuilder()
                     .uri(URI.create("http://$clockEndpoint/add"))
                     .header("Content-Type", "application/json")
@@ -79,7 +88,7 @@ open class RemoteZeebeConfig {
             return clockResponse.epochMilli;
         }
 
-        private fun sendRequest(request: HttpRequest): ZeebeClockResponse {
+        private fun sendClockRequest(request: HttpRequest): ZeebeClockResponse {
 
             val response = httpClient
                 .send(request, HttpResponse.BodyHandlers.ofString())
@@ -98,10 +107,46 @@ open class RemoteZeebeConfig {
             return objectMapper.readValue<ZeebeClockResponse>(responseBody)
         }
 
+        override fun isRunning(): Boolean {
+            val health = sendHealthRequest(
+                request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://$healthEndpoint"))
+                    .header("Content-Type", "application/json")
+                    .GET()
+                    .build()
+            )
+
+            return health.status == "UP"
+        }
+
+        private fun sendHealthRequest(request: HttpRequest): ZeebeHealthResponse {
+
+            val response = httpClient
+                .send(request, HttpResponse.BodyHandlers.ofString())
+
+            val statusCode = response.statusCode()
+            val responseBody = response.body()
+
+            if (statusCode != 200) {
+                throw ZeebeServiceException(
+                    service = "health",
+                    status = statusCode.toString(),
+                    failureMessage = "$responseBody. Check if the health endpoint is enabled."
+                )
+            }
+
+            return objectMapper.readValue<ZeebeHealthResponse>(responseBody)
+        }
+
         private data class ZeebeClockResponse(
             val epochMilli: Long,
             val instant: String
         )
+
+        private data class ZeebeHealthResponse(
+            val status: String
+        )
+
     }
 
 }
