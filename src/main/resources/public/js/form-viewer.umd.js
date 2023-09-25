@@ -317,6 +317,18 @@
 
 
   /**
+   * Get the values in the collection.
+   *
+   * @param  {Object|Array} collection
+   *
+   * @return {Array}
+   */
+  function values(collection) {
+    return map(collection, (val) => val);
+  }
+
+
+  /**
    * Group collection members by attribute.
    *
    * @param  {Object|Array} collection
@@ -18758,9 +18770,9 @@
           let sharedChunks = findSharedChunks(a, b, textDiff);
           let sideA = new SpanCursor(a, sharedChunks, minPointSize);
           let sideB = new SpanCursor(b, sharedChunks, minPointSize);
-          textDiff.iterGaps((fromA, fromB, length) => compare(sideA, fromA, sideB, fromB, length, comparator));
+          textDiff.iterGaps((fromA, fromB, length) => compare$1(sideA, fromA, sideB, fromB, length, comparator));
           if (textDiff.empty && textDiff.length == 0)
-              compare(sideA, 0, sideB, 0, 0, comparator);
+              compare$1(sideA, 0, sideB, 0, 0, comparator);
       }
       /**
       Compare the contents of two groups of range sets, returning true
@@ -19234,7 +19246,7 @@
           return open;
       }
   }
-  function compare(a, startA, b, startB, length, comparator) {
+  function compare$1(a, startA, b, startB, length, comparator) {
       a.goto(startA);
       b.goto(startB);
       let endB = startB + length;
@@ -40464,14 +40476,144 @@
   }
   FeelersTemplating.$inject = [];
 
+  // config  ///////////////////
+
+  const MINUTES_IN_DAY = 60 * 24;
+  const DATETIME_SUBTYPES = {
+    DATE: 'date',
+    TIME: 'time',
+    DATETIME: 'datetime'
+  };
+  const TIME_SERIALISING_FORMATS = {
+    UTC_OFFSET: 'utc_offset',
+    UTC_NORMALIZED: 'utc_normalized',
+    NO_TIMEZONE: 'no_timezone'
+  };
+  const DATETIME_SUBTYPE_PATH = ['subtype'];
+  const DATE_LABEL_PATH = ['dateLabel'];
+
+  function createInjector(bootstrapModules) {
+    const injector = new Injector(bootstrapModules);
+    injector.init();
+    return injector;
+  }
+
+  /**
+   * @param {string?} prefix
+   *
+   * @returns Element
+   */
+  function createFormContainer(prefix = 'fjs') {
+    const container = document.createElement('div');
+    container.classList.add(`${prefix}-container`);
+    return container;
+  }
+
+  const EXPRESSION_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'conditional.hide', 'description', 'label', 'source', 'readonly', 'text', 'validate.min', 'validate.max', 'validate.minLength', 'validate.maxLength', 'valuesExpression'];
+  const TEMPLATE_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'description', 'label', 'source', 'text'];
+
+  /**
+   * @template T
+   * @param {T} data
+   * @param {(this: any, key: string, value: any) => any} [replacer]
+   * @return {T}
+   */
+  function clone(data, replacer) {
+    return JSON.parse(JSON.stringify(data, replacer));
+  }
+
+  /**
+   * Parse the schema for input variables a form might make use of
+   *
+   * @param {any} schema
+   *
+   * @return {string[]}
+   */
+  function getSchemaVariables(schema, options = {}) {
+    const {
+      expressionLanguage = new FeelExpressionLanguage(null),
+      templating = new FeelersTemplating(),
+      inputs = true,
+      outputs = true
+    } = options;
+    if (!schema.components) {
+      return [];
+    }
+    const getAllComponents = node => {
+      const components = [];
+      if (node.components) {
+        node.components.forEach(component => {
+          components.push(component);
+          components.push(...getAllComponents(component));
+        });
+      }
+      return components;
+    };
+    const variables = getAllComponents(schema).reduce((variables, component) => {
+      const {
+        valuesKey
+      } = component;
+
+      // collect input-only variables
+      if (inputs) {
+        if (valuesKey) {
+          variables = [...variables, valuesKey];
+        }
+        EXPRESSION_PROPERTIES.forEach(prop => {
+          const property = get(component, prop.split('.'));
+          if (property && expressionLanguage.isExpression(property)) {
+            const expressionVariables = expressionLanguage.getVariableNames(property, {
+              type: 'expression'
+            });
+            variables = [...variables, ...expressionVariables];
+          }
+        });
+        TEMPLATE_PROPERTIES.forEach(prop => {
+          const property = get(component, prop.split('.'));
+          if (property && !expressionLanguage.isExpression(property) && templating.isTemplate(property)) {
+            const templateVariables = templating.getVariableNames(property);
+            variables = [...variables, ...templateVariables];
+          }
+        });
+      }
+      return variables.filter(variable => variable !== undefined || variable !== null);
+    }, []);
+    const getBindingVariables = node => {
+      const bindingVariable = [];
+
+      // c.f. https://github.com/bpmn-io/form-js/issues/778 @Skaiir to remove?
+      if (node.type === 'button') {
+        return [];
+      } else if (node.key) {
+        return [node.key.split('.')[0]];
+      } else if (node.path) {
+        return [node.path.split('.')[0]];
+      } else if (node.components) {
+        node.components.forEach(component => {
+          bindingVariable.push(...getBindingVariables(component));
+        });
+      }
+      return bindingVariable;
+    };
+
+    // collect binding variables
+    if (inputs || outputs) {
+      variables.push(...getBindingVariables(schema));
+    }
+
+    // remove duplicates
+    return Array.from(new Set(variables));
+  }
+
   /**
    * @typedef {object} Condition
    * @property {string} [hide]
    */
 
   class ConditionChecker {
-    constructor(formFieldRegistry, eventBus) {
+    constructor(formFieldRegistry, pathRegistry, eventBus) {
       this._formFieldRegistry = formFieldRegistry;
+      this._pathRegistry = pathRegistry;
       this._eventBus = eventBus;
     }
 
@@ -40482,19 +40624,27 @@
      * @param {Object<string, any>} data
      */
     applyConditions(properties, data = {}) {
-      const conditions = this._getConditions();
-      const newProperties = {
-        ...properties
-      };
-      for (const {
-        key,
-        condition
-      } of conditions) {
-        const shouldRemove = this._checkHideCondition(condition, data);
-        if (shouldRemove) {
-          delete newProperties[key];
-        }
+      const newProperties = clone(properties);
+      const form = this._formFieldRegistry.getAll().find(field => field.type === 'default');
+      if (!form) {
+        throw new Error('form field registry has no form');
       }
+      this._pathRegistry.executeRecursivelyOnFields(form, ({
+        field,
+        isClosed,
+        context
+      }) => {
+        const {
+          conditional: condition
+        } = field;
+        context.isHidden = context.isHidden || condition && this._checkHideCondition(condition, data);
+
+        // only clear the leaf nodes, as groups may both point to the same path
+        if (context.isHidden && isClosed) {
+          const valuePath = this._pathRegistry.getValuePath(field);
+          this._clearObjectValueRecursively(valuePath, newProperties);
+        }
+      });
       return newProperties;
     }
 
@@ -40539,24 +40689,18 @@
       const result = this.check(condition.hide, data);
       return result === true;
     }
-    _getConditions() {
-      const formFields = this._formFieldRegistry.getAll();
-      return formFields.reduce((conditions, formField) => {
-        const {
-          key,
-          conditional: condition
-        } = formField;
-        if (key && condition) {
-          return [...conditions, {
-            key,
-            condition
-          }];
-        }
-        return conditions;
-      }, []);
+    _clearObjectValueRecursively(valuePath, obj) {
+      const workingValuePath = [...valuePath];
+      let recurse = false;
+      do {
+        set(obj, workingValuePath, undefined);
+        workingValuePath.pop();
+        const parentObject = get(obj, workingValuePath);
+        recurse = isObject(parentObject) && !values(parentObject).length && !!workingValuePath.length;
+      } while (recurse);
     }
   }
-  ConditionChecker.$inject = ['formFieldRegistry', 'eventBus'];
+  ConditionChecker.$inject = ['formFieldRegistry', 'pathRegistry', 'eventBus'];
 
   var ExpressionLanguageModule = {
     __init__: ['expressionLanguage', 'templating', 'conditionChecker'],
@@ -41061,136 +41205,6 @@
     commandStack: ['type', CommandStack]
   };
 
-  // config  ///////////////////
-
-  const MINUTES_IN_DAY = 60 * 24;
-  const DATETIME_SUBTYPES = {
-    DATE: 'date',
-    TIME: 'time',
-    DATETIME: 'datetime'
-  };
-  const TIME_SERIALISING_FORMATS = {
-    UTC_OFFSET: 'utc_offset',
-    UTC_NORMALIZED: 'utc_normalized',
-    NO_TIMEZONE: 'no_timezone'
-  };
-  const DATETIME_SUBTYPE_PATH = ['subtype'];
-  const DATE_LABEL_PATH = ['dateLabel'];
-
-  function createInjector(bootstrapModules) {
-    const injector = new Injector(bootstrapModules);
-    injector.init();
-    return injector;
-  }
-
-  /**
-   * @param {string?} prefix
-   *
-   * @returns Element
-   */
-  function createFormContainer(prefix = 'fjs') {
-    const container = document.createElement('div');
-    container.classList.add(`${prefix}-container`);
-    return container;
-  }
-
-  const EXPRESSION_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'conditional.hide', 'description', 'label', 'source', 'readonly', 'text', 'validate.min', 'validate.max', 'validate.minLength', 'validate.maxLength', 'valuesExpression'];
-  const TEMPLATE_PROPERTIES = ['alt', 'appearance.prefixAdorner', 'appearance.suffixAdorner', 'description', 'label', 'source', 'text'];
-  function findErrors(errors, path) {
-    return errors[pathStringify(path)];
-  }
-  function pathStringify(path) {
-    if (!path) {
-      return '';
-    }
-    return path.join('.');
-  }
-  const indices = {};
-  function generateIndexForType(type) {
-    if (type in indices) {
-      indices[type]++;
-    } else {
-      indices[type] = 1;
-    }
-    return indices[type];
-  }
-  function generateIdForType(type) {
-    return `${type}${generateIndexForType(type)}`;
-  }
-
-  /**
-   * @template T
-   * @param {T} data
-   * @param {(this: any, key: string, value: any) => any} [replacer]
-   * @return {T}
-   */
-  function clone(data, replacer) {
-    return JSON.parse(JSON.stringify(data, replacer));
-  }
-
-  /**
-   * Parse the schema for input variables a form might make use of
-   *
-   * @param {any} schema
-   *
-   * @return {string[]}
-   */
-  function getSchemaVariables(schema, options = {}) {
-    const {
-      expressionLanguage = new FeelExpressionLanguage(null),
-      templating = new FeelersTemplating(),
-      inputs = true,
-      outputs = true
-    } = options;
-    if (!schema.components) {
-      return [];
-    }
-    const variables = schema.components.reduce((variables, component) => {
-      const {
-        key,
-        valuesKey,
-        type
-      } = component;
-      if (['button'].includes(type)) {
-        return variables;
-      }
-
-      // collect bi-directional variables
-      if (inputs || outputs) {
-        if (key) {
-          variables = [...variables, key];
-        }
-      }
-
-      // collect input-only variables
-      if (inputs) {
-        if (valuesKey) {
-          variables = [...variables, valuesKey];
-        }
-        EXPRESSION_PROPERTIES.forEach(prop => {
-          const property = get(component, prop.split('.'));
-          if (property && expressionLanguage.isExpression(property)) {
-            const expressionVariables = expressionLanguage.getVariableNames(property, {
-              type: 'expression'
-            });
-            variables = [...variables, ...expressionVariables];
-          }
-        });
-        TEMPLATE_PROPERTIES.forEach(prop => {
-          const property = get(component, prop.split('.'));
-          if (property && !expressionLanguage.isExpression(property) && templating.isTemplate(property)) {
-            const templateVariables = templating.getVariableNames(property);
-            variables = [...variables, ...templateVariables];
-          }
-        });
-      }
-      return variables.filter(variable => variable !== undefined || variable !== null);
-    }, []);
-
-    // remove duplicates
-    return Array.from(new Set(variables));
-  }
-
   class UpdateFieldValidationHandler {
     constructor(form, validator) {
       this._form = form;
@@ -41202,14 +41216,11 @@
         value
       } = context;
       const {
-        _path
-      } = field;
-      const {
         errors
       } = this._form._getState();
       context.oldErrors = clone(errors);
       const fieldErrors = this._validator.validateField(field, value);
-      const updatedErrors = set(errors, [pathStringify(_path)], fieldErrors.length ? fieldErrors : undefined);
+      const updatedErrors = set(errors, [field.id], fieldErrors.length ? fieldErrors : undefined);
       this._form._setState({
         errors: updatedErrors
       });
@@ -41892,54 +41903,397 @@
     return evaluatedValidate;
   }
 
-  class FormFieldRegistry {
-    constructor(eventBus) {
-      this._eventBus = eventBus;
-      this._formFields = {};
-      eventBus.on('form.clear', () => this.clear());
-      this._ids = new Ids([32, 36, 1]);
-      this._keys = new Ids([32, 36, 1]);
+  class Importer {
+    /**
+     * @constructor
+     * @param { import('./FormFieldRegistry').default } formFieldRegistry
+     * @param { import('./PathRegistry').default } pathRegistry
+     * @param { import('./FieldFactory').default } fieldFactory
+     * @param { import('./FormLayouter').default } formLayouter
+     */
+    constructor(formFieldRegistry, pathRegistry, fieldFactory, formLayouter) {
+      this._formFieldRegistry = formFieldRegistry;
+      this._pathRegistry = pathRegistry;
+      this._fieldFactory = fieldFactory;
+      this._formLayouter = formLayouter;
     }
-    add(formField) {
-      const {
-        id
-      } = formField;
-      if (this._formFields[id]) {
-        throw new Error(`form field with ID ${id} already exists`);
+
+    /**
+     * Import schema creating rows, fields, attaching additional
+     * information to each field and adding fields to the
+     * field registry.
+     *
+     * Additional information attached:
+     *
+     *   * `id` (unless present)
+     *   * `_parent`
+     *   * `_path`
+     *
+     * @param {any} schema
+     *
+     * @typedef {{ warnings: Error[], schema: any }} ImportResult
+     * @returns {ImportResult}
+     */
+    importSchema(schema) {
+      // TODO: Add warnings
+      const warnings = [];
+      try {
+        this._cleanup();
+        const importedSchema = this.importFormField(clone(schema));
+        this._formLayouter.calculateLayout(clone(importedSchema));
+        return {
+          schema: importedSchema,
+          warnings
+        };
+      } catch (err) {
+        this._cleanup();
+        err.warnings = warnings;
+        throw err;
       }
-      this._eventBus.fire('formField.add', {
-        formField
-      });
-      this._formFields[id] = formField;
     }
-    remove(formField) {
+    _cleanup() {
+      this._formLayouter.clear();
+      this._formFieldRegistry.clear();
+      this._pathRegistry.clear();
+    }
+
+    /**
+     * @param {{[x: string]: any}} fieldAttrs
+     * @param {String} [parentId]
+     * @param {number} [index]
+     *
+     * @return {any} field
+     */
+    importFormField(fieldAttrs, parentId, index) {
       const {
-        id
-      } = formField;
-      if (!this._formFields[id]) {
-        return;
+        components
+      } = fieldAttrs;
+      let parent, path;
+      if (parentId) {
+        parent = this._formFieldRegistry.get(parentId);
       }
-      this._eventBus.fire('formField.remove', {
-        formField
+
+      // set form field path
+      path = parent ? [...parent._path, 'components', index] : [];
+      const field = this._fieldFactory.create({
+        ...fieldAttrs,
+        _path: path,
+        _parent: parentId
+      }, false);
+      this._formFieldRegistry.add(field);
+      if (components) {
+        field.components = this.importFormFields(components, field.id);
+      }
+      return field;
+    }
+
+    /**
+     * @param {Array<any>} components
+     * @param {string} parentId
+     *
+     * @return {Array<any>} imported components
+     */
+    importFormFields(components, parentId) {
+      return components.map((component, index) => {
+        return this.importFormField(component, parentId, index);
       });
-      delete this._formFields[id];
-    }
-    get(id) {
-      return this._formFields[id];
-    }
-    getAll() {
-      return Object.values(this._formFields);
-    }
-    forEach(callback) {
-      this.getAll().forEach(formField => callback(formField));
-    }
-    clear() {
-      this._formFields = {};
-      this._ids.clear();
-      this._keys.clear();
     }
   }
-  FormFieldRegistry.$inject = ['eventBus'];
+  Importer.$inject = ['formFieldRegistry', 'pathRegistry', 'fieldFactory', 'formLayouter'];
+
+  class FieldFactory {
+    /**
+     * @constructor
+     *
+     * @param  formFieldRegistry
+     * @param  formFields
+     */
+    constructor(formFieldRegistry, pathRegistry, formFields) {
+      this._formFieldRegistry = formFieldRegistry;
+      this._pathRegistry = pathRegistry;
+      this._formFields = formFields;
+    }
+    create(attrs, applyDefaults = true) {
+      const {
+        id,
+        type,
+        key,
+        path,
+        _parent
+      } = attrs;
+      const fieldDefinition = this._formFields.get(type);
+      if (!fieldDefinition) {
+        throw new Error(`form field of type <${type}> not supported`);
+      }
+      const {
+        config
+      } = fieldDefinition;
+      if (!config) {
+        throw new Error(`form field of type <${type}> has no config`);
+      }
+      if (id && this._formFieldRegistry._ids.assigned(id)) {
+        throw new Error(`form field with id <${id}> already exists`);
+      }
+
+      // ensure that we can claim the path
+
+      const parent = _parent && this._formFieldRegistry.get(_parent);
+      const parentPath = parent && this._pathRegistry.getValuePath(parent) || [];
+      if (config.keyed && key && !this._pathRegistry.canClaimPath([...parentPath, ...key.split('.')], true)) {
+        throw new Error(`binding path '${[...parentPath, key].join('.')}' is already claimed`);
+      }
+      if (config.pathed && path && !this._pathRegistry.canClaimPath([...parentPath, ...path.split('.')], false)) {
+        throw new Error(`binding path '${[...parentPath, ...path.split('.')].join('.')}' is already claimed`);
+      }
+      const labelAttrs = applyDefaults && config.label ? {
+        label: config.label
+      } : {};
+      const field = config.create({
+        ...labelAttrs,
+        ...attrs
+      });
+      this._ensureId(field);
+      if (config.keyed) {
+        this._ensureKey(field);
+      }
+      if (config.pathed && path) {
+        this._pathRegistry.claimPath(this._pathRegistry.getValuePath(field), false);
+      }
+      return field;
+    }
+    _ensureId(field) {
+      if (field.id) {
+        this._formFieldRegistry._ids.claim(field.id, field);
+        return;
+      }
+      let prefix = 'Field';
+      if (field.type === 'default') {
+        prefix = 'Form';
+      }
+      field.id = this._formFieldRegistry._ids.nextPrefixed(`${prefix}_`, field);
+    }
+    _ensureKey(field) {
+      if (!field.key) {
+        let random;
+        const parent = this._formFieldRegistry.get(field._parent);
+
+        // ensure key uniqueness at level
+        do {
+          random = Math.random().toString(36).substring(7);
+        } while (parent && parent.components.some(child => child.key === random));
+        field.key = `${field.type}_${random}`;
+      }
+      this._pathRegistry.claimPath(this._pathRegistry.getValuePath(field), true);
+    }
+  }
+  FieldFactory.$inject = ['formFieldRegistry', 'pathRegistry', 'formFields'];
+
+  /**
+   * The PathRegistry class manages a hierarchical structure of paths associated with form fields.
+   * It enables claiming, unclaiming, and validating paths within this structure.
+   *
+   * Example Tree Structure:
+   *
+   *   [
+   *     {
+   *       segment: 'root',
+   *       claimCount: 1,
+   *       children: [
+   *         {
+   *           segment: 'child1',
+   *           claimCount: 2,
+   *           children: null  // A leaf node (closed path)
+   *         },
+   *         {
+   *           segment: 'child2',
+   *           claimCount: 1,
+   *           children: [
+   *             {
+   *               segment: 'subChild1',
+   *               claimCount: 1,
+   *               children: []  // An open node (open path)
+   *             }
+   *           ]
+   *         }
+   *       ]
+   *     }
+   *   ]
+   */
+  class PathRegistry {
+    constructor(formFieldRegistry, formFields) {
+      this._formFieldRegistry = formFieldRegistry;
+      this._formFields = formFields;
+      this._dataPaths = [];
+    }
+    canClaimPath(path, closed = false) {
+      let node = {
+        children: this._dataPaths
+      };
+      for (const segment of path) {
+        node = _getNextSegment(node, segment);
+
+        // if no node at that path, we can claim it no matter what
+        if (!node) {
+          return true;
+        }
+
+        // if we reach a leaf node, definitely not claimable
+        if (node.children === null) {
+          return false;
+        }
+      }
+
+      // if after all segments we reach a node with children, we can claim it only openly
+      return !closed;
+    }
+    claimPath(path, closed = false) {
+      if (!this.canClaimPath(path, closed)) {
+        throw new Error(`cannot claim path '${path.join('.')}'`);
+      }
+      let node = {
+        children: this._dataPaths
+      };
+      for (const segment of path) {
+        let child = _getNextSegment(node, segment);
+        if (!child) {
+          child = {
+            segment,
+            claimCount: 1,
+            children: []
+          };
+          node.children.push(child);
+        } else {
+          child.claimCount++;
+        }
+        node = child;
+      }
+      if (closed) {
+        node.children = null;
+      }
+    }
+    unclaimPath(path) {
+      // verification Pass
+      let node = {
+        children: this._dataPaths
+      };
+      for (const segment of path) {
+        const child = _getNextSegment(node, segment);
+        if (!child) {
+          throw new Error(`no open path found for '${path.join('.')}'`);
+        }
+        node = child;
+      }
+
+      // mutation Pass
+      node = {
+        children: this._dataPaths
+      };
+      for (const segment of path) {
+        const child = _getNextSegment(node, segment);
+        child.claimCount--;
+        if (child.claimCount === 0) {
+          node.children.splice(node.children.indexOf(child), 1);
+          break; // Abort early if claimCount reaches zero
+        }
+
+        node = child;
+      }
+    }
+
+    /**
+     * Applies a function (fn) recursively on a given field and its children.
+     *
+     * - `field`: Starting field object.
+     * - `fn`: Function to apply.
+     * - `context`: Optional object for passing data between calls.
+     *
+     * Stops early if `fn` returns `false`. Useful for traversing the form field tree.
+     *
+     * @returns {boolean} Success status based on function execution.
+     */
+    executeRecursivelyOnFields(field, fn, context = {}) {
+      let result = true;
+      const formFieldConfig = this._formFields.get(field.type).config;
+      if (formFieldConfig.keyed) {
+        const callResult = fn({
+          field,
+          isClosed: true,
+          context
+        });
+        return result && callResult;
+      } else if (formFieldConfig.pathed) {
+        const callResult = fn({
+          field,
+          isClosed: false,
+          context
+        });
+        result = result && callResult;
+      }
+      if (field.components) {
+        for (const child of field.components) {
+          const callResult = this.executeRecursivelyOnFields(child, fn, clone(context));
+          result = result && callResult;
+
+          // only stop executing if false is specifically returned, not if undefined
+          if (result === false) {
+            return result;
+          }
+        }
+      }
+      return result;
+    }
+
+    /**
+     * Generates an array representing the binding path to an underlying data object for a form field.
+     *
+     * @param {Object} field - The field object with properties: `key`, `path`, `id`, and optionally `_parent`.
+     * @param {Object} [options={}] - Configuration options.
+     * @param {Object} [options.replacements={}] - A map of field IDs to alternative path arrays.
+     * @param {Object} [options.cutoffNode] - The ID of the parent field at which to stop generating the path.
+     *
+     * @returns {(Array<string>|undefined)} An array of strings representing the binding path, or undefined if not determinable.
+     */
+    getValuePath(field, options = {}) {
+      const {
+        replacements = {},
+        cutoffNode = null
+      } = options;
+      let localValuePath = [];
+      const hasReplacement = Object.prototype.hasOwnProperty.call(replacements, field.id);
+      const formFieldConfig = this._formFields.get(field.type).config;
+      if (hasReplacement) {
+        const replacement = replacements[field.id];
+        if (replacement === null || replacement === undefined || replacement === '') {
+          localValuePath = [];
+        } else if (typeof replacement === 'string') {
+          localValuePath = replacement.split('.');
+        } else if (Array.isArray(replacement)) {
+          localValuePath = replacement;
+        } else {
+          throw new Error(`replacements for field ${field.id} must be a string, array or null/undefined`);
+        }
+      } else if (formFieldConfig.keyed) {
+        localValuePath = field.key.split('.');
+      } else if (formFieldConfig.pathed && field.path) {
+        localValuePath = field.path.split('.');
+      }
+      if (field._parent && field._parent !== cutoffNode) {
+        const parent = this._formFieldRegistry.get(field._parent);
+        return [...(this.getValuePath(parent, options) || []), ...localValuePath];
+      }
+      return localValuePath;
+    }
+    clear() {
+      this._dataPaths = [];
+    }
+  }
+  const _getNextSegment = (node, segment) => {
+    if (isArray$2(node.children)) {
+      return node.children.find(node => node.segment === segment) || null;
+    }
+    return null;
+  };
+  PathRegistry.$inject = ['formFieldRegistry', 'formFields'];
 
   /**
    * @typedef { { id: String, components: Array<String> } } FormRow
@@ -42031,7 +42385,7 @@
         type,
         components
       } = formField;
-      if (type !== 'default' || !components) {
+      if (type !== 'default' && type !== 'group' || !components) {
         return;
       }
 
@@ -42086,147 +42440,52 @@
     return flatten$2(formRows.map(c => c.rows));
   }
 
-  class Importer {
-    /**
-     * @constructor
-     * @param { import('../core').FormFieldRegistry } formFieldRegistry
-     * @param { import('../render/FormFields').default } formFields
-     * @param { import('../core').FormLayouter } formLayouter
-     */
-    constructor(formFieldRegistry, formFields, formLayouter) {
-      this._formFieldRegistry = formFieldRegistry;
-      this._formFields = formFields;
-      this._formLayouter = formLayouter;
+  class FormFieldRegistry {
+    constructor(eventBus) {
+      this._eventBus = eventBus;
+      this._formFields = {};
+      eventBus.on('form.clear', () => this.clear());
+      this._ids = new Ids([32, 36, 1]);
     }
-
-    /**
-     * Import schema adding `id`, `_parent` and `_path`
-     * information to each field and adding it to the
-     * form field registry.
-     *
-     * @param {any} schema
-     * @param {any} [data]
-     *
-     * @return { { warnings: Array<any>, schema: any, data: any } }
-     */
-    importSchema(schema, data = {}) {
-      // TODO: Add warnings - https://github.com/bpmn-io/form-js/issues/289
-      const warnings = [];
-      try {
-        this._formLayouter.clear();
-        const importedSchema = this.importFormField(clone(schema)),
-          initializedData = this.initializeFieldValues(clone(data));
-        this._formLayouter.calculateLayout(clone(importedSchema));
-        return {
-          warnings,
-          schema: importedSchema,
-          data: initializedData
-        };
-      } catch (err) {
-        err.warnings = warnings;
-        throw err;
-      }
-    }
-
-    /**
-     * @param {any} formField
-     * @param {string} [parentId]
-     *
-     * @return {any} importedField
-     */
-    importFormField(formField, parentId) {
+    add(formField) {
       const {
-        components,
-        key,
-        type,
-        id = generateIdForType(type)
+        id
       } = formField;
-      if (parentId) {
-        // set form field parent
-        formField._parent = parentId;
+      if (this._formFields[id]) {
+        throw new Error(`form field with ID ${id} already exists`);
       }
-      if (!this._formFields.get(type)) {
-        throw new Error(`form field of type <${type}> not supported`);
-      }
-      if (key) {
-        // validate <key> uniqueness
-        if (this._formFieldRegistry._keys.assigned(key)) {
-          throw new Error(`form field with key <${key}> already exists`);
-        }
-        this._formFieldRegistry._keys.claim(key, formField);
-
-        // TODO: buttons should not have key
-        if (type !== 'button') {
-          // set form field path
-          formField._path = [key];
-        }
-      }
-      if (id) {
-        // validate <id> uniqueness
-        if (this._formFieldRegistry._ids.assigned(id)) {
-          throw new Error(`form field with id <${id}> already exists`);
-        }
-        this._formFieldRegistry._ids.claim(id, formField);
-      }
-
-      // set form field ID
-      formField.id = id;
-      this._formFieldRegistry.add(formField);
-      if (components) {
-        this.importFormFields(components, id);
-      }
-      return formField;
-    }
-    importFormFields(components, parentId) {
-      components.forEach(component => {
-        this.importFormField(component, parentId);
+      this._eventBus.fire('formField.add', {
+        formField
       });
+      this._formFields[id] = formField;
     }
-
-    /**
-     * @param {Object} data
-     *
-     * @return {Object} initializedData
-     */
-    initializeFieldValues(data) {
-      return this._formFieldRegistry.getAll().reduce((initializedData, formField) => {
-        const {
-          defaultValue,
-          _path,
-          type
-        } = formField;
-
-        // try to get value from data
-        // if unavailable - try to get default value from form field
-        // if unavailable - get empty value from form field
-
-        if (_path) {
-          const {
-            config: fieldConfig
-          } = this._formFields.get(type);
-          let valueData = get(data, _path);
-          if (!isUndefined$1(valueData) && fieldConfig.sanitizeValue) {
-            valueData = fieldConfig.sanitizeValue({
-              formField,
-              data,
-              value: valueData
-            });
-          }
-          const initializedFieldValue = !isUndefined$1(valueData) ? valueData : !isUndefined$1(defaultValue) ? defaultValue : fieldConfig.emptyValue;
-          initializedData = {
-            ...initializedData,
-            [_path[0]]: initializedFieldValue
-          };
-        }
-        return initializedData;
-      }, data);
+    remove(formField) {
+      const {
+        id
+      } = formField;
+      if (!this._formFields[id]) {
+        return;
+      }
+      this._eventBus.fire('formField.remove', {
+        formField
+      });
+      delete this._formFields[id];
+    }
+    get(id) {
+      return this._formFields[id];
+    }
+    getAll() {
+      return Object.values(this._formFields);
+    }
+    forEach(callback) {
+      this.getAll().forEach(formField => callback(formField));
+    }
+    clear() {
+      this._formFields = {};
+      this._ids.clear();
     }
   }
-  Importer.$inject = ['formFieldRegistry', 'formFields', 'formLayouter'];
-
-  var importModule = {
-    importer: ['type', Importer]
-  };
+  FormFieldRegistry.$inject = ['eventBus'];
 
   function formFieldClasses(type, {
     errors = [],
@@ -42281,7 +42540,7 @@
   }
   Button.config = {
     type: type$c,
-    keyed: true,
+    keyed: false,
     label: 'Button',
     group: 'action',
     create: (options = {}) => ({
@@ -42291,6 +42550,9 @@
   };
 
   const FormRenderContext = D$1({
+    EmptyRoot: props => {
+      return null;
+    },
     Empty: props => {
       return null;
     },
@@ -42320,6 +42582,10 @@
         class: props.class,
         children: props.children
       });
+    },
+    hoveredId: [],
+    setHoveredId: newValue => {
+      console.log(`setHoveredId not defined, called with '${newValue}'`);
     }
   });
   var FormRenderContext$1 = FormRenderContext;
@@ -42439,6 +42705,37 @@
       return conditionChecker ? conditionChecker.check(readonly, filteredData) : false;
     }
     return readonly || false;
+  }
+
+  function usePrevious(value, defaultValue, dependencies) {
+    const ref = s(defaultValue);
+    y(() => ref.current = value, dependencies);
+    return ref.current;
+  }
+
+  /**
+   * A custom hook to manage state changes with deep comparison.
+   *
+   * @param {any} value - The current value to manage.
+   * @param {any} defaultValue - The initial default value for the state.
+   * @returns {any} - Returns the current state.
+   */
+  function useDeepCompareState(value, defaultValue) {
+    const [state, setState] = l$1(defaultValue);
+    const previous = usePrevious(value, defaultValue, [value]);
+    const changed = !compare(previous, value);
+    y(() => {
+      if (changed) {
+        setState(value);
+      }
+    }, [changed, value]);
+    return state;
+  }
+
+  // helpers //////////////////////////
+
+  function compare(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
   }
 
   /**
@@ -42661,6 +42958,21 @@
   function _isValueSomething(value) {
     return value || value === 0 || value === false;
   }
+  function createEmptyOptions(options = {}) {
+    const defaults = {};
+
+    // provide default values if valuesKey and valuesExpression are not set
+    if (!options.valuesKey && !options.valuesExpression) {
+      defaults.values = [{
+        label: 'Value',
+        value: 'value'
+      }];
+    }
+    return {
+      ...defaults,
+      ...options
+    };
+  }
 
   /**
    * @enum { String }
@@ -42695,11 +43007,8 @@
       state: LOAD_STATES.LOADING
     });
     const initialData = useService('form')._getState().initialData;
-    const evaluatedValues = d(() => {
-      if (valuesExpression) {
-        return useExpressionEvaluation(valuesExpression);
-      }
-    }, [valuesExpression]);
+    const expressionEvaluation = useExpressionEvaluation(valuesExpression);
+    const evaluatedValues = useDeepCompareState(expressionEvaluation || [], []);
     y(() => {
       let values = [];
 
@@ -42715,8 +43024,10 @@
         values = Array.isArray(staticValues) ? staticValues : [];
 
         // expression
-      } else if (evaluatedValues && Array.isArray(evaluatedValues)) {
-        values = evaluatedValues;
+      } else if (valuesExpression) {
+        if (evaluatedValues && Array.isArray(evaluatedValues)) {
+          values = evaluatedValues;
+        }
       } else {
         setValuesGetter(buildErrorState('No values source defined in the form definition'));
         return;
@@ -42725,7 +43036,7 @@
       // normalize data to support primitives and partially defined objects
       values = normalizeValuesData(values);
       setValuesGetter(buildLoadedState(values));
-    }, [valuesKey, staticValues, initialData]);
+    }, [valuesKey, staticValues, initialData, valuesExpression, evaluatedValues]);
     return valuesGetter;
   }
   const buildErrorState = error => ({
@@ -43037,21 +43348,7 @@
     group: 'selection',
     emptyValue: [],
     sanitizeValue: sanitizeMultiSelectValue,
-    create: (options = {}) => {
-      const defaults = {};
-
-      // provide default values if valuesKey isn't set
-      if (!options.valuesKey) {
-        defaults.values = [{
-          label: 'Value',
-          value: 'value'
-        }];
-      }
-      return {
-        ...defaults,
-        ...options
-      };
-    }
+    create: createEmptyOptions
   };
 
   const noop$1 = () => false;
@@ -43062,6 +43359,7 @@
     } = props;
     const formFields = useService('formFields'),
       viewerCommands = useService('viewerCommands', false),
+      pathRegistry = useService('pathRegistry'),
       form = useService('form');
     const {
       initialData,
@@ -43078,10 +43376,10 @@
     if (!FormFieldComponent) {
       throw new Error(`cannot render field <${field.type}>`);
     }
-    const initialValue = d(() => get(initialData, field._path), [initialData, field._path]);
-    const value = get(data, field._path);
-    const fieldErrors = findErrors(errors, field._path);
+    const valuePath = d(() => pathRegistry.getValuePath(field), [field, pathRegistry]);
+    const initialValue = d(() => get(initialData, valuePath), [initialData, valuePath]);
     const readonly = useReadonly(field, properties);
+    const value = get(data, valuePath);
 
     // add precedence: global readonly > form field disabled
     const disabled = !properties.readOnly && (properties.disabled || field.disabled || false);
@@ -43108,7 +43406,7 @@
         children: e$2(FormFieldComponent, {
           ...props,
           disabled: disabled,
-          errors: fieldErrors,
+          errors: errors[field.id],
           onChange: disabled || readonly ? noop$1 : onChange,
           onBlur: disabled || readonly ? noop$1 : onBlur,
           readonly: readonly,
@@ -43118,14 +43416,14 @@
     });
   }
 
-  function Default(props) {
+  function Grid(props) {
     const {
       Children,
-      Empty,
       Row
     } = F(FormRenderContext$1);
     const {
-      field
+      field,
+      Empty
     } = props;
     const {
       id,
@@ -43162,7 +43460,20 @@
       }), components.length ? null : e$2(Empty, {})]
     });
   }
-  Default.config = {
+
+  function FormComponent$1(props) {
+    const {
+      EmptyRoot
+    } = F(FormRenderContext$1);
+    const fullProps = {
+      ...props,
+      Empty: EmptyRoot
+    };
+    return e$2(Grid, {
+      ...fullProps
+    });
+  }
+  FormComponent$1.config = {
     type: 'default',
     keyed: false,
     label: null,
@@ -43190,6 +43501,74 @@
     })));
   };
   var CalendarIcon = SvgCalendar;
+
+  /**
+   * Returns date format for the provided locale.
+   * If the locale is not provided, uses the browser's locale.
+   *
+   * @param {string} [locale] - The locale to get date format for.
+   * @returns {string} The date format for the locale.
+   */
+  function getLocaleDateFormat(locale = 'default') {
+    const parts = new Intl.DateTimeFormat(locale).formatToParts(new Date(Date.UTC(2020, 5, 5)));
+    return parts.map(part => {
+      const len = part.value.length;
+      switch (part.type) {
+        case 'day':
+          return 'd'.repeat(len);
+        case 'month':
+          return 'M'.repeat(len);
+        case 'year':
+          return 'y'.repeat(len);
+        default:
+          return part.value;
+      }
+    }).join('');
+  }
+
+  /**
+   * Returns readable date format for the provided locale.
+   * If the locale is not provided, uses the browser's locale.
+   *
+   * @param {string} [locale] - The locale to get readable date format for.
+   * @returns {string} The readable date format for the locale.
+   */
+  function getLocaleReadableDateFormat(locale) {
+    let format = getLocaleDateFormat(locale).toLowerCase();
+
+    // Ensure month is in 'mm' format
+    if (!format.includes('mm')) {
+      format = format.replace('m', 'mm');
+    }
+
+    // Ensure day is in 'dd' format
+    if (!format.includes('dd')) {
+      format = format.replace('d', 'dd');
+    }
+    return format;
+  }
+
+  /**
+   * Returns flatpickr config for the provided locale.
+   * If the locale is not provided, uses the browser's locale.
+   *
+   * @param {string} [locale] - The locale to get flatpickr config for.
+   * @returns {object} The flatpickr config for the locale.
+   */
+  function getLocaleDateFlatpickrConfig(locale) {
+    return flatpickerizeDateFormat(getLocaleDateFormat(locale));
+  }
+  function flatpickerizeDateFormat(dateFormat) {
+    const useLeadingZero = {
+      day: dateFormat.includes('dd'),
+      month: dateFormat.includes('MM'),
+      year: dateFormat.includes('yyyy')
+    };
+    dateFormat = useLeadingZero.day ? dateFormat.replace('dd', 'd') : dateFormat.replace('d', 'j');
+    dateFormat = useLeadingZero.month ? dateFormat.replace('MM', 'm') : dateFormat.replace('M', 'n');
+    dateFormat = useLeadingZero.year ? dateFormat.replace('yyyy', 'Y') : dateFormat.replace('yy', 'y');
+    return dateFormat;
+  }
 
   function InputAdorner(props) {
     const {
@@ -43265,7 +43644,7 @@
     y(() => {
       let config = {
         allowInput: true,
-        dateFormat: 'm/d/Y',
+        dateFormat: getLocaleDateFlatpickrConfig(),
         static: true,
         clickOpens: false,
         // TODO: support dates prior to 1900 (https://github.com/bpmn-io/form-js/issues/533)
@@ -43357,7 +43736,7 @@
             class: "fjs-input",
             disabled: disabled,
             readOnly: readonly,
-            placeholder: "mm/dd/yyyy",
+            placeholder: getLocaleReadableDateFormat(),
             autoComplete: "off",
             onFocus: onInputFocus,
             onKeyDown: onInputKeyDown,
@@ -43442,7 +43821,8 @@
     y(() => {
       const individualEntries = dropdownContainer.current.children;
       if (individualEntries.length && !mouseControl) {
-        individualEntries[focusedValueIndex].scrollIntoView({
+        const focusedEntry = individualEntries[focusedValueIndex];
+        focusedEntry && focusedEntry.scrollIntoView({
           block: 'nearest',
           inline: 'nearest'
         });
@@ -43977,6 +44357,52 @@
       }), e$2(PoweredBy, {})]
     });
   }
+
+  function Group(props) {
+    const {
+      field
+    } = props;
+    const {
+      label,
+      id,
+      type,
+      showOutline
+    } = field;
+    const {
+      formId
+    } = F(FormContext$1);
+    const {
+      Empty
+    } = F(FormRenderContext$1);
+    const fullProps = {
+      ...props,
+      Empty
+    };
+    return e$2("div", {
+      className: classNames(formFieldClasses(type), {
+        'fjs-outlined': showOutline
+      }),
+      role: "group",
+      "aria-labelledby": prefixId(id, formId),
+      children: [e$2(Label, {
+        id: prefixId(id, formId),
+        label: label
+      }), e$2(Grid, {
+        ...fullProps
+      })]
+    });
+  }
+  Group.config = {
+    type: 'group',
+    pathed: true,
+    label: 'Group',
+    group: 'presentation',
+    create: (options = {}) => ({
+      components: [],
+      showOutline: true,
+      ...options
+    })
+  };
 
   const NODE_TYPE_TEXT = 3,
     NODE_TYPE_ELEMENT = 1;
@@ -44566,21 +44992,7 @@
     group: 'selection',
     emptyValue: null,
     sanitizeValue: sanitizeSingleSelectValue,
-    create: (options = {}) => {
-      const defaults = {};
-
-      // provide default values if valuesKey isn't set
-      if (!options.valuesKey) {
-        defaults.values = [{
-          label: 'Value',
-          value: 'value'
-        }];
-      }
-      return {
-        ...defaults,
-        ...options
-      };
-    }
+    create: createEmptyOptions
   };
 
   var _path$d;
@@ -44932,21 +45344,7 @@
     group: 'selection',
     emptyValue: null,
     sanitizeValue: sanitizeSingleSelectValue,
-    create: (options = {}) => {
-      const defaults = {};
-
-      // provide default values if valuesKey isn't set
-      if (!options.valuesKey) {
-        defaults.values = [{
-          label: 'Value',
-          value: 'value'
-        }];
-      }
-      return {
-        ...defaults,
-        ...options
-      };
-    }
+    create: createEmptyOptions
   };
 
   const type$4 = 'spacer';
@@ -45174,21 +45572,7 @@
     group: 'selection',
     emptyValue: [],
     sanitizeValue: sanitizeMultiSelectValue,
-    create: (options = {}) => {
-      const defaults = {};
-
-      // provide default values if valuesKey isn't set
-      if (!options.valuesKey) {
-        defaults.values = [{
-          label: 'Value',
-          value: 'value'
-        }];
-      }
-      return {
-        ...defaults,
-        ...options
-      };
-    }
+    create: createEmptyOptions
   };
 
   const type$2 = 'text';
@@ -45467,7 +45851,7 @@
     textarea.style.overflow = calculatedHeight > maxHeight ? 'visible' : 'hidden';
   };
 
-  const formFields = [Button, Checkbox, Checklist, Default, Image, Numberfield, Datetime, Radio, Select, Spacer, Taglist, Text, Textfield, Textarea];
+  const formFields = [Button, Checkbox, Checklist, FormComponent$1, Group, Image, Numberfield, Datetime, Radio, Select, Spacer, Taglist, Text, Textfield, Textarea];
 
   class FormFields {
     constructor() {
@@ -45543,9 +45927,12 @@
   };
 
   var core = {
-    __depends__: [importModule, renderModule],
+    __depends__: [renderModule],
     eventBus: ['type', EventBus],
+    importer: ['type', Importer],
+    fieldFactory: ['type', FieldFactory],
     formFieldRegistry: ['type', FormFieldRegistry],
+    pathRegistry: ['type', PathRegistry],
     formLayouter: ['type', FormLayouter],
     validator: ['type', Validator]
   };
@@ -45660,9 +46047,9 @@
           this.clear();
           const {
             schema: importedSchema,
-            data: initializedData,
             warnings
-          } = this.get('importer').importSchema(schema, data);
+          } = this.get('importer').importSchema(schema);
+          const initializedData = this._initializeFieldData(clone(data));
           this._setState({
             data: initializedData,
             errors: {},
@@ -45720,21 +46107,21 @@
      */
     validate() {
       const formFieldRegistry = this.get('formFieldRegistry'),
+        pathRegistry = this.get('pathRegistry'),
         validator = this.get('validator');
       const {
         data
       } = this._getState();
       const errors = formFieldRegistry.getAll().reduce((errors, field) => {
         const {
-          disabled,
-          _path
+          disabled
         } = field;
         if (disabled) {
           return errors;
         }
-        const value = get(data, _path);
+        const value = get(data, pathRegistry.getValuePath(field));
         const fieldErrors = validator.validateField(field, value);
-        return set(errors, [pathStringify(_path)], fieldErrors.length ? fieldErrors : undefined);
+        return set(errors, [field.id], fieldErrors.length ? fieldErrors : undefined);
       }, /** @type {Errors} */{});
       this._setState({
         errors
@@ -45840,16 +46227,14 @@
         value
       } = update;
       const {
-        _path
-      } = field;
-      let {
         data,
         errors
       } = this._getState();
-      const validator = this.get('validator');
+      const validator = this.get('validator'),
+        pathRegistry = this.get('pathRegistry');
       const fieldErrors = validator.validateField(field, value);
-      set(data, _path, value);
-      set(errors, [pathStringify(_path)], fieldErrors.length ? fieldErrors : undefined);
+      set(data, pathRegistry.getValuePath(field), value);
+      set(errors, [field.id], fieldErrors.length ? fieldErrors : undefined);
       this._setState({
         data: clone(data),
         errors: clone(errors)
@@ -45892,23 +46277,26 @@
      * @internal
      */
     _getSubmitData() {
-      const formFieldRegistry = this.get('formFieldRegistry');
+      const formFieldRegistry = this.get('formFieldRegistry'),
+        pathRegistry = this.get('pathRegistry'),
+        formFields = this.get('formFields');
       const formData = this._getState().data;
       const submitData = formFieldRegistry.getAll().reduce((previous, field) => {
         const {
           disabled,
-          _path
+          type
         } = field;
+        const {
+          config: fieldConfig
+        } = formFields.get(type);
 
-        // do not submit disabled form fields
-        if (disabled || !_path) {
+        // do not submit disabled form fields or routing fields
+        if (disabled || !fieldConfig.keyed) {
           return previous;
         }
-        const value = get(formData, _path);
-        return {
-          ...previous,
-          [_path[0]]: value
-        };
+        const valuePath = pathRegistry.getValuePath(field);
+        const value = get(formData, valuePath);
+        return set(previous, valuePath, value);
       }, {});
       const filteredSubmitData = this._applyConditions(submitData, formData);
       return filteredSubmitData;
@@ -45921,9 +46309,46 @@
       const conditionChecker = this.get('conditionChecker');
       return conditionChecker.applyConditions(toFilter, data);
     }
+
+    /**
+     * @internal
+     */
+    _initializeFieldData(data) {
+      const formFieldRegistry = this.get('formFieldRegistry'),
+        formFields = this.get('formFields'),
+        pathRegistry = this.get('pathRegistry');
+      return formFieldRegistry.getAll().reduce((initializedData, formField) => {
+        const {
+          defaultValue,
+          type
+        } = formField;
+
+        // try to get value from data
+        // if unavailable - try to get default value from form field
+        // if unavailable - get empty value from form field
+
+        const valuePath = pathRegistry.getValuePath(formField);
+        if (valuePath) {
+          const {
+            config: fieldConfig
+          } = formFields.get(type);
+          let valueData = get(data, valuePath);
+          if (!isUndefined$1(valueData) && fieldConfig.sanitizeValue) {
+            valueData = fieldConfig.sanitizeValue({
+              formField,
+              data,
+              value: valueData
+            });
+          }
+          const initializedFieldValue = !isUndefined$1(valueData) ? valueData : !isUndefined$1(defaultValue) ? defaultValue : fieldConfig.emptyValue;
+          return set(initializedData, valuePath, initializedFieldValue);
+        }
+        return initializedData;
+      }, data);
+    }
   }
 
-  const schemaVersion = 10;
+  const schemaVersion = 11;
 
   /**
    * @typedef { import('./types').CreateFormOptions } CreateFormOptions
