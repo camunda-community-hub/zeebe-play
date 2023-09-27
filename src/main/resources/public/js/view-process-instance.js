@@ -578,8 +578,6 @@ function loadVariablesOfProcessInstance() {
 
       let scopeElement = formatBpmnElementInstance(scope.element);
 
-      let valueFormatted = "<code>" + variable.value + "</code>";
-
       let lastUpdatedFormatted =
         '<div class="row row-cols-1">' +
         '<div class="col">' +
@@ -665,9 +663,7 @@ function loadVariablesOfProcessInstance() {
           "<td>" +
           variable.name +
           "</td>" +
-          "<td>" +
-          valueFormatted +
-          "</td>" +
+          "<td><code></code></td>" +
           "<td>" +
           scopeFormatted +
           "</td>" +
@@ -685,6 +681,8 @@ function loadVariablesOfProcessInstance() {
           "</td>" +
           "</tr>"
       );
+
+      $("#variables-of-process-instance-table > tbody:last-child > tr:last-child code").text(variable.value);
     });
   });
 }
@@ -719,8 +717,7 @@ function setVariablesModal() {
       const toastId = "set-variables-" + key;
       showNotificationSuccess(
         toastId,
-        "Variables set successfully",
-        "<code>" + variables + "</code>."
+        "Variables set successfully"
       );
 
       loadVariablesOfProcessInstance();
@@ -728,7 +725,7 @@ function setVariablesModal() {
     .fail(
       showFailure(
         "set-variables" + scope,
-        "Failed to set variables <code>" + variables + "</code>."
+        "Failed to set variables."
       )
     );
 }
