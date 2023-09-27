@@ -113,8 +113,7 @@ async function confirmResolveIncidentModal() {
 
       showNotificationSuccess(
         "set-variables-" + key,
-        "Variables set successfully",
-        "<code>" + variables + "</code>"
+        "Variables set successfully"
       );
 
       track?.("zeebePlay:single-operation", {
@@ -127,7 +126,7 @@ async function confirmResolveIncidentModal() {
     .fail(
       showFailure(
         "set-variables" + scope,
-        "Failed to set variables <code>" + variables + "</code>."
+        "Failed to set variables."
       )
     );
 }

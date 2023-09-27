@@ -22,9 +22,9 @@ function loadConnectorSecrets() {
       let row = `
         <tr>
           <td>${index + 1}</td>
-          <td>${secret.name}</td>
+          <td class="secretName"></td>
           <td>
-            <code>${secret.value}</code>
+            <code></code>
           </td>
           <td>
             <button id="${editButtonId}" type="button" class="btn btn-sm btn-secondary" title="Edit" data-bs-toggle="modal"
@@ -41,6 +41,9 @@ function loadConnectorSecrets() {
         </tr>`;
 
       $("#connector-secrets-table tbody:last-child").append(row);
+
+      $("#connector-secrets-table tbody:last-child tr:last-child .secretName").text(secret.name);
+      $("#connector-secrets-table tbody:last-child tr:last-child code").text(secret.value);
 
       $("#" + editButtonId).click(function () {
         // fill modal
