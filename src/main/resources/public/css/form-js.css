@@ -414,6 +414,15 @@
   justify-content: center;
 }
 
+.fjs-container hr {
+  border: none;
+  border-top: solid 2px var(--color-borders-group);
+}
+
+.fjs-container .fjs-form-field-separator hr {
+  margin: 7px 2px;
+}
+
 .fjs-container .fjs-input[type=text],
 .fjs-container .fjs-input[type=email],
 .fjs-container .fjs-input[type=tel],
@@ -443,9 +452,17 @@
 }
 
 .fjs-container .fjs-datepicker,
-.fjs-container .fjs-timepicker,
-.fjs-container .fjs-datetime-subsection {
+.fjs-container .fjs-timepicker {
   width: 100%;
+}
+
+.fjs-container .fjs-datetime-subsection {
+  min-width: 0;
+  flex: 1;
+}
+
+.fjs-container .fjs-datetime-separator {
+  width: 10px;
 }
 
 .fjs-container .fjs-timepicker-anchor {
@@ -455,10 +472,6 @@
 
 .fjs-container .fjs-form-field-datetime .fjs-input-adornment svg {
   color: var(--color-icon-base);
-}
-
-.fjs-container .fjs-datetime-separator {
-  width: 10px;
 }
 
 .fjs-container .fjs-input-group {
@@ -529,11 +542,6 @@
   border-radius: 3px;
 }
 
-.fjs-container .fjs-vertical-group {
-  display: flex;
-  width: 100%;
-}
-
 .fjs-container .flatpickr-wrapper {
   width: 100%;
   height: 100%;
@@ -579,6 +587,10 @@
 .fjs-container .fjs-number-arrow-container button:hover {
   background-color: var(--color-background-inverted-hover);
   color: var(--cds-text-inverse, var(--color-text));
+}
+
+.fjs-container .fjs-form-field-number.fjs-readonly .fjs-number-arrow-container {
+  display: none;
 }
 
 .fjs-container .fjs-radio {
@@ -799,6 +811,26 @@
   margin: 4px 0;
   padding: 5px;
   background-color: var(--color-background);
+}
+
+.fjs-container .fjs-taglist-skip-link {
+  outline: none;
+  border: none;
+  background-color: transparent;
+  color: transparent;
+  height: 0px;
+  width: 0px;
+  position: absolute;
+  left: -100px;
+}
+
+.fjs-container .fjs-taglist-skip-link:focus {
+  position: relative;
+  height: auto;
+  width: auto;
+  border: solid 1px var(--color-accent);
+  color: var(--color-accent);
+  left: 0;
 }
 
 .fjs-container .fjs-taglist .fjs-taglist-tag {
