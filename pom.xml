@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>zeebe-play</artifactId>
-    <version>1.10.3-SNAPSHOT</version>
+    <version>1.10.3</version>
 
     <prerequisites>
         <maven>${maven.version}</maven>
@@ -566,7 +566,7 @@
         <connection>scm:git:git@github.com:hmubaireek/zeebe-play.git</connection>
         <developerConnection>scm:git:git@github.com:hmubaireek/zeebe-play.git
         </developerConnection>
-        <tag>zeebe-play-1.10.2</tag>
+        <tag>zeebe-play-1.10.3</tag>
     </scm>
 
 </project>
