@@ -389,7 +389,7 @@
                 </executions>
                 <configuration>
                     <to>
-                        <image>ghcr.io/HMubaireek/zeebe-play</image>
+                        <image>ghcr.io/hmubaireek/zeebe-play</image>
                         <tags>${project.version}</tags>
                     </to>
                     <container>
@@ -562,9 +562,9 @@
     </repositories>
 
     <scm>
-        <url>https://github.com/HMubaireek/zeebe-play</url>
-        <connection>scm:git:git@github.com:HMubaireek/zeebe-play.git</connection>
-        <developerConnection>scm:git:git@github.com:HMubaireek/zeebe-play.git
+        <url>https://github.com/hmubaireek/zeebe-play</url>
+        <connection>scm:git:git@github.com:hmubaireek/zeebe-play.git</connection>
+        <developerConnection>scm:git:git@github.com:hmubaireek/zeebe-play.git
         </developerConnection>
         <tag>zeebe-play-1.10.2</tag>
     </scm>
