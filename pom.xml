@@ -27,7 +27,7 @@
         <camunda-connector-bundle.version>0.21.3</camunda-connector-bundle.version>
 
         <kotlin.version>1.9.23</kotlin.version>
-        <spring.boot.version>2.7.17</spring.boot.version>
+        <spring.boot.version>3.2.3</spring.boot.version>
 
         <!-- release parent settings -->
         <version.java>17</version.java>
