@@ -24,7 +24,7 @@
         <zeeqs.version>2.9.0</zeeqs.version>
         <eze.version>1.2.0</eze.version>
         <hazelcast.version>1.4.0</hazelcast.version>
-        <camunda-connector-bundle.version>0.21.3</camunda-connector-bundle.version>
+        <camunda-connector-bundle.version>8.4.6</camunda-connector-bundle.version>
 
         <kotlin.version>1.9.23</kotlin.version>
         <spring.boot.version>2.7.17</spring.boot.version>
