@@ -4,7 +4,7 @@ function sendRequest(path, type, data) {
     url: "/rest/" + path,
     data: JSON.stringify(data),
     contentType: "application/json; charset=utf-8",
-    timeout: 5000,
+    timeout: 60000,
     crossDomain: true,
   }).done(function (data) {
     return data;
@@ -62,7 +62,7 @@ function deployResources(resources) {
     data: new FormData(resources),
     processData: false,
     contentType: false,
-    timeout: 5000,
+    timeout: 60000,
     crossDomain: true,
   });
 }

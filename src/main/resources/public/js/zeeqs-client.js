@@ -728,7 +728,7 @@ function fetchData(query, variables) {
     }),
     contentType: "application/json; charset=utf-8",
     accept: "application/json; charset=utf-8",
-    timeout: 5000,
+    timeout: 60000,
     crossDomain: true,
   })
     .done(function (data) {
