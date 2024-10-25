@@ -1,10 +1,15 @@
 # zeebe-play
 
 [![](https://img.shields.io/badge/Community%20Extension-An%20open%20source%20community%20maintained%20project-FF4700)](https://github.com/camunda-community-hub/community)
-[![](https://img.shields.io/badge/Lifecycle-Incubating-blue)](https://github.com/Camunda-Community-Hub/community/blob/main/extension-lifecycle.md#incubating-)
+[![](https://img.shields.io/badge/Lifecycle-Unmaintained-lightgrey)](https://github.com/Camunda-Community-Hub/community/blob/main/extension-lifecycle.md#Unmaintained-)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [![Compatible with: Camunda Platform 8](https://img.shields.io/badge/Compatible%20with-Camunda%20Platform%208-0072Ce)](https://github.com/camunda-community-hub/community/blob/main/extension-lifecycle.md#compatiblilty)
+
+> [!IMPORTANT]
+> This community extension is **unmaintained** and outdated. It may not support new Camunda versions.
+>
+> Thank you to all [contributors](https://github.com/camunda-community-hub/zeebe-play/graphs/contributors) for making it a great extension. :tada:
 
 A web application for [Zeebe](https://camunda.com/platform/zeebe/) to play with processes. You could
 describe it as a [token simulation](https://github.com/bpmn-io/bpmn-js-token-simulation) but for
